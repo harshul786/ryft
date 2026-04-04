@@ -1,0 +1,27 @@
+{
+  "name": "ryft",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "ryft": "./bin/ryft.js"
+  },
+  "scripts": {
+    "start": "tsx ./src/cli.ts",
+    "proxy": "tsx ./src/runtime/proxyServer.ts",
+    "test": "tsx --test ./test/core.test.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "chalk": "^5.4.1",
+    "commander": "^13.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.2",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
+  }
+}
