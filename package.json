@@ -9,7 +9,7 @@
   "scripts": {
     "start": "tsx ./src/cli.ts",
     "proxy": "tsx ./src/runtime/proxyServer.ts",
-    "test": "tsx --test ./test/core.test.ts",
+    "test": "tsx --test ./test/**/*.test.ts",
     "typecheck": "tsc --noEmit",
     "build": "tsc && echo '✓ Build complete in dist/'",
     "link": "npm run build && npm link",
