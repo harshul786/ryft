@@ -1,0 +1,42 @@
+{
+  "skills": {
+    "1": {
+      "id": 1,
+      "name": "compact",
+      "path": "packs/shared/skills/compact/SKILL.md",
+      "description": "Produce concise, focused output without unnecessary explanation",
+      "modes": ["coder", "browser-surff", "debugger"],
+      "requiredTools": [],
+      "requiresPermission": false
+    },
+    "2": {
+      "id": 2,
+      "name": "edit",
+      "path": "packs/coder/skills/edit/SKILL.md",
+      "description": "Make targeted code changes with minimal surface area",
+      "modes": ["coder"],
+      "requiredTools": ["editor"],
+      "requiresPermission": false
+    },
+    "3": {
+      "id": 3,
+      "name": "browser",
+      "path": "packs/browser-surff/skills/browser/SKILL.md",
+      "description": "Use browser automation and devtools for UI inspection",
+      "modes": ["browser-surff"],
+      "requiredTools": ["browser"],
+      "requiresPermission": false
+    },
+    "4": {
+      "id": 4,
+      "name": "troubleshoot",
+      "path": "packs/debugger/skills/troubleshoot/SKILL.md",
+      "description": "Find root causes from logs, tests, and reproduction steps",
+      "modes": ["debugger"],
+      "requiredTools": ["logs", "bash"],
+      "requiresPermission": false
+    }
+  },
+  "idCounter": 5,
+  "version": "2.0.0"
+}

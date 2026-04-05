@@ -1,0 +1,17 @@
+{
+  "name": "coder",
+  "description": "Code editing and development with minimal overhead",
+  "skillDirectory": "skills",
+  "memory": "claude-like",
+  "enabledTools": ["bash", "editor", "typescript", "node", "git"],
+  "disabledTools": ["browser"],
+  "mcpServers": [
+    {
+      "id": "filesystem",
+      "name": "Filesystem",
+      "description": "Local filesystem operations for code editing"
+    }
+  ],
+  "version": "1.0.0",
+  "author": "Ryft Team"
+}

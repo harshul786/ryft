@@ -7,7 +7,7 @@ import type {
   MemoryState,
 } from "../types.ts";
 import { defaultMemoryMode, resolveMemoryMode } from "../memory/catalog.ts";
-import { loadSkillsForModes } from "../skills/loader.ts";
+import { getModeSkills } from "../modes/skill-merger.ts";
 import { createAbortController } from "./util.ts";
 import { getBrowserMcpServerDescription } from "../browser/mcp.ts";
 import type { TokenBudgetTracker } from "../tokens/budget.ts";
@@ -109,12 +109,33 @@ export function createSession(config: SessionConfig): Session {
       history.push({ role: "assistant", content: text });
     },
     async describeSkills() {
-      const skills = await loadSkillsForModes(activeModes);
-      return (
-        skills
-          .map((skill) => `- ${skill.name}: ${skill.description}`)
-          .join("\n") || "No skills loaded."
-      );
+      // Load skills for each active mode and merge them
+      try {
+        const skillPromises = activeModes.map(mode => getModeSkills(mode));
+        const skillArrays = await Promise.all(skillPromises);
+        
+        // Deduplicate and merge skills from all modes
+        const skillMap = new Map<string, typeof skillArrays[0][0]>();
+        for (const modeSkills of skillArrays) {
+          for (const skill of modeSkills) {
+            if (!skillMap.has(skill.name)) {
+              skillMap.set(skill.name, skill);
+            }
+          }
+        }
+        
+        const allSkills = Array.from(skillMap.values())
+          .sort((a, b) => a.name.localeCompare(b.name));
+        
+        return (
+          allSkills
+            .map((skill) => `- ${skill.name}: ${skill.description}`)
+            .join("\n") || "No skills loaded."
+        );
+      } catch (error) {
+        console.warn('Failed to load skills:', error);
+        return "No skills loaded.";
+      }
     },
     describeMcp() {
       const modeServers = activeModes

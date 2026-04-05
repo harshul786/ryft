@@ -1,10 +1,6 @@
 import type { Mode } from "../types.ts";
 import { createMode } from "./types.ts";
 import { loadModePackDefinitions, getModePacks } from "./pack-loader.ts";
-import {
-  mergeSkillsWithPrecedence,
-  getEffectiveSkills,
-} from "./skill-merger.ts";
 
 const MODE_DEFS: Mode[] = [
   createMode({
@@ -12,7 +8,7 @@ const MODE_DEFS: Mode[] = [
     description: "Write and modify code with minimal overhead.",
     prompt:
       "You are a careful coder. Prefer small diffs, direct fixes, and concise explanations.",
-    skillRoots: ["packs/shared/skills", "packs/coder/skills"],
+    skillRoots: [".ryft/skills", "packs/shared/skills", "packs/coder/skills"],
     mcpServers: [
       { name: "filesystem", description: "Local filesystem MCP integrations." },
     ],
@@ -24,7 +20,7 @@ const MODE_DEFS: Mode[] = [
       "Use a browser session as the source of truth for UI inspection and action.",
     prompt:
       "You are a browser session agent. Read tab context first, prefer the current browser session, and use browser tools only when they help inspect or act on the user's page.",
-    skillRoots: ["packs/shared/skills", "packs/browser-surff/skills"],
+    skillRoots: [".ryft/skills", "packs/shared/skills", "packs/browser-surff/skills"],
     mcpServers: [
       {
         name: "browser-session",
@@ -39,7 +35,7 @@ const MODE_DEFS: Mode[] = [
       "Diagnose failures and produce actionable root-cause analysis.",
     prompt:
       "You are a debugger. Focus on evidence, logs, and reproduction steps.",
-    skillRoots: ["packs/shared/skills", "packs/debugger/skills"],
+    skillRoots: [".ryft/skills", "packs/shared/skills", "packs/debugger/skills"],
     mcpServers: [
       { name: "logs", description: "Log and diagnostics integrations." },
     ],
@@ -80,8 +76,10 @@ export function getModePacksForModes(modeNames: string[]) {
 /**
  * Get merged skills for multiple modes
  * TODO #13: Multi-mode skill merging
+ * DEPRECATED: Use getModeSkills() from skill-merger.ts instead
  */
 export function getMergedSkillsForModes(modes: Mode[], precedence?: string[]) {
-  const packs = getModePacksForModes(modes.map((m) => m.name));
-  return getEffectiveSkills(packs, precedence || modes.map((m) => m.name));
+  // Placeholder for future multi-mode skill merging
+  // Currently, skills are merged on-demand via getModeSkills()
+  return [];
 }

@@ -1,6 +1,9 @@
 ---
+id: edit
 name: edit
 description: Make targeted code changes with minimal surface area.
+requiredTools:
+  - editor
 ---
 
 # Edit

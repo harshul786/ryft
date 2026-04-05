@@ -1,0 +1,17 @@
+{
+  "name": "debugger",
+  "description": "Diagnose failures and produce actionable root-cause analysis",
+  "skillDirectory": "skills",
+  "memory": "session",
+  "enabledTools": ["bash", "logs", "typescript", "node"],
+  "disabledTools": ["editor", "browser"],
+  "mcpServers": [
+    {
+      "id": "logs",
+      "name": "Logs",
+      "description": "Log aggregation and analysis for debugging"
+    }
+  ],
+  "version": "1.0.0",
+  "author": "Ryft Team"
+}

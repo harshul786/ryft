@@ -19,6 +19,9 @@ export interface Usage {
  * - Dynamically discovered based on file context
  */
 export interface Skill {
+  /** Unique numeric ID for the skill (1, 2, 3...) - assigned at creation */
+  id?: number;
+  
   /** Unique name for the skill (used for lookup and invocation) */
   name: string;
   

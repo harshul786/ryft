@@ -1,0 +1,9 @@
+{
+  "name": "shared",
+  "description": "Shared skills available across all modes",
+  "skillDirectory": "skills",
+  "memory": "claude-like",
+  "enabledTools": ["bash", "node", "typescript"],
+  "version": "1.0.0",
+  "author": "Ryft Team"
+}

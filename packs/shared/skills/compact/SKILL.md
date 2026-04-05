@@ -1,6 +1,8 @@
 ---
+id: compact
 name: compact
 description: Condense session history while preserving the important decisions.
+requiredTools: []
 ---
 
 # Compact

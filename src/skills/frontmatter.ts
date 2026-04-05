@@ -9,8 +9,30 @@ import { readFile } from 'node:fs/promises';
 import type { Skill, SkillMetadata, ExecutionContext, HooksSettings, EffortLevel } from './types.ts';
 
 /**
- * Simple YAML parser for frontmatter
- * Extracts key-value pairs from YAML between --- delimiters
+ * Simple YAML parser for skill frontmatter
+ * 
+ * Parses key-value pairs from YAML frontmatter (text between --- delimiters).
+ * 
+ * **Supported types:**
+ * - `true` / `false` → Booleans
+ * - `42`, `1.5` → Numbers  
+ * - `"string"` → Quoted strings
+ * - `[a, b, c]` → Arrays (comma-separated)
+ * - `key: value` → Default treated as string
+ * 
+ * **Example:**
+ * ```markdown
+ * ---
+ * name: my-skill
+ * context: fork
+ * enabled: true
+ * tags: [a, b, c]
+ * ---
+ * ```
+ * → `{ name: 'my-skill', context: 'fork', enabled: true, tags: ['a', 'b', 'c'] }`
+ * 
+ * @param content - Raw markdown content (with optional frontmatter at start)
+ * @returns Object with parsed frontmatter data, empty object if no frontmatter found
  */
 export function parseFrontmatter(content: string): Record<string, unknown> {
   const result: Record<string, unknown> = {};
@@ -73,6 +95,21 @@ function getFrontmatterData(content: string): Record<string, unknown> {
 
 /**
  * Extract skill metadata (title, description, etc.) from frontmatter or markdown
+ * 
+ * Falls back to markdown structure if frontmatter fields not found:
+ * - Title: from `title:` field or first `# H1` heading
+ * - Description: from `description:` field or first paragraph
+ * - Other fields: effort, author, tags, version, whenToUse
+ * 
+ * **Example:**
+ * ```
+ * const metadata = parseSkillMetadata(skillContent);
+ * console.log(metadata.title);       // 'My Skill'
+ * console.log(metadata.description); // 'A great skill...'
+ * ```
+ * 
+ * @param content - Markdown content with optional frontmatter
+ * @returns SkillMetadata object with all extracted fields and sensible defaults
  */
 export function parseSkillMetadata(content: string): SkillMetadata {
   const fm = getFrontmatterData(content);
@@ -128,6 +165,25 @@ export function parseSkillMetadata(content: string): SkillMetadata {
 
 /**
  * Extract execution context from skill content
+ * 
+ * Determines whether skill runs inline (blocking, in same context) or fork
+ * (in sub-agent with separate context).
+ * 
+ * **Valid values:**
+ * - `inline` - Skill expands into current conversation
+ * - `fork` - Skill runs in separate sub-agent context
+ * - `undefined` - Not specified, caller decides default
+ * 
+ * **Example:**
+ * ```yaml
+ * ---
+ * context: fork
+ * agent: Bash
+ * ---
+ * ```
+ * 
+ * @param content - Markdown content
+ * @returns 'inline' | 'fork' | undefined
  */
 export function extractContext(content: string): ExecutionContext | undefined {
   const fm = getFrontmatterData(content);
@@ -141,6 +197,28 @@ export function extractContext(content: string): ExecutionContext | undefined {
 
 /**
  * Extract tool policies (allowed and disabled tools) from skill content
+ * 
+ * **allowed-tools**: Whitelist - skill can ONLY use these tools
+ * **disabled-tools**: Blacklist - skill CANNOT use these tools
+ * 
+ * Both support:
+ * - CSV: `bash,node,git`
+ * - Array: `[bash, node, git]`
+ * - YAML fields: `allowed-tools:` or `allowedTools:`
+ * 
+ * **Example:**
+ * ```yaml
+ * ---
+ * allowed-tools: bash,node,typescript
+ * disabled-tools: [python, ruby]
+ * ---
+ * ```
+ * 
+ * @param content - Markdown content
+ * @returns Object with optional `allowed` and `disabled` string arrays
+ * @example
+ * const tools = extractTools(content);
+ * if (tools.disabled?.includes('rm')) console.log('Deletion blocked');
  */
 export function extractTools(content: string): { allowed?: string[], disabled?: string[] } {
   const fm = getFrontmatterData(content);
@@ -176,7 +254,13 @@ export function extractTools(content: string): { allowed?: string[], disabled?: 
 }
 
 /**
- * Extract glob patterns for conditional skill activation based on file paths
+ * Extract conditional activation paths from skill content
+ * 
+ * Glob patterns for files where this skill becomes available.
+ * Skill activates when editing matching files.
+ * 
+ * @param content - Markdown content
+ * @returns Array of glob patterns, or undefined if not specified
  */
 export function extractPaths(content: string): string[] | undefined {
   const fm = getFrontmatterData(content);
@@ -254,8 +338,29 @@ export function extractAgent(content: string): string | undefined {
 /**
  * Enrich a skill by reading its file and parsing all metadata
  * 
- * This is the primary entry point for skill enrichment - it reads the skill file
- * and populates all extended metadata fields.
+ * **This is the main entry point** for skill enrichment - reads the actual
+ * SKILL.md file and populates:
+ * - Metadata (title, description, author, version, etc.)
+ * - Execution context (inline vs fork)
+ * - Tool policies (allowed/disabled tools)
+ * - Conditional activation paths
+ * - Hooks and agent info
+ * - Raw frontmatter for extensibility
+ * 
+ * **Error handling:** Logs warnings on parse errors but returns base skill
+ * (never throws). Frontend can check `skill.metadata` to verify enrichment worked.
+ * 
+ * **Performance:** Single file read + parsing, <10ms typical.
+ * 
+ * @param skill - Base skill object with at least `name` and `file` fields
+ * @param filePath - Absolute path to SKILL.md file to read
+ * @returns Promise resolving to enriched Skill with all metadata populated
+ * @example
+ * ```typescript
+ * const baseSkill = { name: 'edit', file: 'skills/edit/SKILL.md' };
+ * const enriched = await enrichSkillFromFile(baseSkill, '/abs/path/SKILL.md');
+ * console.log(enriched.context); // 'inline' or 'fork'
+ * ```
  */
 export async function enrichSkillFromFile(skill: Skill, filePath: string): Promise<Skill> {
   try {
@@ -294,8 +399,26 @@ export async function enrichSkillFromFile(skill: Skill, filePath: string): Promi
 }
 
 /**
- * Validate skill frontmatter
- * Returns errors array if validation fails, empty array if valid
+ * Validate skill frontmatter structure
+ * 
+ * Checks for:
+ * - Valid context values (inline/fork)
+ * - Valid effort levels (Low/Medium/High)
+ * - Properly formatted paths
+ * - Other structural issues
+ * 
+ * **Note:** This validates only structure, not semantics.
+ * (e.g., doesn't check if tools actually exist)
+ * 
+ * @param content - Markdown content to validate
+ * @returns Array of error messages, empty array if valid
+ * @example
+ * ```typescript
+ * const errors = validateSkillFrontmatter(content);
+ * if (errors.length > 0) {
+ *   console.error('Validation failed:', errors);
+ * }
+ * ```
  */
 export function validateSkillFrontmatter(content: string): string[] {
   const errors: string[] = [];

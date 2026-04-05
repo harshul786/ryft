@@ -1,6 +1,9 @@
 ---
+id: browser
 name: browser
 description: Use browser automation and devtools for UI inspection.
+requiredTools:
+  - browser
 ---
 
 # Browser

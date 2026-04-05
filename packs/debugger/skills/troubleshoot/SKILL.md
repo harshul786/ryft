@@ -1,6 +1,10 @@
 ---
+id: troubleshoot
 name: troubleshoot
 description: Find root causes from logs, tests, and reproduction steps.
+requiredTools:
+  - logs
+  - bash
 ---
 
 # Troubleshoot

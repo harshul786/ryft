@@ -1,6 +1,10 @@
 {
   "name": "browser-surff",
   "description": "Browser automation with Chrome remote debugging and local session management.",
+  "skillDirectory": "skills",
+  "memory": "claude-like",
+  "enabledTools": ["browser", "bash", "node"],
+  "disabledTools": ["editor"],
   "mcpServers": [
     {
       "id": "browser-surff",
@@ -13,6 +17,6 @@
       }
     }
   ],
-  "memory": "claude-like",
-  "skillDirectory": "skills"
+  "version": "1.0.0",
+  "author": "Ryft Team"
 }
