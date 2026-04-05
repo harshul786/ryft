@@ -229,13 +229,47 @@ export const config: Command = {
         if (userInputLower === "save") {
           // Apply changes
           try {
-            const updatedConfig: any = { ...session.config };
+            // Only save the fields that belong in the config file
+            const configFileUpdate: any = {};
             for (const [fieldName, newValue] of editState.changes) {
-              updatedConfig[fieldName] = newValue;
+              configFileUpdate[fieldName] = newValue;
             }
 
             // Save to file
-            saveConfig(updatedConfig, { target: "global", backup: true });
+            const savedConfig = saveConfig(configFileUpdate, { target: "global", backup: true });
+
+            // Update session config with new values
+            for (const [fieldName, newValue] of editState.changes) {
+              if (fieldName === "model") {
+                // For model, we need to reconstruct the ModelOption object
+                // The user edited it as a string, so fetch it from savedModels or use a default
+                const savedModel = savedConfig.savedModels?.find(m => m.id === newValue);
+                if (savedModel) {
+                  context.appState.session.config.model = {
+                    id: savedModel.id,
+                    label: savedModel.label,
+                    provider: savedModel.provider,
+                    baseUrl: savedModel.baseUrl,
+                    description: `${savedModel.provider} - ${savedModel.label}`,
+                  };
+                } else {
+                  // Fallback: create a basic ModelOption
+                  context.appState.session.config.model = {
+                    id: newValue,
+                    label: newValue,
+                    provider: "custom",
+                    baseUrl: context.appState.session.config.baseUrl,
+                    description: `Custom model: ${newValue}`,
+                  };
+                }
+              } else if (fieldName === "apiKey") {
+                context.appState.session.config.apiKey = newValue;
+              } else if (fieldName === "baseUrl") {
+                context.appState.session.config.baseUrl = newValue;
+              } else if (fieldName === "proxyUrl") {
+                context.appState.session.config.proxyUrl = newValue;
+              }
+            }
 
             context.setAppState((prev) => ({
               ...prev,

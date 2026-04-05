@@ -278,17 +278,68 @@ export const REPL: React.FC = () => {
           }));
         }
       } else {
-        // Regular message - echo back for now
+        // Regular message - send to AI model
+        const session = appState.session;
+        
+        // Append user message to session history
+        session.appendUser(input_val);
+
+        // Mark assistant as responding
         setAppState((prev) => ({
           ...prev,
-          messages: [
-            ...prev.messages,
-            {
-              role: "assistant",
-              content: `You said: ${input_val}`,
-            },
-          ],
+          isAssistantResponding: true,
         }));
+
+        // Send to model and stream response
+        let assistantResponse = "";
+        try {
+          const result = await streamChatCompletion({
+            baseUrl: session.config.baseUrl || "https://api.openai.com/v1",
+            apiKey: session.config.apiKey,
+            model: session.config.model?.id || "gpt-4",
+            messages: session.history,
+            signal: session.abortController.signal,
+            onDelta: (chunk) => {
+              assistantResponse += chunk;
+              setAppState((prev) => ({
+                ...prev,
+                messages: [
+                  ...prev.messages.slice(0, -1), // Remove pending response if exists
+                  {
+                    role: "assistant",
+                    content: assistantResponse,
+                  },
+                ],
+              }));
+            },
+          });
+
+          // Append assistant response to session history
+          session.appendAssistant(assistantResponse);
+
+          // Update final state
+          setAppState((prev) => ({
+            ...prev,
+            isAssistantResponding: false,
+          }));
+        } catch (error) {
+          const errorMsg =
+            error instanceof Error ? error.message : String(error);
+          setAppState((prev) => ({
+            ...prev,
+            isAssistantResponding: false,
+            messages: [
+              ...prev.messages,
+              {
+                role: "assistant",
+                content: `❌ Error: ${errorMsg}`,
+              },
+            ],
+          }));
+          if (process.env.DEBUG) {
+            cliWarn("Debug: Model request failed", errorMsg);
+          }
+        }
       }
       return;
     }
