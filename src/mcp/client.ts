@@ -28,9 +28,13 @@ export class McpClient {
     }
 
     try {
+      // Use the project root as cwd
+      const cwd = process.env.RYFT_PROJECT_ROOT || process.cwd();
+      
       this.process = spawn(this.config.command, this.config.args || [], {
         env: { ...process.env, ...this.config.env },
         stdio: ["pipe", "pipe", "inherit"],
+        cwd, // Set working directory for the subprocess
       });
 
       // Handle stdout (JSON-RPC responses)

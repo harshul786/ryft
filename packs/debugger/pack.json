@@ -15,8 +15,8 @@
       "id": "skills",
       "name": "Skills Server",
       "description": "Invoke Ryft skills for specialized tasks",
-      "command": "node",
-      "args": ["--loader=tsx", "src/mcp/servers/skills-server.ts"],
+      "command": "npx",
+      "args": ["tsx", "src/mcp/servers/skills-server.ts"],
       "env": {
         "NODE_ENV": "production"
       }

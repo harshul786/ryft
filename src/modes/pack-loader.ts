@@ -1,5 +1,6 @@
-import { readFileSync, existsSync } from "node:fs";
+import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { getFeatureLogger } from "../logging/index.ts";
 import type { ModePackDefinition, ResolvedModePack } from "./pack-types.ts";
 
 // TODO #11: Load mode-pack definitions from packs directory
@@ -7,10 +8,11 @@ import type { ModePackDefinition, ResolvedModePack } from "./pack-types.ts";
 export function loadModePackDefinitions(
   baseDir: string = process.cwd(),
 ): ResolvedModePack[] {
+  const log = getFeatureLogger("PackLoader");
   const packsDir = join(baseDir, "packs");
 
   if (!existsSync(packsDir)) {
-    console.warn(`Warning: packs directory not found at ${packsDir}`);
+    log.warn(`Packs directory not found at ${packsDir}`);
     return [];
   }
 
@@ -35,10 +37,9 @@ export function loadModePackDefinitions(
           });
         }
       } catch (error) {
-        console.warn(
-          `Warning: Failed to load pack definition at ${definitionPath}:`,
-          error,
-        );
+        log.warn(`Failed to load pack definition at ${definitionPath}`, {
+          error: String(error),
+        });
       }
     } else {
       // Pack directory exists but no pack.json - create defaults
@@ -125,8 +126,7 @@ export function listModePacks(baseDir?: string): ResolvedModePack[] {
 // Utility functions for file operations
 function readDirSync(path: string): string[] {
   try {
-    const fs = require("node:fs");
-    return fs.readdirSync(path, { withFileTypes: false });
+    return readdirSync(path, { withFileTypes: false }) as string[];
   } catch {
     return [];
   }
@@ -134,8 +134,7 @@ function readDirSync(path: string): string[] {
 
 function isDirectory(path: string): boolean {
   try {
-    const fs = require("node:fs");
-    const stat = fs.statSync(path);
+    const stat = statSync(path);
     return stat.isDirectory();
   } catch {
     return false;

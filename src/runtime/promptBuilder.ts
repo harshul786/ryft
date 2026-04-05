@@ -21,9 +21,7 @@ import type { Skill } from "../types.ts";
  * Build just the system prompt content (without user/assistant messages)
  * Used by REPL initialization and CLI mode
  */
-export async function buildSystemPrompt(
-  session: Session,
-): Promise<string> {
+export async function buildSystemPrompt(session: Session): Promise<string> {
   const browserModeActive = session.modes.some(
     (mode) => mode.name === "browser-surff",
   );
@@ -53,9 +51,7 @@ export async function buildSystemPrompt(
 
   // Build task mapping guide
   const taskMapping =
-    allTools && allTools.length > 0
-      ? formatTaskMapping(allTools, [])
-      : "";
+    allTools && allTools.length > 0 ? formatTaskMapping(allTools, []) : "";
 
   const toolsInstructions =
     allTools && allTools.length > 0

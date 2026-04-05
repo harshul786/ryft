@@ -10,8 +10,8 @@
       "id": "browser-surff",
       "name": "Browser Surff",
       "description": "Chrome automation via local remote-debugging session. Provides tab management, URL navigation, and DevTools access.",
-      "command": "node",
-      "args": ["--loader=tsx", "dist/src/browser/mcp-server.ts"],
+      "command": "npx",
+      "args": ["dist/src/browser/mcp-server.ts"],
       "env": {
         "NODE_ENV": "production"
       }
@@ -20,8 +20,8 @@
       "id": "skills",
       "name": "Skills Server",
       "description": "Invoke Ryft skills for specialized tasks",
-      "command": "node",
-      "args": ["--loader=tsx", "src/mcp/servers/skills-server.ts"],
+      "command": "npx",
+      "args": ["tsx", "src/mcp/servers/skills-server.ts"],
       "env": {
         "NODE_ENV": "production"
       }

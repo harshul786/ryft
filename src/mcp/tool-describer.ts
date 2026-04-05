@@ -1,9 +1,9 @@
 /**
  * Tool Describer: Generate rich descriptions for tools and skills
- * 
+ *
  * This module creates context-aware descriptions for both MCP tools and skills,
  * making them discoverable and actionable for the model.
- * 
+ *
  * Following Claude-CLI patterns: Dynamic descriptions based on actual capabilities
  * and permissions, with explicit "when to use" guidance.
  */
@@ -24,7 +24,8 @@ export function describeToolForPrompt(tool: CompressedToolSchema): string {
 
   const paramDesc = params ? ` with \`${params}\`` : "";
   const exampleInput =
-    tool.inputSchema?.properties && Object.keys(tool.inputSchema.properties).length > 0
+    tool.inputSchema?.properties &&
+    Object.keys(tool.inputSchema.properties).length > 0
       ? JSON.stringify(
           Object.entries(tool.inputSchema.properties)
             .slice(0, 2)
@@ -70,7 +71,10 @@ export function describeToolForPrompt(tool: CompressedToolSchema): string {
 export function describeSkillForPrompt(skill: Skill): string {
   const metadata = skill.metadata;
   const effort = metadata?.effort ? ` [Effort: ${metadata.effort}]` : "";
-  const tags = metadata?.tags && metadata.tags.length > 0 ? ` [${metadata.tags.join(", ")}]` : "";
+  const tags =
+    metadata?.tags && metadata.tags.length > 0
+      ? ` [${metadata.tags.join(", ")}]`
+      : "";
   const whenToUse = metadata?.whenToUse || "Use for specific task automation";
 
   return `**${skill.name}**: ${skill.description}${effort}${tags}
@@ -160,9 +164,13 @@ export function formatTaskMapping(
       .toLowerCase();
 
     if (tool.name.toLowerCase().includes("list")) {
-      toolMappings.push(`- **To find available ${taskName}**: Use \`${tool.name}\``);
+      toolMappings.push(
+        `- **To find available ${taskName}**: Use \`${tool.name}\``,
+      );
     } else if (tool.name.toLowerCase().includes("invoke")) {
-      toolMappings.push(`- **To execute/run ${taskName}**: Use \`${tool.name}\``);
+      toolMappings.push(
+        `- **To execute/run ${taskName}**: Use \`${tool.name}\``,
+      );
     } else {
       toolMappings.push(`- **For ${taskName}**: Use \`${tool.name}\``);
     }

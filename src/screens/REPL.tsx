@@ -39,9 +39,7 @@ export const REPL: React.FC = () => {
     if (!initializedRef.current) {
       // Build and inject system prompt into session history at startup (once only)
       const initializeSession = async () => {
-        // Initialize MCP servers first - this discovers and registers tools
-        await appState.session.initializeMcpServers();
-
+        // Note: MCP servers are already initialized in cli.ts before REPL mounts
         // Build system prompt using enhanced promptBuilder (includes tools, skills, modes)
         const systemPrompt = await buildSystemPrompt(appState.session);
 

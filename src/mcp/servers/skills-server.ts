@@ -129,6 +129,56 @@ export async function handleSkillsMcpRequest(
   params: Record<string, unknown>,
   server: SkillsMcpServer,
 ): Promise<unknown> {
+  // Handle standard MCP methods
+  if (method === "tools/list") {
+    const skills = await server.listSkills();
+    return { tools: skills };
+  }
+
+  if (method === "tools/call") {
+    // Call tool by name with arguments
+    const toolName = params.name as string;
+    const toolArgs = params.arguments as Record<string, unknown>;
+
+    if (!toolName) {
+      throw new Error("Missing required parameter: name");
+    }
+
+    // Handle list_skills
+    if (toolName === "list_skills") {
+      const skills = await server.listSkills();
+      return {
+        type: "text",
+        text: JSON.stringify(
+          {
+            tools: skills.map((t) => ({
+              name: t.name,
+              description: t.description,
+            })),
+          },
+          null,
+          2,
+        ),
+      };
+    }
+
+    // Handle invoke_skill
+    if (toolName === "invoke_skill") {
+      const skillName = toolArgs.skill as string;
+      if (!skillName) {
+        throw new Error("Missing required argument: skill");
+      }
+      const content = await server.invokeSkill(skillName);
+      return {
+        type: "text",
+        text: content,
+      };
+    }
+
+    throw new Error(`Unknown tool: ${toolName}`);
+  }
+
+  // Handle custom methods (legacy support)
   switch (method) {
     case "list_skills": {
       // Return structured list of available skills
@@ -214,7 +264,10 @@ export async function runSkillsMcpServerProcess(): Promise<void> {
 }
 
 // Run if this file is executed directly (ES module variant)
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (
+  import.meta.url === `file://${process.argv[1]}` ||
+  process.argv[1]?.includes("skills-server.ts")
+) {
   runSkillsMcpServerProcess().catch((error) => {
     console.error("Fatal error:", error);
     process.exit(1);

@@ -27,6 +27,8 @@ import { saveConfig } from "./config/config-writer.ts";
 import { runOnboarding } from "./onboarding/onboardingFlow.ts";
 import { Root } from "./components/Root.tsx";
 import { setupErrorHandlers, cliError } from "./cli/exit.ts";
+import { handleLogsCommand } from "./commands/logs.ts";
+import { logger, getFeatureLogger } from "./logging/index.ts";
 
 // Setup centralized error handling
 setupErrorHandlers();
@@ -52,7 +54,34 @@ program
   .option("--serve-proxy", "run only the local proxy server")
   .option("--prompt <text>", "send a single prompt and exit");
 
-program.parse();
+program
+  .command("logs [subcommand...]")
+  .description("Manage Ryft logs")
+  .action(async (args: string[]) => {
+    try {
+      await handleLogsCommand(args);
+      process.exit(0);
+    } catch (error) {
+      console.error(chalk.red("Error executing logs command:"), error);
+      process.exit(1);
+    }
+  });
+
+// If only the script name is provided (no args), run the interactive REPL
+if (process.argv.length <= 2) {
+  // No arguments provided, go straight to REPL
+  (async () => {
+    try {
+      await main();
+    } catch (err) {
+      console.error(chalk.red("Error:"), err);
+      process.exit(1);
+    }
+  })();
+} else {
+  // Parse arguments normally for commands and options
+  program.parse();
+}
 
 async function main(): Promise<void> {
   const opts = program.opts<{
@@ -66,6 +95,19 @@ async function main(): Promise<void> {
     serveProxy?: boolean;
     prompt?: string;
   }>();
+
+  // Initialize logger based on environment
+  if (process.env.RYFT_LOG_LEVEL) {
+    const level = process.env.RYFT_LOG_LEVEL as
+      | "debug"
+      | "info"
+      | "warn"
+      | "error";
+    logger.setLevel(level);
+  }
+
+  const logFeature = getFeatureLogger("CLI");
+  logFeature.info("Ryft CLI started", { version: "0.1.0" });
 
   if (opts.serveProxy) {
     const server = await openProxyServer();
@@ -168,15 +210,15 @@ async function main(): Promise<void> {
             session.toolDispatcher.formatToolResultsForConversation(results);
 
           if (resultsText) {
-            process.stdout.write(`\n\n**Tool Execution Results:**\n${resultsText}`);
+            process.stdout.write(
+              `\n\n**Tool Execution Results:**\n${resultsText}`,
+            );
             session.appendUser(resultsText);
           }
         } catch (error) {
           const errorMsg =
             error instanceof Error ? error.message : String(error);
-          process.stdout.write(
-            `\n\n❌ Tool execution failed: ${errorMsg}`,
-          );
+          process.stdout.write(`\n\n❌ Tool execution failed: ${errorMsg}`);
         }
       }
 
@@ -202,18 +244,8 @@ async function main(): Promise<void> {
 
   console.log(renderBanner(session));
 
-  // Check if stdin is a TTY (interactive terminal)
-  if (!process.stdin.isTTY) {
-    console.error(
-      chalk.yellow(
-        "Warning: Not running in an interactive terminal. Ryft REPL requires a TTY.",
-      ),
-    );
-    console.error(chalk.yellow("Use --prompt to send a single message."));
-    process.exit(1);
-  }
-
   // Mount React + Ink REPL with proper stdin/stdout configuration
+  // (Works with both TTY and piped input for flexibility)
   const { unmount } = render(React.createElement(Root, { session }), {
     stdin: process.stdin,
     stdout: process.stdout,
@@ -225,8 +257,3 @@ async function main(): Promise<void> {
     process.exit(0);
   });
 }
-
-main().catch((err) => {
-  console.error(chalk.red("Error:"), err);
-  process.exit(1);
-});

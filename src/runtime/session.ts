@@ -12,11 +12,14 @@ import { createAbortController } from "./util.ts";
 import { getBrowserMcpServerDescription } from "../browser/mcp.ts";
 import type { TokenBudgetTracker } from "../tokens/budget.ts";
 import { getGlobalTokenBudget } from "../tokens/budget.ts";
+import { getFeatureLogger } from "../logging/index.ts";
 import { McpClientPool } from "../mcp/client.ts";
 import type { McpServerConfig } from "../mcp/protocol.ts";
 import { ToolRegistry } from "../mcp/tool-registry.ts";
 import { ToolDispatcher } from "../mcp/tool-dispatcher.ts";
 import { BrowserLifecycleManager } from "../browser/lifecycle.ts";
+import { getModePacks } from "../modes/pack-loader.ts";
+import { McpServerRegistry } from "../mcp/registry.ts";
 
 export interface Session {
   config: SessionConfig;
@@ -136,7 +139,8 @@ export function createSession(config: SessionConfig): Session {
             .join("\n") || "No skills loaded."
         );
       } catch (error) {
-        console.warn("Failed to load skills:", error);
+        const log = getFeatureLogger("Skills");
+        log.warn("Failed to load skills");
         return "No skills loaded.";
       }
     },
@@ -164,46 +168,114 @@ export function createSession(config: SessionConfig): Session {
       ].join("\n");
     },
     async initializeMcpServers() {
+      const log = getFeatureLogger("MCP");
       try {
-        // Collect all MCP server configs from active modes
-        const serverConfigs: McpServerConfig[] = [];
-        const seen = new Set<string>();
+        // Get packs for active modes (this loads pack.json with full command/args)
+        log.info(`Active modes: ${activeModes.map((m) => m.name).join(", ")}`);
+        log.debug(`Looking for packs with process.cwd()=${process.cwd()}`);
+        const allPacks = getModePacks(
+          activeModes.map((m) => m.name),
+          process.cwd(),
+        );
+        log.info(
+          `Found ${allPacks.length} pack(s): ${allPacks.map((p) => p.name).join(", ")}`,
+        );
 
-        for (const mode of activeModes) {
-          for (const serverConfig of mode.mcpServers) {
-            // Only add if it has command/args (full config, not just reference)
-            const hasCommand = "command" in serverConfig;
-            const hasArgs = "args" in serverConfig;
-            const hasId = "id" in serverConfig;
-
-            if (
-              hasCommand &&
-              hasArgs &&
-              hasId &&
-              !seen.has(String(serverConfig.id))
-            ) {
-              seen.add(String(serverConfig.id));
-              serverConfigs.push({
-                id: String(serverConfig.id),
-                name: serverConfig.name,
-                description: serverConfig.description,
-                command: (serverConfig as any).command,
-                args: (serverConfig as any).args,
-                env: (serverConfig as any).env,
-              });
-            }
-          }
+        if (allPacks.length === 0) {
+          log.debug("No mode packs found, skipping server initialization");
+          return;
         }
+
+        // Load server configs from packs
+        const registry = new McpServerRegistry();
+        registry.registerFromPacks(allPacks);
+        let serverConfigs = registry.getAllServers();
+
+        // Filter to only servers with command/args (skip references)
+        serverConfigs = serverConfigs.filter(
+          (config) =>
+            config.command && config.args && Array.isArray(config.args),
+        );
+
+        log.info(`Found ${serverConfigs.length} fully-configured server(s)`);
+
+        if (serverConfigs.length === 0) {
+          log.debug("No fully-configured MCP servers to spawn");
+          return;
+        }
+
+        log.info(
+          `Loading ${serverConfigs.length} server(s): ${serverConfigs.map((c) => c.id).join(", ")}`,
+        );
 
         // Spawn all configured servers
-        if (serverConfigs.length > 0) {
+        const spawnedServers =
           await session.mcpClients.spawnServers(serverConfigs);
-          console.log(
-            `[MCP] Spawned ${serverConfigs.length} server(s): ${serverConfigs.map((c) => c.id).join(", ")}`,
-          );
+        log.info(`Spawned ${spawnedServers.size} server(s) successfully`);
+
+        // Discover and register tools from each spawned server
+        for (const [serverId, client] of spawnedServers) {
+          try {
+            log.debug(`Attempting to get tools list from ${serverId}...`);
+            // Add timeout to prevent hanging
+            const toolsPromise = client.listTools();
+            const timeoutPromise = new Promise((resolve, reject) =>
+              setTimeout(
+                () =>
+                  reject(
+                    new Error(
+                      `Timeout waiting for tools list from ${serverId}`,
+                    ),
+                  ),
+                5000,
+              ),
+            );
+            const tools = await Promise.race([
+              toolsPromise,
+              timeoutPromise as Promise<any>,
+            ]);
+            log.info(
+              `Discovered ${tools.length} tool(s) from server ${serverId}`,
+            );
+
+            if (tools.length > 0) {
+              // Compress and register tools
+              const { compressToolSchemas } =
+                await import("../mcp/schema-compressor.ts");
+              const compressed = compressToolSchemas(tools);
+
+              const toolsToAdd = tools.map((full: any, index: number) => ({
+                full,
+                compressed: compressed[index],
+              }));
+
+              const serverConfig = serverConfigs.find((c) => c.id === serverId);
+              if (serverConfig) {
+                log.debug(
+                  `Registering ${toolsToAdd.length} tool(s) from ${serverId}`,
+                );
+                session.toolRegistry.addTools(
+                  serverId,
+                  serverConfig.name,
+                  toolsToAdd,
+                );
+                log.info(
+                  `Registered ${toolsToAdd.length} tool(s) from ${serverId}`,
+                );
+              }
+            }
+          } catch (error) {
+            log.warn("Failed to discover tools", {
+              serverId,
+              error: String(error),
+            });
+          }
         }
       } catch (error) {
-        console.error("[MCP] Failed to initialize servers:", error);
+        log.error(
+          "Failed to initialize servers",
+          error instanceof Error ? error : new Error(String(error)),
+        );
       }
     },
   };
