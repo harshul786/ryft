@@ -1,38 +1,334 @@
-# Ryft
+# Ryft - OpenAI-Native AI Code Assistant
 
-Ryft is a lean, OpenAI-native ai-code CLI scaffold.
+A lean, fast AI code assistant built as an OpenAI-native fork. Combines composable modes, intelligent MCP integration, real-time token budgeting, and browser automation into a unified CLI.
 
-## What is included
+**Key Features:**
 
-- Chalk-based terminal UI
-- Composable modes: `coder`, `browser-surff`, `debugger`
-- Directory-backed skills per mode, plus shared skills
-- Three memory modes: `claude-like`, `hierarchy`, `session`
-- A local OpenAI-compatible proxy server
-- Streaming chat completions
-- A first-pass `/compact` command
+- 🚀 OpenAI-native with configurable providers
+- 🎨 Composable modes (coder, browser-surff, debugger)
+- 🔗 Auto-discovered MCP servers with on-demand spawning
+- 🌐 Browser automation with session state persistence
+- 💰 Smart token budgeting with soft warnings
+- 💾 Configuration management (file + CLI precedence)
+- ⚡ Fast startup with lazy initialization
 
-## Quick start
+## Build & Setup
+
+### Prerequisites
+
+- **Node.js**: ≥20.0.0 ([download](https://nodejs.org/))
+- **npm**: ≥10.0.0 (comes with Node.js)
+- **Git**: For cloning the repository
+- **macOS/Linux/Windows**: All supported (Chrome binary path may differ on Windows)
+
+### Step 1: Clone the Repository
+
+```bash
+git clone <repository-url> ryft
+cd ryft
+```
+
+### Step 2: Install Dependencies
 
 ```bash
 npm install
-npm start -- --help
-npm start -- --mode coder --prompt "hello"
 ```
 
-## Commands
+This installs all required packages:
 
-- `/mode ...`
-- `/memory ...`
-- `/model ...`
-- `/compact`
-- `/skills`
-- `/mcp`
-- `/browser`
-- `/exit`
+- `tsx` - TypeScript execution
+- `chalk` - Terminal colors
+- `commander` - CLI parsing
+- `js-tiktoken` - Token counting
+- `typescript` - Type checking
 
-## Notes
+### Step 3: Choose Your Installation
 
-- `--proxy <url>` points Ryft at a local OpenAI-compatible router.
-- The current prompt budget is capped with a rough 200-token ceiling.
-- Browser automation is scaffolded as a mode concern and can be wired into MCP/Chrome DevTools next.
+#### Option A: Global Install (Recommended for end users)
+
+```bash
+npm link
+
+# Now available globally as 'ryft'
+ryft --help
+ryft
+```
+
+#### Option B: Development Mode (for developers)
+
+```bash
+# Either of these works:
+npm start
+npm run typecheck  # Type checking only
+```
+
+### Step 4: Verify Installation
+
+Test that the installation works:
+
+```bash
+# Check command exists
+which ryft
+
+# Check help works
+ryft --help
+
+# Check CLI starts
+ryft --version  # (if supported)
+```
+
+### Step 5: Set Up API Key
+
+Ryft needs an OpenAI API key to function:
+
+```bash
+# Option 1: Environment variable
+export OPENAI_API_KEY=sk-your-key-here
+
+# Option 2: Global config file
+mkdir -p ~/.config/ryft
+echo '{"apiKey": "sk-your-key-here"}' > ~/.ryftrc
+
+# Option 3: In REPL after starting
+ryft
+> /config set apiKey sk-your-key-here
+```
+
+### Step 6: Test with a Simple Query
+
+```bash
+ryft
+
+ryft [openai/gpt-4o]> /help
+ryft [openai/gpt-4o]> /config view
+```
+
+## Installation
+
+### Quick Install (One-liner)
+
+If you already have Node.js ≥20 and an OpenAI API key:
+
+```bash
+git clone <repo> ryft && cd ryft && npm install && npm link && export OPENAI_API_KEY=sk-... && ryft
+```
+
+### Global Install (Recommended)
+
+```bash
+# Clone and install globally
+git clone <repo> ryft
+cd ryft
+npm install
+npm link
+
+# Now use ryft from anywhere
+ryft
+```
+
+### Or: Direct Development Mode
+
+```bash
+cd /path/to/ryft
+npm install
+npm start
+```
+
+## Quick Start
+
+```bash
+# Start interactive REPL
+$ ryft
+
+🤖 Ryft CLI v0.1.0
+Model: openai/gpt-4o
+
+ryft [openai/gpt-4o]> What does this function do?
+<paste code>
+
+ryft [openai/gpt-4o]> /help
+```
+
+## Usage
+
+### Chat
+
+Simply type queries. Ryft processes them using current model and active modes:
+
+```bash
+ryft> Analyze this TypeScript code
+<paste code>
+
+ryft> Generate unit tests
+
+ryft> Debug this edge case
+```
+
+### Key Commands
+
+| Command                   | Purpose                                                |
+| ------------------------- | ------------------------------------------------------ |
+| `/mode <name>`            | Activate mode(s): `coder`, `browser-surff`, `debugger` |
+| `/model <id>`             | Switch model (gpt-4o, gpt-4, etc.)                     |
+| `/config view`            | Show all settings                                      |
+| `/config set <key> <val>` | Update config                                          |
+| `/tokens`                 | Show token usage breakdown                             |
+| `/help`                   | List all commands                                      |
+| `exit`                    | Close session                                          |
+
+### Modes
+
+```bash
+# Default coding mode
+ryft> /mode coder
+
+# Add browser automation
+ryft> /mode browser-surff
+
+# Use all modes
+ryft> /mode coder,browser-surff,debugger
+```
+
+### Token Budgeting
+
+```bash
+# Quick check
+ryft> /tokens
+🟢 45/4096 tokens
+
+# Detailed breakdown
+ryft> /tokens detailed
+Token Budget Breakdown:
+  coder:    120 tokens (5 entries)
+  browser:  45 tokens (2 entries)
+  other:    80 tokens (3 entries)
+  Remaining: 3851 tokens
+```
+
+### Configuration
+
+Settings saved to `~/.ryftrc` (user) or `.ryft.json` (workspace):
+
+```bash
+# Set permanently
+ryft> /config set model openai/gpt-4o
+✓ Config updated (saved to ~/.ryftrc)
+```
+
+## Environment Setup
+
+Set your OpenAI API key:
+
+```bash
+# Option 1: Environment variable
+export OPENAI_API_KEY=sk-...
+
+# Option 2: Config file
+echo '{"apiKey": "sk-..."}' > ~/.ryftrc
+
+# Option 3: In REPL
+ryft> /config set apiKey sk-...
+```
+
+## Features
+
+### Browser Automation
+
+```bash
+ryft> /mode browser-surff
+
+# First browser action spawns Chrome
+ryft> Navigate to example.com and summarize
+```
+
+### Composable Modes
+
+- **coder**: Code analysis, generation, testing
+- **browser-surff**: URL navigation, tab management, DevTools
+- **debugger**: Process inspection, debugging
+
+### Smart Token Budgeting
+
+- Default 4096 tokens per session
+- Soft warnings at 70% and 90% (no hard limits)
+- Detailed breakdown of token usage by phase
+
+### MCP Server Integration
+
+- Auto-discovered from mode packs
+- Spawn on-demand (not at startup)
+- Tool schemas compressed for efficiency
+
+## Configuration Files
+
+### Global Config (~/.ryftrc)
+
+```json
+{
+  "model": "openai/gpt-4o",
+  "apiKey": "sk-...",
+  "defaultModes": ["coder"],
+  "showTokens": true,
+  "logLevel": "info"
+}
+```
+
+### Workspace Config (.ryft.json)
+
+```json
+{
+  "model": "openai/gpt-4-turbo",
+  "defaultModes": ["coder", "browser-surff"]
+}
+```
+
+## Development
+
+### Type Checking
+
+```bash
+npm run typecheck
+```
+
+### Testing
+
+```bash
+npm test
+```
+
+### Project Structure
+
+```
+Ryft/
+├── src/
+│   ├── cli.ts              # REPL entry point
+│   ├── config/             # Configuration system
+│   ├── models/             # Model registry
+│   ├── modes/              # Mode pack system
+│   ├── mcp/                # MCP protocol & orchestration
+│   ├── browser/            # Browser automation
+│   ├── tokens/             # Token counting & budgeting
+│   └── runtime/            # Session & persistence
+├── packs/
+│   ├── coder/              # Coder mode
+│   ├── browser-surff/      # Browser mode
+│   ├── debugger/           # Debugger mode
+│   └── shared/             # Shared skills
+├── bin/
+│   └── ryft.js             # CLI entry point
+└── package.json
+```
+
+## Troubleshooting
+
+| Issue                     | Solution                                                                   |
+| ------------------------- | -------------------------------------------------------------------------- |
+| `ryft: command not found` | Run `npm link` from Ryft directory to install globally                     |
+| `OPENAI_API_KEY not set`  | `export OPENAI_API_KEY=sk-...` or `/config set apiKey sk-...`              |
+| Chrome won't start        | Set `export CHROME_BIN=/path/to/chrome`                                    |
+| Port 9222 in use          | Kill existing Chrome: `lsof -i :9222 \| awk '{print $2}' \| xargs kill -9` |
+
+## Learn More
+
+- See [SKILL.md](SKILL.md) for detailed development guide
+- Available models: gpt-4, gpt-4o, gpt-4-turbo, gpt-3.5-turbo

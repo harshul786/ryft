@@ -4,7 +4,7 @@ import type { Usage } from '../types.ts';
 
 export function renderBanner(session: Session): string {
   const title = chalk.bold.cyan('Ryft');
-  const subtitle = chalk.dim('OpenAI-native modular code CLI');
+  const subtitle = chalk.dim('OpenAI-native modular code CLI [TEST CHANGE]');
   const modeLine = chalk.white(`modes: ${session.modes.map(mode => mode.name).join(', ')}`);
   const memoryLine = chalk.white(`memory: ${session.memoryMode.name}`);
   const modelLine = chalk.white(`model: ${session.config.model.label} (${session.config.model.provider})`);

@@ -1,0 +1,18 @@
+{
+  "name": "browser-surff",
+  "description": "Browser automation with Chrome remote debugging and local session management.",
+  "mcpServers": [
+    {
+      "id": "browser-surff",
+      "name": "Browser Surff",
+      "description": "Chrome automation via local remote-debugging session. Provides tab management, URL navigation, and DevTools access.",
+      "command": "node",
+      "args": ["--loader=tsx", "dist/src/browser/mcp-server.ts"],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  ],
+  "memory": "claude-like",
+  "skillDirectory": "skills"
+}

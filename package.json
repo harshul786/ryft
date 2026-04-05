@@ -10,17 +10,34 @@
     "start": "tsx ./src/cli.ts",
     "proxy": "tsx ./src/runtime/proxyServer.ts",
     "test": "tsx --test ./test/core.test.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "build": "tsc && echo '✓ Build complete in dist/'",
+    "link": "npm run build && npm link",
+    "unlink": "npm unlink"
   },
   "engines": {
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "@browser-agent/cli-framework": "file:../cli-framework",
     "chalk": "^5.4.1",
-    "commander": "^13.1.0"
+    "cli-boxes": "^3.0.0",
+    "cli-highlight": "^2.1.11",
+    "commander": "^13.1.0",
+    "figures": "^6.1.0",
+    "indent-string": "^5.0.0",
+    "ink": "^4.4.1",
+    "js-tiktoken": "^1.0.21",
+    "prompts": "^2.4.2",
+    "react": "^18.3.1",
+    "strip-ansi": "^7.1.0",
+    "wrap-ansi": "^9.0.0",
+    "zustand": "^4.5.0"
   },
   "devDependencies": {
     "@types/node": "^25.5.2",
+    "@types/prompts": "^2.4.9",
+    "@types/react": "^18.3.0",
     "tsx": "^4.21.0",
     "typescript": "^6.0.2"
   }
