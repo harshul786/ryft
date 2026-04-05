@@ -1,14 +1,14 @@
 /**
  * Skill Builder Tool
- * 
+ *
  * Enables LLM and manual creation of new skills with automatic ID assignment.
  * Skills are registered in skills-db.json with sequential numeric IDs.
  */
 
-import { writeFileSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { getNextSkillId } from './id-manager.ts';
-import type { Skill } from '../types.ts';
+import { writeFileSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { getNextSkillId } from "./id-manager.ts";
+import type { Skill } from "../types.ts";
 
 /**
  * Template for skill definition passed to builder
@@ -20,7 +20,7 @@ export interface SkillTemplate {
   content: string; // Full markdown content with frontmatter
   modes: string[];
   requiredTools?: string[];
-  context?: 'inline' | 'fork';
+  context?: "inline" | "fork";
   agent?: string;
   allowedTools?: string[];
   disabledTools?: string[];
@@ -39,7 +39,7 @@ export interface SkillCreationResult {
 
 /**
  * Pre-instructions/system prompt for LLM skill builder
- * 
+ *
  * This prompt guides LLMs on how to create well-structured skills
  * following Ryft's conventions and best practices.
  */
@@ -191,14 +191,14 @@ When creating a skill, follow this pattern:
 
 /**
  * Generate a skill from a description and template
- * 
+ *
  * This creates a new skill file and registers it in skills-db.json.
  * The skill is assigned a sequential numeric ID automatically.
- * 
+ *
  * @param template - Skill template with name, description, content, modes, etc.
  * @param skillsPath - Where to save the skill file (e.g., "packs/shared/skills")
  * @returns Result with assigned ID and registration status
- * 
+ *
  * @example
  * const result = await createSkillFromTemplate({
  *   name: 'my-skill',
@@ -208,31 +208,31 @@ When creating a skill, follow this pattern:
  *   modes: ['coder'],
  *   requiredTools: [],
  * }, 'packs/shared/skills');
- * 
+ *
  * console.log(`Created skill with ID ${result.id}`);
  */
 export async function createSkillFromTemplate(
   template: SkillTemplate,
-  skillsPath: string
+  skillsPath: string,
 ): Promise<SkillCreationResult> {
   try {
     // Assign next sequential ID
     const skillId = getNextSkillId();
-    
+
     // Create skill directory
     const skillDir = join(process.cwd(), skillsPath, template.name);
-    const skillFile = join(skillDir, 'SKILL.md');
-    
+    const skillFile = join(skillDir, "SKILL.md");
+
     // Ensure directories exist
-    const fs = require('node:fs');
+    const fs = require("node:fs");
     fs.mkdirSync(skillDir, { recursive: true });
-    
+
     // Write skill file
-    writeFileSync(skillFile, template.content, 'utf-8');
-    
+    writeFileSync(skillFile, template.content, "utf-8");
+
     // Register in skills-db.json
     await registerSkillInDatabase(skillId, template, skillsPath);
-    
+
     return {
       id: skillId,
       name: template.name,
@@ -244,7 +244,7 @@ export async function createSkillFromTemplate(
     return {
       id: -1,
       name: template.name,
-      path: '',
+      path: "",
       registered: false,
       message: `❌ Failed to create skill: ${error instanceof Error ? error.message : String(error)}`,
     };
@@ -253,19 +253,19 @@ export async function createSkillFromTemplate(
 
 /**
  * Register a skill in the skills database
- * 
+ *
  * @internal
  */
 async function registerSkillInDatabase(
   skillId: number,
   template: SkillTemplate,
-  skillsPath: string
+  skillsPath: string,
 ): Promise<void> {
   try {
-    const dbPath = join(process.cwd(), 'skills-db.json');
-    const dbContent = readFileSync(dbPath, 'utf-8');
+    const dbPath = join(process.cwd(), "skills-db.json");
+    const dbContent = readFileSync(dbPath, "utf-8");
     const db = JSON.parse(dbContent);
-    
+
     // Add skill entry
     db.skills[String(skillId)] = {
       id: skillId,
@@ -276,59 +276,61 @@ async function registerSkillInDatabase(
       requiredTools: template.requiredTools || [],
       requiresPermission: false,
     };
-    
+
     // Update ID counter if needed
     db.idCounter = Math.max(db.idCounter || skillId, skillId + 1);
-    
+
     // Write back
-    writeFileSync(dbPath, JSON.stringify(db, null, 2), 'utf-8');
+    writeFileSync(dbPath, JSON.stringify(db, null, 2), "utf-8");
   } catch (error) {
     throw new Error(
       `Failed to register skill in database: ${
         error instanceof Error ? error.message : String(error)
-      }`
+      }`,
     );
   }
 }
 
 /**
  * Validate a skill template before creation
- * 
+ *
  * @returns Array of validation errors (empty if valid)
  */
 export function validateSkillTemplate(template: SkillTemplate): string[] {
   const errors: string[] = [];
-  
+
   if (!template.name || !/^[a-z0-9-]+$/.test(template.name)) {
-    errors.push('Skill name must be kebab-case (lowercase, hyphens only)');
+    errors.push("Skill name must be kebab-case (lowercase, hyphens only)");
   }
-  
+
   if (!template.title || template.title.length === 0) {
-    errors.push('Skill must have a title');
+    errors.push("Skill must have a title");
   }
-  
+
   if (!template.description || template.description.length === 0) {
-    errors.push('Skill must have a description');
+    errors.push("Skill must have a description");
   }
-  
+
   if (!template.content || template.content.length < 100) {
-    errors.push('Skill content must be substantial (at least 100 characters)');
+    errors.push("Skill content must be substantial (at least 100 characters)");
   }
-  
+
   if (!template.modes || template.modes.length === 0) {
-    errors.push('Skill must specify at least one mode');
+    errors.push("Skill must specify at least one mode");
   }
-  
-  const validModes = ['coder', 'browser-surff', 'debugger'];
+
+  const validModes = ["coder", "browser-surff", "debugger"];
   for (const mode of template.modes) {
     if (!validModes.includes(mode)) {
-      errors.push(`Invalid mode: ${mode}. Must be one of: ${validModes.join(', ')}`);
+      errors.push(
+        `Invalid mode: ${mode}. Must be one of: ${validModes.join(", ")}`,
+      );
     }
   }
-  
-  if (template.context && !['inline', 'fork'].includes(template.context)) {
+
+  if (template.context && !["inline", "fork"].includes(template.context)) {
     errors.push('Context must be "inline" or "fork"');
   }
-  
+
   return errors;
 }

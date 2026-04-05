@@ -13,33 +13,58 @@ export class ToolDispatcher {
 
   /**
    * Extract tool use blocks from LLM response text
-   * Handles OpenAI format tool_use blocks
+   * Handles multiple formats of tool_use blocks
    */
   extractToolUsesFromResponse(responseText: string): ToolUseBlock[] {
-    // Look for tool use patterns in response
-    // This is a simplified extraction - real implementation would parse structured format
     const toolUses: ToolUseBlock[] = [];
 
-    // Pattern: <tool_use id="..." name="..." input="{...}"></tool_use>
-    const pattern =
-      /<tool_use\s+id="([^"]+)"\s+name="([^"]+)"\s+input='([^']+)'>/g;
-    let match;
+    // Pattern 1: <tool_use id="..." name="..." input="{...}"></tool_use>
+    // Pattern 2: <tool_use id="..." name="..." input='{...}' />
+    // Matches both single and double quotes for input, and both closing formats
+    const patterns = [
+      /<tool_use\s+id="([^"]+)"\s+name="([^"]+)"\s+input='([^']*)'>/g,
+      /<tool_use\s+id="([^"]+)"\s+name="([^"]+)"\s+input="([^"]*)"/g,
+      /<tool_use\s+id="([^"]+)"\s+name="([^"]+)"\s+input='([^']*)'[^>]*\/>/g,
+      /<tool_use\s+id="([^"]+)"\s+name="([^"]+)"\s+input="([^"]*)"[^>]*\/>/g,
+    ];
 
-    while ((match = pattern.exec(responseText)) !== null) {
-      try {
-        const input = JSON.parse(match[3]);
-        toolUses.push({
-          type: "tool_use",
-          id: match[1],
-          name: match[2],
-          input,
-        });
-      } catch (error) {
-        console.warn(`Failed to parse tool use input: ${error}`);
+    for (const pattern of patterns) {
+      let match;
+      while ((match = pattern.exec(responseText)) !== null) {
+        try {
+          // Try to parse input - could be empty object or actual JSON
+          let input = {};
+          const inputStr = match[3]?.trim();
+          if (inputStr && inputStr !== "{}") {
+            try {
+              input = JSON.parse(inputStr);
+            } catch {
+              // If not valid JSON, treat as empty object
+              input = {};
+            }
+          }
+
+          toolUses.push({
+            type: "tool_use",
+            id: match[1],
+            name: match[2],
+            input,
+          });
+        } catch (error) {
+          console.warn(
+            `Failed to parse tool use: ${error instanceof Error ? error.message : String(error)}`,
+          );
+        }
       }
     }
 
-    return toolUses;
+    // Remove duplicates by id
+    const seen = new Set<string>();
+    return toolUses.filter((t) => {
+      if (seen.has(t.id)) return false;
+      seen.add(t.id);
+      return true;
+    });
   }
 
   /**

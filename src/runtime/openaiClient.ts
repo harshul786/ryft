@@ -1,4 +1,4 @@
-import type { ChatMessage, Usage } from '../types.ts';
+import type { ChatMessage, Usage } from "../types.ts";
 
 export interface StreamChatCompletionInput {
   baseUrl: string;
@@ -8,6 +8,15 @@ export interface StreamChatCompletionInput {
   signal?: AbortSignal;
   onDelta: (chunk: string) => void;
   temperature?: number;
+  maxTokens?: number;
+  tools?: Array<{
+    type: "function";
+    function: {
+      name: string;
+      description?: string;
+      parameters?: Record<string, unknown>;
+    };
+  }>;
 }
 
 export interface StreamChatCompletionResult {
@@ -23,62 +32,101 @@ export async function streamChatCompletion({
   signal,
   onDelta,
   temperature = 0.2,
+  maxTokens = 2048,
+  tools,
 }: StreamChatCompletionInput): Promise<StreamChatCompletionResult> {
   const headers: Record<string, string> = {
-    'content-type': 'application/json',
+    "content-type": "application/json",
   };
   if (apiKey) {
     headers.authorization = `Bearer ${apiKey}`;
   }
 
-  const response = await fetch(`${baseUrl.replace(/\/$/, '')}/chat/completions`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify({
-      model,
-      messages,
-      stream: true,
-      temperature,
-    }),
-    signal,
-  });
+  const requestBody: Record<string, unknown> = {
+    model,
+    messages,
+    stream: true,
+    temperature,
+    max_tokens: maxTokens,
+  };
+
+  // Include tools if provided (OpenAI GPT-4 supports function calling)
+  if (tools && tools.length > 0) {
+    requestBody.tools = tools;
+  }
+
+  const response = await fetch(
+    `${baseUrl.replace(/\/$/, "")}/chat/completions`,
+    {
+      method: "POST",
+      headers,
+      body: JSON.stringify(requestBody),
+      signal,
+    },
+  );
 
   if (!response.ok) {
-    throw new Error(`OpenAI request failed: ${response.status} ${response.statusText}`);
+    throw new Error(
+      `OpenAI request failed: ${response.status} ${response.statusText}`,
+    );
   }
 
   const reader = response.body?.getReader();
   if (!reader) {
-    return { usage: null, text: '' };
+    return { usage: null, text: "" };
   }
 
   const decoder = new TextDecoder();
-  let buffer = '';
+  let buffer = "";
   let usage: Usage | null = null;
-  let assistantText = '';
+  let assistantText = "";
 
   while (true) {
     const { done, value } = await reader.read();
     if (done) break;
     buffer += decoder.decode(value, { stream: true });
 
-    const parts = buffer.split('\n\n');
-    buffer = parts.pop() ?? '';
+    const parts = buffer.split("\n\n");
+    buffer = parts.pop() ?? "";
     for (const part of parts) {
       const line = part.trim();
-      if (!line.startsWith('data:')) continue;
+      if (!line.startsWith("data:")) continue;
       const payload = line.slice(5).trim();
-      if (payload === '[DONE]') continue;
+      if (payload === "[DONE]") continue;
       const event = JSON.parse(payload) as {
         choices?: Array<{ delta?: { content?: string } }>;
         usage?: Usage;
       };
-      const delta = event.choices?.[0]?.delta?.content ?? '';
+      const delta = event.choices?.[0]?.delta?.content ?? "";
       if (delta) {
         assistantText += delta;
         onDelta(delta);
       }
       if (event.usage) usage = event.usage;
+    }
+  }
+
+  // Process any remaining buffer content after stream ends
+  buffer += decoder.decode();
+  const remainingParts = buffer.split("\n\n");
+  for (const part of remainingParts) {
+    const line = part.trim();
+    if (!line || !line.startsWith("data:")) continue;
+    const payload = line.slice(5).trim();
+    if (payload === "[DONE]") continue;
+    try {
+      const event = JSON.parse(payload) as {
+        choices?: Array<{ delta?: { content?: string } }>;
+        usage?: Usage;
+      };
+      const delta = event.choices?.[0]?.delta?.content ?? "";
+      if (delta) {
+        assistantText += delta;
+        onDelta(delta);
+      }
+      if (event.usage) usage = event.usage;
+    } catch (error) {
+      // Silently skip malformed JSON in final buffer
     }
   }
 

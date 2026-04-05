@@ -1,6 +1,8 @@
 import type { Command, CommandContext } from "../../commands.ts";
 import chalk from "chalk";
 import { saveConfig } from "../../config/config-writer.ts";
+import { loadConfig } from "../../config/config-loader.ts";
+import { initializeModelFromConfig } from "../../models/catalog.ts";
 import type { ParsedConfig } from "../../config/types.ts";
 
 // Config field definition
@@ -229,45 +231,55 @@ export const config: Command = {
         if (userInputLower === "save") {
           // Apply changes
           try {
-            // Only save the fields that belong in the config file
+            // Build the config file update - only include fields that should persist
             const configFileUpdate: any = {};
             for (const [fieldName, newValue] of editState.changes) {
-              configFileUpdate[fieldName] = newValue;
+              // Map field names to config file structure
+              if (fieldName === "apiKey") {
+                configFileUpdate.apiKey = newValue;
+              } else if (fieldName === "model") {
+                configFileUpdate.model = newValue;
+              } else if (fieldName === "baseUrl") {
+                configFileUpdate.baseUrl = newValue;
+              } else if (fieldName === "proxyUrl") {
+                // Handle empty proxyUrl
+                configFileUpdate.proxyUrl =
+                  newValue === "(not set)" || !newValue ? null : newValue;
+              }
             }
 
-            // Save to file
-            const savedConfig = saveConfig(configFileUpdate, { target: "global", backup: true });
+            // Save to global config file (~/.ryftrc)
+            const savedConfig = saveConfig(configFileUpdate, {
+              target: "global",
+              backup: true,
+            });
 
-            // Update session config with new values
+            if (!savedConfig) {
+              throw new Error(
+                "Failed to save config - no response from saveConfig",
+              );
+            }
+
+            // Log save confirmation
+            console.log("[CONFIG] Successfully saved to global config file");
+
+            // Reload configuration from global config file to ensure consistency
+            const reloadedConfig = loadConfig();
+
+            // Update session config with reloaded values from global config
             for (const [fieldName, newValue] of editState.changes) {
-              if (fieldName === "model") {
-                // For model, we need to reconstruct the ModelOption object
-                // The user edited it as a string, so fetch it from savedModels or use a default
-                const savedModel = savedConfig.savedModels?.find(m => m.id === newValue);
-                if (savedModel) {
-                  context.appState.session.config.model = {
-                    id: savedModel.id,
-                    label: savedModel.label,
-                    provider: savedModel.provider,
-                    baseUrl: savedModel.baseUrl,
-                    description: `${savedModel.provider} - ${savedModel.label}`,
-                  };
-                } else {
-                  // Fallback: create a basic ModelOption
-                  context.appState.session.config.model = {
-                    id: newValue,
-                    label: newValue,
-                    provider: "custom",
-                    baseUrl: context.appState.session.config.baseUrl,
-                    description: `Custom model: ${newValue}`,
-                  };
-                }
-              } else if (fieldName === "apiKey") {
-                context.appState.session.config.apiKey = newValue;
-              } else if (fieldName === "baseUrl") {
-                context.appState.session.config.baseUrl = newValue;
+              if (fieldName === "apiKey" && reloadedConfig.apiKey) {
+                context.session.config.apiKey = reloadedConfig.apiKey;
+              } else if (fieldName === "model" && reloadedConfig.model) {
+                // Use initializeModelFromConfig to properly resolve both built-in and custom models
+                const modelStr = String(reloadedConfig.model);
+                const resolvedModel = initializeModelFromConfig(modelStr);
+                context.session.config.model = resolvedModel;
+              } else if (fieldName === "baseUrl" && reloadedConfig.baseUrl) {
+                context.session.config.baseUrl = reloadedConfig.baseUrl;
               } else if (fieldName === "proxyUrl") {
-                context.appState.session.config.proxyUrl = newValue;
+                context.session.config.proxyUrl =
+                  reloadedConfig.proxyUrl || null;
               }
             }
 
@@ -278,11 +290,17 @@ export const config: Command = {
                 ...prev.messages,
                 {
                   role: "assistant",
-                  content: chalk.green("✓ Configuration saved successfully!"),
+                  content: chalk.green(
+                    "✓ Configuration saved successfully to global config (~/.ryftrc)!\nChanges are active in this session and will apply to all new sessions.",
+                  ),
                 },
               ],
             }));
           } catch (error) {
+            const errorMsg =
+              error instanceof Error ? error.message : String(error);
+            console.error("[CONFIG] Save failed:", errorMsg);
+
             context.setAppState((prev) => ({
               ...prev,
               configEditState: undefined,
@@ -291,8 +309,7 @@ export const config: Command = {
                 {
                   role: "assistant",
                   content: chalk.red(
-                    "✗ Failed to save: " +
-                      (error instanceof Error ? error.message : String(error)),
+                    "✗ Failed to save to global config: " + errorMsg,
                   ),
                 },
               ],

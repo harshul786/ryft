@@ -13,6 +13,7 @@ import { getBrowserMcpServerDescription } from "../browser/mcp.ts";
 import type { TokenBudgetTracker } from "../tokens/budget.ts";
 import { getGlobalTokenBudget } from "../tokens/budget.ts";
 import { McpClientPool } from "../mcp/client.ts";
+import type { McpServerConfig } from "../mcp/protocol.ts";
 import { ToolRegistry } from "../mcp/tool-registry.ts";
 import { ToolDispatcher } from "../mcp/tool-dispatcher.ts";
 import { BrowserLifecycleManager } from "../browser/lifecycle.ts";
@@ -43,6 +44,7 @@ export interface Session {
   describeSkills(): Promise<string>;
   describeMcp(): string;
   describeBrowser(): string;
+  initializeMcpServers(): Promise<void>;
 }
 
 export function createSession(config: SessionConfig): Session {
@@ -111,11 +113,11 @@ export function createSession(config: SessionConfig): Session {
     async describeSkills() {
       // Load skills for each active mode and merge them
       try {
-        const skillPromises = activeModes.map(mode => getModeSkills(mode));
+        const skillPromises = activeModes.map((mode) => getModeSkills(mode));
         const skillArrays = await Promise.all(skillPromises);
-        
+
         // Deduplicate and merge skills from all modes
-        const skillMap = new Map<string, typeof skillArrays[0][0]>();
+        const skillMap = new Map<string, (typeof skillArrays)[0][0]>();
         for (const modeSkills of skillArrays) {
           for (const skill of modeSkills) {
             if (!skillMap.has(skill.name)) {
@@ -123,17 +125,18 @@ export function createSession(config: SessionConfig): Session {
             }
           }
         }
-        
-        const allSkills = Array.from(skillMap.values())
-          .sort((a, b) => a.name.localeCompare(b.name));
-        
+
+        const allSkills = Array.from(skillMap.values()).sort((a, b) =>
+          a.name.localeCompare(b.name),
+        );
+
         return (
           allSkills
             .map((skill) => `- ${skill.name}: ${skill.description}`)
             .join("\n") || "No skills loaded."
         );
       } catch (error) {
-        console.warn('Failed to load skills:', error);
+        console.warn("Failed to load skills:", error);
         return "No skills loaded.";
       }
     },
@@ -159,6 +162,49 @@ export function createSession(config: SessionConfig): Session {
         session.browser.description,
         "Commands: /browser open <url>, /browser tabs, /browser devtools [tab-id], /browser close",
       ].join("\n");
+    },
+    async initializeMcpServers() {
+      try {
+        // Collect all MCP server configs from active modes
+        const serverConfigs: McpServerConfig[] = [];
+        const seen = new Set<string>();
+
+        for (const mode of activeModes) {
+          for (const serverConfig of mode.mcpServers) {
+            // Only add if it has command/args (full config, not just reference)
+            const hasCommand = "command" in serverConfig;
+            const hasArgs = "args" in serverConfig;
+            const hasId = "id" in serverConfig;
+
+            if (
+              hasCommand &&
+              hasArgs &&
+              hasId &&
+              !seen.has(String(serverConfig.id))
+            ) {
+              seen.add(String(serverConfig.id));
+              serverConfigs.push({
+                id: String(serverConfig.id),
+                name: serverConfig.name,
+                description: serverConfig.description,
+                command: (serverConfig as any).command,
+                args: (serverConfig as any).args,
+                env: (serverConfig as any).env,
+              });
+            }
+          }
+        }
+
+        // Spawn all configured servers
+        if (serverConfigs.length > 0) {
+          await session.mcpClients.spawnServers(serverConfigs);
+          console.log(
+            `[MCP] Spawned ${serverConfigs.length} server(s): ${serverConfigs.map((c) => c.id).join(", ")}`,
+          );
+        }
+      } catch (error) {
+        console.error("[MCP] Failed to initialize servers:", error);
+      }
     },
   };
 

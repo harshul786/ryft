@@ -146,7 +146,7 @@ export function formatModelPicker(currentId?: string): string {
 
 /**
  * Initialize model from config with validation and fallback
- * TODO #8: Config-aware model initialization
+ * Supports both built-in models and custom external models
  */
 export function initializeModelFromConfig(configModel?: string): ModelOption {
   if (!configModel) {
@@ -156,22 +156,26 @@ export function initializeModelFromConfig(configModel?: string): ModelOption {
     return defaultModel;
   }
 
-  // Try to resolve the configured model
+  // Try to resolve the configured model from built-in list
   const resolved = resolveModelOption(configModel);
   if (resolved) {
     console.log(chalk.dim(`Using configured model: ${resolved.label}`));
     return resolved;
   }
 
-  // Fallback to default if configured model not found
-  console.warn(
-    chalk.yellow(
-      `Warning: Configured model '${configModel}' not found, using default`,
-    ),
-  );
-  const defaultModel = defaultModelOption();
-  console.log(chalk.dim(`Using default model: ${defaultModel.label}`));
-  return defaultModel;
+  // Model not found in built-in list - treat as custom/external model
+  // This allows users to configure external models (e.g., gemma-lite, ollama models, etc.)
+  console.log(chalk.dim(`Using custom external model: ${configModel}`));
+
+  // Create a ModelOption for the custom model
+  const customModel: ModelOption = {
+    id: configModel,
+    label: configModel,
+    provider: "custom",
+    description: `Custom external model: ${configModel}`,
+  };
+
+  return customModel;
 }
 
 /**

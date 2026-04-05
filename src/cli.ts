@@ -18,7 +18,11 @@ import { createSession } from "./runtime/session.ts";
 import { openProxyServer } from "./runtime/proxyServer.ts";
 import { streamChatCompletion } from "./runtime/openaiClient.ts";
 import { renderBanner, renderStatusLine } from "./ui/chalkDraw.ts";
-import { loadConfig, applyCliOverrides } from "./config/config-loader.ts";
+import {
+  loadConfig,
+  applyCliOverrides,
+  loadGlobalConfig,
+} from "./config/config-loader.ts";
 import { saveConfig } from "./config/config-writer.ts";
 import { runOnboarding } from "./onboarding/onboardingFlow.ts";
 import { Root } from "./components/Root.tsx";
@@ -107,9 +111,33 @@ async function main(): Promise<void> {
     apiKey: opts.apiKey ?? config.apiKey ?? process.env.OPENAI_API_KEY ?? "",
   });
 
+  // Reload global config into session to ensure absolutely latest values
+  const freshGlobalConfig = loadGlobalConfig();
+  if (freshGlobalConfig.apiKey) {
+    session.config.apiKey = freshGlobalConfig.apiKey;
+  }
+  if (freshGlobalConfig.baseUrl) {
+    session.config.baseUrl = freshGlobalConfig.baseUrl;
+  }
+  if (freshGlobalConfig.proxyUrl !== undefined) {
+    session.config.proxyUrl = freshGlobalConfig.proxyUrl;
+  }
+  if (freshGlobalConfig.model) {
+    // Update model if available in fresh config
+    const freshModel = initializeModelFromConfig(
+      String(freshGlobalConfig.model),
+    );
+    if (freshModel) {
+      session.config.model = freshModel;
+    }
+  }
+
   if (opts.browser) {
     await initBrowser(session);
   }
+
+  // Initialize MCP servers to register tools (needed for tool execution)
+  await session.initializeMcpServers();
 
   if (opts.prompt) {
     const prompt = await promptWithSession(session, opts.prompt);
@@ -123,6 +151,35 @@ async function main(): Promise<void> {
     });
     if (response.text) {
       session.appendAssistant(response.text);
+
+      // Handle tool_use blocks (Phase 3E)
+      const toolUses = session.toolDispatcher.extractToolUsesFromResponse(
+        response.text,
+      );
+
+      if (toolUses.length > 0) {
+        try {
+          // Execute all tool calls
+          const results =
+            await session.toolDispatcher.dispatchToolCalls(toolUses);
+
+          // Format tool results for conversation
+          const resultsText =
+            session.toolDispatcher.formatToolResultsForConversation(results);
+
+          if (resultsText) {
+            process.stdout.write(`\n\n**Tool Execution Results:**\n${resultsText}`);
+            session.appendUser(resultsText);
+          }
+        } catch (error) {
+          const errorMsg =
+            error instanceof Error ? error.message : String(error);
+          process.stdout.write(
+            `\n\n❌ Tool execution failed: ${errorMsg}`,
+          );
+        }
+      }
+
       session.setMemoryState(
         await recordMemoryTurn(
           session.memoryMode.name,

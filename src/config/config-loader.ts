@@ -126,7 +126,7 @@ function loadEnvConfig(): ParsedConfig {
 /**
  * Load global config from ~/.ryftrc
  */
-function loadGlobalConfig(): ParsedConfig {
+export function loadGlobalConfig(): ParsedConfig {
   const globalPath = join(homedir(), ".ryftrc");
   try {
     const content = readFileSync(globalPath, "utf-8");

@@ -10,6 +10,16 @@
       "id": "logs",
       "name": "Logs",
       "description": "Log aggregation and analysis for debugging"
+    },
+    {
+      "id": "skills",
+      "name": "Skills Server",
+      "description": "Invoke Ryft skills for specialized tasks",
+      "command": "node",
+      "args": ["--loader=tsx", "src/mcp/servers/skills-server.ts"],
+      "env": {
+        "NODE_ENV": "production"
+      }
     }
   ],
   "version": "1.0.0",

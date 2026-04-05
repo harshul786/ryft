@@ -20,7 +20,11 @@ const MODE_DEFS: Mode[] = [
       "Use a browser session as the source of truth for UI inspection and action.",
     prompt:
       "You are a browser session agent. Read tab context first, prefer the current browser session, and use browser tools only when they help inspect or act on the user's page.",
-    skillRoots: [".ryft/skills", "packs/shared/skills", "packs/browser-surff/skills"],
+    skillRoots: [
+      ".ryft/skills",
+      "packs/shared/skills",
+      "packs/browser-surff/skills",
+    ],
     mcpServers: [
       {
         name: "browser-session",
@@ -35,7 +39,11 @@ const MODE_DEFS: Mode[] = [
       "Diagnose failures and produce actionable root-cause analysis.",
     prompt:
       "You are a debugger. Focus on evidence, logs, and reproduction steps.",
-    skillRoots: [".ryft/skills", "packs/shared/skills", "packs/debugger/skills"],
+    skillRoots: [
+      ".ryft/skills",
+      "packs/shared/skills",
+      "packs/debugger/skills",
+    ],
     mcpServers: [
       { name: "logs", description: "Log and diagnostics integrations." },
     ],

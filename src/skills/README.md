@@ -21,20 +21,22 @@ Complete guide to Ryft's extensible skill system, including discovery, metadata,
 ### Creating a Basic Skill
 
 1. Create a directory for your skill in a skill root:
+
    ```
    Ryft/packs/shared/skills/my-skill/SKILL.md
    ```
 
 2. Write the skill file with YAML frontmatter and markdown content:
+
    ```markdown
    ---
    title: My Skill
    description: What this skill does
    context: inline
    ---
-   
+
    # My Skill
-   
+
    This is my skill implementation...
    ```
 
@@ -118,15 +120,15 @@ list-field: [item1, item2, item3]
 
 ### Basic Metadata
 
-| Field | Type | Description | Default |
-|-------|------|-------------|---------|
-| `title` | string | Display name for the skill | Extracted from `# H1` heading |
-| `description` | string | Brief description of the skill | First 3 lines of markdown |
-| `effort` | Low / Medium / High | Complexity level | (none) |
-| `when-to-use` | string | Scenario/use case description | (none) |
-| `author` | string | Author or maintainer name | (none) |
-| `version` | string | Skill version (e.g., 1.0.0) | (none) |
-| `tags` | [tag1, tag2, ...] | Category tags for discovery | (none) |
+| Field         | Type                | Description                    | Default                       |
+| ------------- | ------------------- | ------------------------------ | ----------------------------- |
+| `title`       | string              | Display name for the skill     | Extracted from `# H1` heading |
+| `description` | string              | Brief description of the skill | First 3 lines of markdown     |
+| `effort`      | Low / Medium / High | Complexity level               | (none)                        |
+| `when-to-use` | string              | Scenario/use case description  | (none)                        |
+| `author`      | string              | Author or maintainer name      | (none)                        |
+| `version`     | string              | Skill version (e.g., 1.0.0)    | (none)                        |
+| `tags`        | [tag1, tag2, ...]   | Category tags for discovery    | (none)                        |
 
 ### Example
 
@@ -142,6 +144,7 @@ tags: [debug, performance, monitoring]
 ---
 
 # Debug Performance Issues
+
 ...
 ```
 
@@ -220,6 +223,7 @@ allowed-tools: bash, git, npm, node
 ---
 
 # Safe Build Script
+
 ...
 ```
 
@@ -261,6 +265,7 @@ paths: src/**/*.jsx, src/**/*.tsx
 ---
 
 # Edit React Components
+
 ...
 ```
 
@@ -280,6 +285,7 @@ paths: src/**/*.jsx, src/**/*.tsx
 ### Registry Integration
 
 The skill registry:
+
 - Maintains central index of all available skills
 - Deduplicates by file realpath (handles symlinks)
 - Supports filtering by source or metadata
@@ -310,6 +316,7 @@ user-invocable: true
 Automatically generates JSDoc documentation for JavaScript functions.
 
 Usage:
+
 - Select a function in the editor
 - Run the /document-function command
 - Review and refine the generated documentation
@@ -364,6 +371,7 @@ Deploys the application with safety constraints to prevent
 accidental data loss or system changes.
 
 This skill cannot use:
+
 - File deletion (rm)
 - Permission changes (chmod)
 - Process termination (killall)
@@ -376,29 +384,35 @@ This skill cannot use:
 ## Best Practices
 
 ### 1. **Clear Naming**
+
 - Use descriptive skill names: `edit-react-components` not `rc`
 - Skill name is derived from directory name
 
 ### 2. **Frontmatter Format**
+
 - Always use kebab-case for field names: `user-invocable` not `userInvocable`
 - Use arrays for lists: `[a, b, c]` not `a, b, c`
 
 ### 3. **Metadata Documentation**
+
 - Include `when-to-use` to help models decide when to invoke
 - Add `tags` for discoverability
 - Set `effort` to manage expectation
 
 ### 4. **Tool Policies**
+
 - Use `allowed-tools` for safety-critical operations
 - Use `disabled-tools` to prevent specific dangerous actions
 - Document why tools are restricted
 
 ### 5. **Execution Context**
+
 - Use `inline` for small utilities (< 100 tokens)
 - Use `fork` for complex tasks (> 1000 tokens)
 - Use `agent: Bash` for shell-based skills
 
 ### 6. **Conditional Activation**
+
 - Keep glob patterns specific to avoid overload
 - Document why certain paths trigger the skill
 - Test patterns before deployment
@@ -411,38 +425,44 @@ This skill cannot use:
 
 ```typescript
 // Parse YAML frontmatter from content
-function parseFrontmatter(content: string): Record<string, unknown>
+function parseFrontmatter(content: string): Record<string, unknown>;
 
 // Extract metadata (title, description, etc.)
-function parseSkillMetadata(content: string): SkillMetadata
+function parseSkillMetadata(content: string): SkillMetadata;
 
 // Extract execution context
-function extractContext(content: string): ExecutionContext | undefined
+function extractContext(content: string): ExecutionContext | undefined;
 
 // Extract tool policies
-function extractTools(content: string): { allowed?: string[], disabled?: string[] }
+function extractTools(content: string): {
+  allowed?: string[];
+  disabled?: string[];
+};
 
 // Extract conditional paths
-function extractPaths(content: string): string[] | undefined
+function extractPaths(content: string): string[] | undefined;
 
 // Enrich skill by reading file and parsing all metadata
-async function enrichSkillFromFile(skill: Skill, filePath: string): Promise<Skill>
+async function enrichSkillFromFile(
+  skill: Skill,
+  filePath: string,
+): Promise<Skill>;
 
 // Validate frontmatter structure
-function validateSkillFrontmatter(content: string): string[]
+function validateSkillFrontmatter(content: string): string[];
 ```
 
 ### Skill Registry
 
 ```typescript
 // Get the global skill registry
-function getGlobalSkillRegistry(): SkillRegistry
+function getGlobalSkillRegistry(): SkillRegistry;
 
 // Discover skills for given modes
-async function discoverAllSkillsForModes(modes: Mode[]): Promise<Skill[]>
+async function discoverAllSkillsForModes(modes: Mode[]): Promise<Skill[]>;
 
 // Clear discovery cache
-function clearDiscoveryCache(): void
+function clearDiscoveryCache(): void;
 ```
 
 ---

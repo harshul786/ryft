@@ -51,7 +51,8 @@ export const skills: Command = {
             .map((skill) => {
               const metadata = getSkillMetadata(skill.name);
               const tools = getSkillRequiredTools(skill.name);
-              const toolsStr = tools.length > 0 ? ` [needs: ${tools.join(",")}]` : "";
+              const toolsStr =
+                tools.length > 0 ? ` [needs: ${tools.join(",")}]` : "";
               const contextStr = skill.context ? ` (${skill.context})` : "";
               return `  • ${skill.name}: ${skill.description || "(no description)"}${contextStr}${toolsStr}`;
             })

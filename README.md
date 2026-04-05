@@ -11,6 +11,7 @@ A lean, fast AI code assistant built as an OpenAI-native fork. Combines composab
 - 💰 Smart token budgeting with soft warnings
 - 💾 Configuration management (file + CLI precedence)
 - ⚡ Fast startup with lazy initialization
+- 🛠️ **NEW: Integrated Skills & Tools System** - Models discover, understand, and invoke tools with automatic result feedback
 
 ## Build & Setup
 
@@ -258,6 +259,96 @@ ryft> Navigate to example.com and summarize
 - Auto-discovered from mode packs
 - Spawn on-demand (not at startup)
 - Tool schemas compressed for efficiency
+
+### Integrated Skills & Tools System (Phase 2 - NEW)
+
+Ryft now provides **comprehensive tool integration** that enables AI models to discover, understand, and invoke specialized capabilities:
+
+#### Multi-Channel Tool Access
+
+1. **System Prompt Context** - Models see available tools as text descriptions in the system prompt
+2. **Formal Tool Schemas** - Tools passed via OpenAI function calling API for structured declaration
+3. **Tool Invocation** - Models can invoke tools using `<tool_use>` XML blocks
+4. **Result Feedback** - Tool execution results automatically appended to conversation for multi-turn reasoning
+
+#### How It Works
+
+When you start a session, Ryft:
+
+1. Discovers all skills and tools from active modes
+2. Spawns MCP servers for skill invocation
+3. Includes tool schemas in system prompt (text format)
+4. Passes tools parameter to OpenAI/Claude API (structured format)
+5. Extracts and executes `<tool_use>` blocks from model responses
+6. Returns execution results to model for continued reasoning
+
+#### Example Interaction
+
+```bash
+ryft> /mode coder
+ryft> Analyze this code and fix any issues
+
+# Model sees:
+# - Available skills (in system prompt)
+# - Available tools (via function calling)
+# - Can invoke: <tool_use id="tool_1" name="invoke_skill" input='{"skill": "compact"}'></tool_use>
+
+# Ryft automatically:
+# - Extracts tool_use block
+# - Executes the skill via MCP
+# - Appends results to conversation
+# - Model continues reasoning with results
+```
+
+#### Architecture
+
+```
+┌─────────────────────────────────────────────────────────┐
+│ Model (GPT-4/Claude)                                    │
+│ Receives: System Prompt + Tool Schemas + History        │
+└─────────────────┬───────────────────────────────────────┘
+                  │
+        ┌─────────┴──────────┐
+        ↓                    ↓
+    System Prompt       Tools Parameter
+    (Text Context)      (Structured API)
+        │                    │
+        └─────────┬──────────┘
+                  ↓
+        ┌─────────────────────┐
+        │ REPL streams chat   │
+        │ completion          │
+        └────────────┬────────┘
+                     ↓
+        ┌─────────────────────┐
+        │ Extract tool_use    │
+        │ blocks from response│
+        └────────────┬────────┘
+                     ↓
+        ┌─────────────────────────────┐
+        │ ToolDispatcher executes     │
+        │ tools via MCP servers       │
+        └────────────┬────────────────┘
+                     ↓
+        ┌─────────────────────────────┐
+        │ Format results              │
+        │ Append to session history   │
+        └─────────────────────────────┘
+                     ↓
+        ┌─────────────────────────────┐
+        │ Model sees results,         │
+        │ continues reasoning         │
+        └─────────────────────────────┘
+```
+
+#### What This Enables
+
+- ✅ Model understands available capabilities before responding
+- ✅ Structured tool invocation via multiple formats (text + API)
+- ✅ Automatic tool execution with result feedback
+- ✅ Multi-turn conversations with tool context preservation
+- ✅ Skills as first-class tools accessible to AI models
+- ✅ Extensible architecture for adding new tools and skills
 
 ## Configuration Files
 

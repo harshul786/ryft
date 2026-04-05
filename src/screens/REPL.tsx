@@ -15,7 +15,15 @@ import {
 } from "../cli/permissions.ts";
 import { cliWarn } from "../cli/exit.ts";
 import { Select } from "../ui/Select.tsx";
+import { buildSystemPrompt } from "../runtime/promptBuilder.ts";
 import { streamChatCompletion } from "../runtime/openaiClient.ts";
+import { applyTokenCap } from "../runtime/tokenBudget.ts";
+import { getModeSkills } from "../modes/skill-merger.ts";
+import { invokeSkill } from "../tools/skill-tool.ts";
+import {
+  BROWSER_SURFF_PROMPT,
+  BROWSER_SURFF_SKILL_HINT,
+} from "../browser/prompt.ts";
 
 // Initialize command system on import
 initializeCommands();
@@ -29,16 +37,34 @@ export const REPL: React.FC = () => {
   useEffect(() => {
     // Initialize on first render only
     if (!initializedRef.current) {
-      setAppState((prev) => ({
-        ...prev,
-        messages: [
-          {
-            role: "assistant",
-            content: "Welcome to Ryft REPL. Type /help for commands.",
-          },
-        ],
-        inputValue: "",
-      }));
+      // Build and inject system prompt into session history at startup (once only)
+      const initializeSession = async () => {
+        // Initialize MCP servers first - this discovers and registers tools
+        await appState.session.initializeMcpServers();
+
+        // Build system prompt using enhanced promptBuilder (includes tools, skills, modes)
+        const systemPrompt = await buildSystemPrompt(appState.session);
+
+        // Prepend system prompt to session history
+        appState.session.history.unshift({
+          role: "system",
+          content: systemPrompt,
+        });
+
+        // Update state once system prompt is ready
+        setAppState((prev) => ({
+          ...prev,
+          messages: [
+            {
+              role: "assistant",
+              content: "Welcome to Ryft REPL. Type /help for commands.",
+            },
+          ],
+          inputValue: "",
+        }));
+      };
+
+      initializeSession();
       initializedRef.current = true;
     }
   }, [setAppState]);
@@ -242,16 +268,47 @@ export const REPL: React.FC = () => {
               }));
             });
         } else {
-          setAppState((prev) => ({
-            ...prev,
-            messages: [
-              ...prev.messages,
-              {
-                role: "assistant",
-                content: `Unknown command: /${commandName}. Type /help for available commands.`,
-              },
-            ],
-          }));
+          // Check if this is a skill invocation
+          try {
+            const skillResult = await invokeSkill(
+              commandName,
+              appState.session.modes,
+            );
+            if (skillResult.success && skillResult.content) {
+              setAppState((prev) => ({
+                ...prev,
+                messages: [
+                  ...prev.messages,
+                  {
+                    role: "assistant",
+                    content: `📚 Skill: ${commandName}\n\n${skillResult.content}`,
+                  },
+                ],
+              }));
+            } else {
+              setAppState((prev) => ({
+                ...prev,
+                messages: [
+                  ...prev.messages,
+                  {
+                    role: "assistant",
+                    content: `Unknown command: /${commandName}. Type /help for available commands.`,
+                  },
+                ],
+              }));
+            }
+          } catch (error) {
+            setAppState((prev) => ({
+              ...prev,
+              messages: [
+                ...prev.messages,
+                {
+                  role: "assistant",
+                  content: `Unknown command: /${commandName}. Type /help for available commands.`,
+                },
+              ],
+            }));
+          }
         }
       } else if ((appState as any).configEditState?.active) {
         // In interactive config edit mode - pass plain input to config command
@@ -280,7 +337,7 @@ export const REPL: React.FC = () => {
       } else {
         // Regular message - send to AI model
         const session = appState.session;
-        
+
         // Append user message to session history
         session.appendUser(input_val);
 
@@ -293,6 +350,20 @@ export const REPL: React.FC = () => {
         // Send to model and stream response
         let assistantResponse = "";
         try {
+          // Get tools for OpenAI function calling (if model supports it)
+          const allTools = session.toolRegistry.getCompressedTools();
+          const formattedTools =
+            allTools && allTools.length > 0
+              ? allTools.map((tool) => ({
+                  type: "function" as const,
+                  function: {
+                    name: tool.name,
+                    description: tool.description,
+                    parameters: tool.inputSchema,
+                  },
+                }))
+              : undefined;
+
           const result = await streamChatCompletion({
             baseUrl: session.config.baseUrl || "https://api.openai.com/v1",
             apiKey: session.config.apiKey,
@@ -301,21 +372,94 @@ export const REPL: React.FC = () => {
             signal: session.abortController.signal,
             onDelta: (chunk) => {
               assistantResponse += chunk;
-              setAppState((prev) => ({
-                ...prev,
-                messages: [
-                  ...prev.messages.slice(0, -1), // Remove pending response if exists
-                  {
-                    role: "assistant",
-                    content: assistantResponse,
-                  },
-                ],
-              }));
+              setAppState((prev) => {
+                // Check if the last message is already an assistant response
+                const lastMsg = prev.messages[prev.messages.length - 1];
+                const hasAssistantResponse =
+                  lastMsg && lastMsg.role === "assistant";
+
+                // If no assistant response yet, add one; otherwise update existing
+                const updatedMessages: Array<{
+                  role: "user" | "assistant";
+                  content: string;
+                }> = hasAssistantResponse
+                  ? [
+                      ...prev.messages.slice(0, -1), // Remove old assistant response
+                      {
+                        role: "assistant" as const,
+                        content: assistantResponse,
+                      },
+                    ]
+                  : [
+                      ...prev.messages, // Keep user message
+                      {
+                        role: "assistant" as const,
+                        content: assistantResponse,
+                      },
+                    ];
+
+                return {
+                  ...prev,
+                  messages: updatedMessages,
+                };
+              });
             },
+            tools: formattedTools,
           });
 
           // Append assistant response to session history
           session.appendAssistant(assistantResponse);
+
+          // Handle tool_use blocks in response (Phase 2 Step 7)
+          const toolUses =
+            session.toolDispatcher.extractToolUsesFromResponse(
+              assistantResponse,
+            );
+
+          if (toolUses.length > 0) {
+            try {
+              // Execute all tool calls
+              const results =
+                await session.toolDispatcher.dispatchToolCalls(toolUses);
+
+              // Format tool results for conversation
+              const resultsText =
+                session.toolDispatcher.formatToolResultsForConversation(
+                  results,
+                );
+
+              // Append tool results to session history
+              if (resultsText) {
+                session.appendUser(resultsText);
+              }
+
+              // Update UI with tool results
+              setAppState((prev) => ({
+                ...prev,
+                messages: [
+                  ...prev.messages,
+                  {
+                    role: "assistant",
+                    content: `\n\n**Tool Execution Results:**\n${resultsText}`,
+                  },
+                ],
+              }));
+            } catch (error) {
+              const errorMsg =
+                error instanceof Error ? error.message : String(error);
+              console.error("Tool execution failed:", errorMsg);
+              setAppState((prev) => ({
+                ...prev,
+                messages: [
+                  ...prev.messages,
+                  {
+                    role: "assistant",
+                    content: `❌ Tool execution failed: ${errorMsg}`,
+                  },
+                ],
+              }));
+            }
+          }
 
           // Update final state
           setAppState((prev) => ({
