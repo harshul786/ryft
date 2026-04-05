@@ -2,9 +2,11 @@ import type { ToolUseBlock, ToolResult } from "./protocol.ts";
 import { ToolRegistry } from "./tool-registry.ts";
 import { McpClientPool } from "./client.ts";
 import type { BrowserLifecycleManager } from "../browser/lifecycle.ts";
+import { getFeatureLogger } from "../logging/index.ts";
 
-// TODO #20: Implement tool call dispatch from LLM responses
 export class ToolDispatcher {
+  private readonly log = getFeatureLogger("ToolDispatcher");
+
   constructor(
     private toolRegistry: ToolRegistry,
     private clientPool: McpClientPool,
@@ -12,64 +14,9 @@ export class ToolDispatcher {
   ) {}
 
   /**
-   * Extract tool use blocks from LLM response text
-   * Handles multiple formats of tool_use blocks
-   */
-  extractToolUsesFromResponse(responseText: string): ToolUseBlock[] {
-    const toolUses: ToolUseBlock[] = [];
-
-    // Pattern 1: <tool_use id="..." name="..." input="{...}"></tool_use>
-    // Pattern 2: <tool_use id="..." name="..." input='{...}' />
-    // Matches both single and double quotes for input, and both closing formats
-    const patterns = [
-      /<tool_use\s+id="([^"]+)"\s+name="([^"]+)"\s+input='([^']*)'>/g,
-      /<tool_use\s+id="([^"]+)"\s+name="([^"]+)"\s+input="([^"]*)"/g,
-      /<tool_use\s+id="([^"]+)"\s+name="([^"]+)"\s+input='([^']*)'[^>]*\/>/g,
-      /<tool_use\s+id="([^"]+)"\s+name="([^"]+)"\s+input="([^"]*)"[^>]*\/>/g,
-    ];
-
-    for (const pattern of patterns) {
-      let match;
-      while ((match = pattern.exec(responseText)) !== null) {
-        try {
-          // Try to parse input - could be empty object or actual JSON
-          let input = {};
-          const inputStr = match[3]?.trim();
-          if (inputStr && inputStr !== "{}") {
-            try {
-              input = JSON.parse(inputStr);
-            } catch {
-              // If not valid JSON, treat as empty object
-              input = {};
-            }
-          }
-
-          toolUses.push({
-            type: "tool_use",
-            id: match[1],
-            name: match[2],
-            input,
-          });
-        } catch (error) {
-          console.warn(
-            `Failed to parse tool use: ${error instanceof Error ? error.message : String(error)}`,
-          );
-        }
-      }
-    }
-
-    // Remove duplicates by id
-    const seen = new Set<string>();
-    return toolUses.filter((t) => {
-      if (seen.has(t.id)) return false;
-      seen.add(t.id);
-      return true;
-    });
-  }
-
-  /**
    * Dispatch a single tool call to appropriate MCP server
    */
+
   async dispatchToolCall(toolUse: ToolUseBlock): Promise<ToolResult> {
     // Find tool in registry
     const matching = this.toolRegistry.getToolsByName(toolUse.name);
@@ -121,7 +68,6 @@ export class ToolDispatcher {
     try {
       const result = await client.callTool(toolUse.name, toolUse.input);
 
-      // Format result
       let resultText: string;
       if (typeof result === "string") {
         resultText = result;
@@ -131,6 +77,11 @@ export class ToolDispatcher {
         resultText = String(result);
       }
 
+      this.log.info(`Tool '${toolUse.name}' succeeded`, {
+        id: toolUse.id,
+        byteLen: resultText.length,
+      });
+
       return {
         type: "tool_result",
         tool_use_id: toolUse.id,
@@ -138,6 +89,10 @@ export class ToolDispatcher {
       };
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);
+      this.log.warn(`Tool '${toolUse.name}' failed`, {
+        id: toolUse.id,
+        error: errorMsg,
+      });
       return {
         type: "tool_result",
         tool_use_id: toolUse.id,
@@ -152,28 +107,5 @@ export class ToolDispatcher {
    */
   async dispatchToolCalls(toolUses: ToolUseBlock[]): Promise<ToolResult[]> {
     return Promise.all(toolUses.map((use) => this.dispatchToolCall(use)));
-  }
-
-  /**
-   * Process tool results for conversation continuation
-   * Format tool results so LLM can continue
-   */
-  formatToolResultsForConversation(results: ToolResult[]): string {
-    if (results.length === 0) {
-      return "";
-    }
-
-    const lines: string[] = [];
-    for (const result of results) {
-      lines.push(`[Tool result: ${result.tool_use_id}]`);
-      if (result.is_error) {
-        lines.push(`Error: ${result.content}`);
-      } else {
-        lines.push(result.content);
-      }
-      lines.push("");
-    }
-
-    return lines.join("\n");
   }
 }

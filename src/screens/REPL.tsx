@@ -405,58 +405,80 @@ export const REPL: React.FC = () => {
             tools: formattedTools,
           });
 
-          // Append assistant response to session history
-          session.appendAssistant(assistantResponse);
+          // Use structured tool calls from the streaming parser (Phase 2).
+          // appendAssistantWithTools stores a content-array message when tool
+          // calls are present so the model can reference them next turn.
+          session.appendAssistantWithTools(assistantResponse, result.toolCalls);
 
-          // Handle tool_use blocks in response (Phase 2 Step 7)
-          const toolUses =
-            session.toolDispatcher.extractToolUsesFromResponse(
-              assistantResponse,
+          // ── Multi-turn tool-call loop ────────────────────────────────────
+          // Run up to MAX_TOOL_TURNS back-and-forth until the model stops
+          // requesting tools or the cap is reached.
+          const MAX_TOOL_TURNS = 5;
+          let turnResult = result;
+
+          for (
+            let turn = 0;
+            turn < MAX_TOOL_TURNS && turnResult.toolCalls.length > 0;
+            turn++
+          ) {
+            const pendingCalls = turnResult.toolCalls;
+            const toolNames = pendingCalls.map((t) => t.name).join(", ");
+
+            // Show execution indicator while tools run
+            setAppState((prev) => ({
+              ...prev,
+              messages: [
+                ...prev.messages,
+                {
+                  role: "assistant" as const,
+                  content: `⚙️ Running: ${toolNames}…`,
+                },
+              ],
+            }));
+
+            // ToolUseContentPart is structurally identical to ToolUseBlock —
+            // no explicit cast required by TypeScript's structural typing.
+            const toolResults =
+              await session.toolDispatcher.dispatchToolCalls(pendingCalls);
+
+            // Persist results as structured role:"tool" history messages.
+            // ToolResult is structurally identical to ToolResultContentPart.
+            session.appendToolResults(toolResults);
+
+            // Stream the follow-up model response with the updated history
+            let followUpText = "";
+            turnResult = await streamChatCompletion({
+              baseUrl: session.config.baseUrl || "https://api.openai.com/v1",
+              apiKey: session.config.apiKey,
+              model: session.config.model?.id || "gpt-4",
+              messages: session.history,
+              signal: session.abortController.signal,
+              onDelta: (chunk) => {
+                followUpText += chunk;
+                setAppState((prev) => {
+                  // Replace the last assistant message (⚙️ indicator or
+                  // previous partial text) so the UI shows live output.
+                  const lastMsg = prev.messages[prev.messages.length - 1];
+                  const base =
+                    lastMsg?.role === "assistant"
+                      ? prev.messages.slice(0, -1)
+                      : prev.messages;
+                  return {
+                    ...prev,
+                    messages: [
+                      ...base,
+                      { role: "assistant" as const, content: followUpText },
+                    ],
+                  };
+                });
+              },
+              tools: formattedTools,
+            });
+
+            session.appendAssistantWithTools(
+              followUpText,
+              turnResult.toolCalls,
             );
-
-          if (toolUses.length > 0) {
-            try {
-              // Execute all tool calls
-              const results =
-                await session.toolDispatcher.dispatchToolCalls(toolUses);
-
-              // Format tool results for conversation
-              const resultsText =
-                session.toolDispatcher.formatToolResultsForConversation(
-                  results,
-                );
-
-              // Append tool results to session history
-              if (resultsText) {
-                session.appendUser(resultsText);
-              }
-
-              // Update UI with tool results
-              setAppState((prev) => ({
-                ...prev,
-                messages: [
-                  ...prev.messages,
-                  {
-                    role: "assistant",
-                    content: `\n\n**Tool Execution Results:**\n${resultsText}`,
-                  },
-                ],
-              }));
-            } catch (error) {
-              const errorMsg =
-                error instanceof Error ? error.message : String(error);
-              console.error("Tool execution failed:", errorMsg);
-              setAppState((prev) => ({
-                ...prev,
-                messages: [
-                  ...prev.messages,
-                  {
-                    role: "assistant",
-                    content: `❌ Tool execution failed: ${errorMsg}`,
-                  },
-                ],
-              }));
-            }
           }
 
           // Update final state

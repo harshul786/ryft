@@ -2,9 +2,12 @@ import type {
   BrowserController,
   ChatMessage,
   MemoryMode,
+  MessageContentPart,
   Mode,
   SessionConfig,
   MemoryState,
+  ToolUseContentPart,
+  ToolResultContentPart,
 } from "../types.ts";
 import { defaultMemoryMode, resolveMemoryMode } from "../memory/catalog.ts";
 import { getModeSkills } from "../modes/skill-merger.ts";
@@ -44,6 +47,18 @@ export interface Session {
   setMemoryState(snapshot: string): void;
   appendUser(text: string): void;
   appendAssistant(text: string): void;
+  /**
+   * Append an assistant turn that includes one or more tool calls.
+   * When `toolCalls` is non-empty the message content is stored as a
+   * structured array so the model can reference it in the next turn.
+   */
+  appendAssistantWithTools(text: string, toolCalls: ToolUseContentPart[]): void;
+  /**
+   * Append the results of tool executions as individual `role: "tool"` messages.
+   * Each result is a separate message with `tool_call_id` set so the model can
+   * match it against its earlier tool-call block.
+   */
+  appendToolResults(results: ToolResultContentPart[]): void;
   describeSkills(): Promise<string>;
   describeMcp(): string;
   describeBrowser(): string;
@@ -112,6 +127,26 @@ export function createSession(config: SessionConfig): Session {
     },
     appendAssistant(text: string) {
       history.push({ role: "assistant", content: text });
+    },
+    appendAssistantWithTools(text: string, toolCalls: ToolUseContentPart[]) {
+      if (toolCalls.length === 0) {
+        // Plain-text assistant turn — no need for structured content
+        history.push({ role: "assistant", content: text });
+        return;
+      }
+      const parts: MessageContentPart[] = [];
+      if (text) parts.push({ type: "text", text });
+      parts.push(...toolCalls);
+      history.push({ role: "assistant", content: parts });
+    },
+    appendToolResults(results: ToolResultContentPart[]) {
+      for (const result of results) {
+        history.push({
+          role: "tool",
+          content: result.content,
+          tool_call_id: result.tool_use_id,
+        });
+      }
     },
     async describeSkills() {
       // Load skills for each active mode and merge them

@@ -8,7 +8,7 @@ export const memory: Command = {
   execute(_args: string[], context: CommandContext) {
     const messageCount = context.appState.messages.length;
     const totalChars = context.appState.messages.reduce(
-      (sum, msg) => sum + msg.content.length,
+      (sum, msg) => sum + msg.content.length, // AppState.Message.content is always string
       0,
     );
 

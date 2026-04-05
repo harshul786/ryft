@@ -1,8 +1,76 @@
-export type Role = "system" | "user" | "assistant";
+export type Role = "system" | "user" | "assistant" | "tool";
+
+// ─── Structured message content parts ────────────────────────────────────────
+// Used when a message carries more than plain text (e.g. tool calls / results).
+
+/** Plain text segment inside a structured message */
+export interface TextContentPart {
+  type: "text";
+  text: string;
+}
+
+/**
+ * A tool invocation emitted by the model.
+ * Mirrors the OpenAI / Anthropic `tool_use` block shape.
+ */
+export interface ToolUseContentPart {
+  type: "tool_use";
+  /** Stable identifier for this call, used to match the corresponding result */
+  id: string;
+  /** Tool name exactly as registered in the tool registry */
+  name: string;
+  /** Parsed arguments supplied by the model */
+  input: Record<string, unknown>;
+}
+
+/**
+ * The result of executing a tool call, sent back to the model.
+ * Added as a `user` role message so the model can see the output.
+ */
+export interface ToolResultContentPart {
+  type: "tool_result";
+  /** Must match the `id` of the originating `ToolUseContentPart` */
+  tool_use_id: string;
+  /** Stringified output from the tool */
+  content: string;
+  /** True when the tool execution threw an error */
+  is_error?: boolean;
+}
+
+/** Union of all structured content parts that can appear in a message */
+export type MessageContentPart =
+  | TextContentPart
+  | ToolUseContentPart
+  | ToolResultContentPart;
+
+// ─── Core message type ────────────────────────────────────────────────────────
 
 export interface ChatMessage {
   role: Role;
-  content: string;
+  /**
+   * Either a plain string (most messages) or an array of structured parts
+   * (messages that involve tool calls or tool results).
+   */
+  content: string | MessageContentPart[];
+  /**
+   * Present only on `role: "tool"` messages.
+   * Must match the `id` of the originating tool call so the model can
+   * correlate the result with its earlier `tool_use` block.
+   */
+  tool_call_id?: string;
+}
+
+/**
+ * Extract the plain-text portion of a message's content.
+ * Returns the full string for string-content messages, or the concatenation
+ * of all `text` parts for structured messages. Safe for logging / display.
+ */
+export function getMessageText(msg: ChatMessage): string {
+  if (typeof msg.content === "string") return msg.content;
+  return msg.content
+    .filter((p): p is TextContentPart => p.type === "text")
+    .map((p) => p.text)
+    .join("");
 }
 
 export interface Usage {

@@ -191,35 +191,42 @@ async function main(): Promise<void> {
       signal: session.abortController.signal,
       onDelta: (chunk) => process.stdout.write(chunk),
     });
-    if (response.text) {
-      session.appendAssistant(response.text);
+    if (response.text || response.toolCalls.length > 0) {
+      // Persist first assistant turn (may include tool calls)
+      session.appendAssistantWithTools(response.text, response.toolCalls);
 
-      // Handle tool_use blocks (Phase 3E)
-      const toolUses = session.toolDispatcher.extractToolUsesFromResponse(
-        response.text,
-      );
+      // ── Multi-turn tool-call loop (non-interactive / --prompt mode) ──────
+      const MAX_TOOL_TURNS = 5;
+      let turnResult = response;
 
-      if (toolUses.length > 0) {
-        try {
-          // Execute all tool calls
-          const results =
-            await session.toolDispatcher.dispatchToolCalls(toolUses);
+      for (
+        let turn = 0;
+        turn < MAX_TOOL_TURNS && turnResult.toolCalls.length > 0;
+        turn++
+      ) {
+        const toolNames = turnResult.toolCalls.map((t) => t.name).join(", ");
+        process.stdout.write(`\n⚙️  Running: ${toolNames}…\n`);
 
-          // Format tool results for conversation
-          const resultsText =
-            session.toolDispatcher.formatToolResultsForConversation(results);
+        const toolResults = await session.toolDispatcher.dispatchToolCalls(
+          turnResult.toolCalls,
+        );
 
-          if (resultsText) {
-            process.stdout.write(
-              `\n\n**Tool Execution Results:**\n${resultsText}`,
-            );
-            session.appendUser(resultsText);
-          }
-        } catch (error) {
-          const errorMsg =
-            error instanceof Error ? error.message : String(error);
-          process.stdout.write(`\n\n❌ Tool execution failed: ${errorMsg}`);
-        }
+        session.appendToolResults(toolResults);
+
+        let followUpText = "";
+        turnResult = await streamChatCompletion({
+          baseUrl: session.config.baseUrl,
+          apiKey: session.config.apiKey,
+          model: session.config.model.id,
+          messages: session.history,
+          signal: session.abortController.signal,
+          onDelta: (chunk) => {
+            followUpText += chunk;
+            process.stdout.write(chunk);
+          },
+        });
+
+        session.appendAssistantWithTools(followUpText, turnResult.toolCalls);
       }
 
       session.setMemoryState(
@@ -231,7 +238,7 @@ async function main(): Promise<void> {
             sessionSnapshot: session.memoryState.snapshot,
           },
           opts.prompt,
-          response.text,
+          response.text || "",
         ),
       );
     }
