@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Mode, Skill } from '../types.ts';
 import { getGlobalSkillRegistry } from './registry.ts';
+import { enrichSkillFromFile } from './frontmatter.ts';
 
 const projectRoot = fileURLToPath(new URL('../..', import.meta.url));
 
@@ -10,10 +11,10 @@ const projectRoot = fileURLToPath(new URL('../..', import.meta.url));
 const discoveryCache = new Map<string, Skill[]>();
 
 /**
- * Parse skill metadata from file content
+ * Parse basic skill metadata from file content (fallback if enrichment fails)
  */
 function parseSkillMetadata(text: string, fallbackName: string): Skill {
-  const nameMatch = text.match(/^name:\s*(.+)$/m);
+  const nameMatch = text.match(/^name:\s*(.+)$/m) || text.match(/^title:\s*(.+)$/m);
   const descriptionMatch = text.match(/^description:\s*(.+)$/m);
   return {
     name: nameMatch?.[1]?.trim() || fallbackName,
@@ -60,12 +61,12 @@ async function loadSkillDir(dirPath: string): Promise<Skill[]> {
   for (const file of files) {
     try {
       const text = await readFile(file, 'utf8');
-      const parsed = parseSkillMetadata(text, path.basename(path.dirname(file)));
-      skills.push({
-        name: parsed.name,
-        description: parsed.description || text.split('\n').slice(0, 3).join(' ').trim(),
-        file,
-      });
+      const baseSkill = parseSkillMetadata(text, path.basename(path.dirname(file)));
+      baseSkill.file = file;
+      
+      // Enrich skill with full metadata from frontmatter
+      const enriched = await enrichSkillFromFile(baseSkill, file);
+      skills.push(enriched);
     } catch (error) {
       console.warn(`Failed to load skill from ${file}:`, error);
     }
@@ -88,6 +89,7 @@ async function loadSkillsFromDirs(dirPaths: string[]): Promise<Skill[]> {
  * 
  * Features:
  * - Parallel loading from all skill roots
+ * - Full frontmatter parsing and enrichment
  * - Deduplication by realpath
  * - Memoization by mode set
  * - Alphabetical sorting
