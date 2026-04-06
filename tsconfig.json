@@ -10,7 +10,12 @@
     "strict": true,
     "skipLibCheck": true,
     "types": ["node"],
-    "declaration": true
+    "declaration": true,
+    "paths": {
+      "react/compiler-runtime": [
+        "./src/ink-fork/react-compiler-runtime/index.ts"
+      ]
+    }
   },
   "include": ["src/**/*.{ts,tsx}", "bin/**/*.ts"],
   "exclude": ["node_modules", "dist", "test"]

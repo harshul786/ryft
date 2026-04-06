@@ -3,8 +3,14 @@
  * Main interaction loop for the CLI
  */
 
-import React, { useEffect, useState, useRef } from "react";
-import { Box, Text, useInput } from "../ink.ts";
+import React, { useEffect, useRef, useCallback } from "react";
+import {
+  Box,
+  Text,
+  useInput,
+  ScrollBox,
+  type ScrollBoxHandle,
+} from "../ink.ts";
 import { useAppState, useSetAppState } from "../state/AppState.tsx";
 import { findCommand, executeCommand } from "../commands.ts";
 import { initializeCommands } from "../cli/handlers/index.ts";
@@ -33,6 +39,8 @@ export const REPL: React.FC = () => {
   const setAppState = useSetAppState();
   const initializedRef = useRef(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const scrollRef = useRef<ScrollBoxHandle>(null);
+  const stickyRef = useRef(true);
 
   useEffect(() => {
     // Initialize on first render only
@@ -113,6 +121,13 @@ export const REPL: React.FC = () => {
     };
   }, [appState.inputValue, setAppState]);
 
+  // Auto-scroll to bottom when new messages arrive and user is at bottom (sticky)
+  useEffect(() => {
+    if (stickyRef.current) {
+      scrollRef.current?.scrollToBottom();
+    }
+  }, [appState.messages.length]);
+
   // Handle keyboard input
   useInput(async (input, key) => {
     // If selector is open, let it handle input
@@ -123,6 +138,50 @@ export const REPL: React.FC = () => {
     // Handle Ctrl+C or Ctrl+D to exit
     if ((key.ctrl && input === "c") || (key.ctrl && input === "d")) {
       process.exit(0);
+    }
+
+    // ── Scroll keybindings ──────────────────────────────────────
+    if (key.upArrow) {
+      stickyRef.current = false;
+      scrollRef.current?.scrollBy(-3);
+      return;
+    }
+    if (key.downArrow) {
+      const handle = scrollRef.current;
+      if (handle) {
+        const atBottom =
+          handle.getScrollTop() + handle.getViewportHeight() >=
+          handle.getScrollHeight() - 1;
+        if (atBottom) {
+          stickyRef.current = true;
+          handle.scrollToBottom();
+        } else {
+          handle.scrollBy(3);
+        }
+      }
+      return;
+    }
+    if (key.pageUp) {
+      stickyRef.current = false;
+      scrollRef.current?.scrollBy(
+        -(scrollRef.current?.getViewportHeight() ?? 10),
+      );
+      return;
+    }
+    if (key.pageDown) {
+      const handle = scrollRef.current;
+      if (handle) {
+        const atBottom =
+          handle.getScrollTop() + handle.getViewportHeight() >=
+          handle.getScrollHeight() - 1;
+        if (atBottom) {
+          stickyRef.current = true;
+          handle.scrollToBottom();
+        } else {
+          handle.scrollBy(handle.getViewportHeight());
+        }
+      }
+      return;
     }
 
     // Handle Tab to accept suggestion
@@ -524,7 +583,7 @@ export const REPL: React.FC = () => {
   if (appState.selector) {
     return (
       <Box flexDirection="column" width={100} height={30}>
-        <Box flexDirection="column" flexGrow={1}>
+        <Box flexDirection="column" overflow="hidden" flexGrow={1}>
           <Select
             options={appState.selector.options}
             label={appState.selector.title}
@@ -551,10 +610,16 @@ export const REPL: React.FC = () => {
 
   return (
     <Box flexDirection="column" width={100} height={30}>
-      {/* Messages area - show last 5 messages to ensure they fit */}
-      <Box flexDirection="column" flexGrow={1} marginBottom={1}>
+      {/* Messages area — ScrollBox handles vertical overflow + sticky scroll */}
+      <ScrollBox
+        ref={scrollRef}
+        flexDirection="column"
+        flexGrow={1}
+        marginBottom={1}
+        stickyScroll={stickyRef.current}
+      >
         {appState.messages.length > 0 ? (
-          appState.messages.slice(-5).map((msg, idx) => (
+          appState.messages.map((msg, idx) => (
             <Box key={idx} marginBottom={0}>
               <Text
                 color={msg.role === "user" ? "cyan" : "green"}
@@ -568,19 +633,29 @@ export const REPL: React.FC = () => {
         ) : (
           <Text color="gray">No messages yet</Text>
         )}
-      </Box>
+      </ScrollBox>
 
-      {/* Input area */}
+      {/* Scroll hint when user has scrolled up */}
+      {!stickyRef.current && (
+        <Box marginBottom={0}>
+          <Text color="gray" dimColor>
+            ↓ scroll down to latest (↑↓ PgUp/PgDn to navigate)
+          </Text>
+        </Box>
+      )}
+
+      {/* Input area — overflow:hidden prevents the box from expanding */}
       <Box
         borderStyle="round"
         borderColor="gray"
         paddingX={1}
         marginBottom={appState.promptSuggestion.text ? 1 : 0}
+        overflow="hidden"
       >
         <Text color="yellow">$ </Text>
-        <Text>{appState.inputValue}</Text>
+        <Text wrap="truncate-end">{appState.inputValue}</Text>
         {appState.promptSuggestion.text && (
-          <Text color="gray">
+          <Text color="gray" wrap="truncate-end">
             {appState.promptSuggestion.text.slice(appState.inputValue.length)}
           </Text>
         )}

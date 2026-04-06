@@ -2,7 +2,7 @@
 import chalk from "chalk";
 import { Command } from "commander";
 import React from "react";
-import { render } from "ink";
+import { render } from "./ink.ts";
 import { homedir } from "node:os";
 import type { ModelOption } from "./types.ts";
 import { initBrowser } from "./browser/init_browser.ts";
@@ -253,7 +253,7 @@ async function main(): Promise<void> {
 
   // Mount React + Ink REPL with proper stdin/stdout configuration
   // (Works with both TTY and piped input for flexibility)
-  const { unmount } = render(React.createElement(Root, { session }), {
+  const { unmount } = await render(React.createElement(Root, { session }), {
     stdin: process.stdin,
     stdout: process.stdout,
   });

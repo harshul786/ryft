@@ -29,6 +29,8 @@ export const Root: React.FC<RootProps> = ({ session, initialState }) => {
       currentModel: session.config.model,
       isAssistantResponding: false,
       selector: null,
+      scrollOffset: 0,
+      isScrolledToBottom: true,
       ...initialState,
     });
   }, [session, initialState]);

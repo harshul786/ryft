@@ -48,6 +48,11 @@ export interface AppState {
 
   // Selector Modal
   selector: SelectorState | null;
+
+  // Scroll state: how many messages from the bottom are hidden (0 = pinned to bottom)
+  scrollOffset: number;
+  // When true, scrollOffset resets to 0 on new messages (sticky bottom)
+  isScrolledToBottom: boolean;
 }
 
 export const createInitialState = (session: Session): AppState => ({
@@ -61,4 +66,6 @@ export const createInitialState = (session: Session): AppState => ({
   currentModel: session.config.model,
   isAssistantResponding: false,
   selector: null,
+  scrollOffset: 0,
+  isScrolledToBottom: true,
 });
