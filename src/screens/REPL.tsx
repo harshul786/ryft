@@ -1,9 +1,8 @@
 /**
- * REPL Screen
- * Main interaction loop for the CLI
+ * REPL Screen — main interaction loop for the CLI
  */
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Box,
   Text,
@@ -12,6 +11,7 @@ import {
   type ScrollBoxHandle,
 } from "../ink.ts";
 import { useAppState, useSetAppState } from "../state/AppState.tsx";
+import { getFeatureLogger } from "../logging/index.ts";
 import { findCommand, executeCommand } from "../commands.ts";
 import { initializeCommands } from "../cli/handlers/index.ts";
 import { filterCommands } from "../ui/commandSuggestions.ts";
@@ -24,168 +24,319 @@ import { Select } from "../ui/Select.tsx";
 import { TextInput } from "../ui/TextInput.tsx";
 import { buildSystemPrompt } from "../runtime/promptBuilder.ts";
 import { streamChatCompletion } from "../runtime/llmClient.ts";
-import { applyTokenCap } from "../runtime/tokenBudget.ts";
-import { getModeSkills } from "../modes/skill-merger.ts";
 import { invokeSkill } from "../tools/skill-tool.ts";
-import {
-  BROWSER_SURFF_PROMPT,
-  BROWSER_SURFF_SKILL_HINT,
-} from "../browser/prompt.ts";
 import { COLORS, SPINNER_FRAMES, SPINNER_INTERVAL_MS } from "../ui/theme.ts";
+import type { Session } from "../runtime/session.ts";
 
-// Initialize command system on import
+const log = getFeatureLogger("REPL");
+
 initializeCommands();
+
+// ── Module-level constants ────────────────────────────────────────────────────
+
+const MAX_TOOL_TURNS = 5;
+
+const TOOL_ATTEMPT_PATTERN =
+  /INVOKE_SKILL:|INVOKE_TOOL:|\bI (?:have |will |am )?(?:edited|wrote|created|inserted|deleted|updated|written|saved|modified)\b/i;
+
+/** Build the OpenAI function-calling tool list for a session, or undefined for non-native models. */
+function buildFormattedTools(session: Session) {
+  if (session.config.model?.nativeToolSupport !== true) return undefined;
+  const tools = session.toolRegistry.getCompressedTools();
+  if (!tools?.length) return undefined;
+  return tools.map((tool) => ({
+    type: "function" as const,
+    function: {
+      name: tool.name,
+      description: tool.description,
+      parameters: tool.inputSchema,
+    },
+  }));
+}
 
 export const REPL: React.FC = () => {
   const appState = useAppState();
   const setAppState = useSetAppState();
+
+  // Refs — survive re-renders without triggering them
   const initializedRef = useRef(false);
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const scrollRef = useRef<ScrollBoxHandle>(null);
   const stickyRef = useRef(true);
+  // Always-fresh appState snapshot for useInput (avoids stale closures)
+  const appStateRef = useRef(appState);
+
   const [spinnerFrame, setSpinnerFrame] = useState(0);
   const [termRows, setTermRows] = useState<number>(process.stdout.rows ?? 24);
-  const [termCols, setTermCols] = useState<number>(
-    process.stdout.columns ?? 80,
-  );
 
-  // Track terminal dimensions on resize
+  // Keep appStateRef in sync on every render
+  appStateRef.current = appState;
+
+  // ── Terminal resize ───────────────────────────────────────────────────────
   useEffect(() => {
-    const onResize = () => {
-      setTermRows(process.stdout.rows ?? 24);
-      setTermCols(process.stdout.columns ?? 80);
-    };
+    const onResize = () => setTermRows(process.stdout.rows ?? 24);
     process.stdout.on("resize", onResize);
     return () => {
       process.stdout.off("resize", onResize);
     };
   }, []);
 
-  // Animate spinner while responding
+  // ── Spinner animation — runs whenever the assistant or mode-switch is active
   useEffect(() => {
-    if (!appState.isAssistantResponding) return;
-    const id = setInterval(() => {
-      setSpinnerFrame((f) => (f + 1) % SPINNER_FRAMES.length);
-    }, SPINNER_INTERVAL_MS);
+    if (!appState.isAssistantResponding && !appState.isSwitchingMode) return;
+    const id = setInterval(
+      () => setSpinnerFrame((f) => (f + 1) % SPINNER_FRAMES.length),
+      SPINNER_INTERVAL_MS,
+    );
     return () => clearInterval(id);
-  }, [appState.isAssistantResponding]);
+  }, [appState.isAssistantResponding, appState.isSwitchingMode]);
 
+  // ── One-time session initialization ──────────────────────────────────────
   useEffect(() => {
-    // Initialize on first render only
-    if (!initializedRef.current) {
-      // Build and inject system prompt into session history at startup (once only)
-      const initializeSession = async () => {
-        // Note: MCP servers are already initialized in cli.ts before REPL mounts
-        // Build system prompt using enhanced promptBuilder (includes tools, skills, modes)
-        const systemPrompt = await buildSystemPrompt(appState.session);
+    if (initializedRef.current) return;
+    initializedRef.current = true;
 
-        // Prepend system prompt to session history
-        appState.session.history.unshift({
-          role: "system",
-          content: systemPrompt,
-        });
-
-        // Update state once system prompt is ready
-        setAppState((prev) => ({
-          ...prev,
-          messages: [
-            {
-              role: "assistant",
-              content: "Welcome to Ryft REPL. Type /help for commands.",
-            },
-          ],
-          inputValue: "",
-        }));
-      };
-
-      initializeSession();
-      initializedRef.current = true;
-    }
+    const session = appStateRef.current.session;
+    buildSystemPrompt(session).then((systemPrompt) => {
+      session.history.unshift({ role: "system", content: systemPrompt });
+      setAppState((prev) => ({
+        ...prev,
+        messages: [
+          {
+            role: "assistant",
+            content: "Welcome to Ryft REPL. Type /help for commands.",
+          },
+        ],
+        inputValue: "",
+      }));
+    });
   }, [setAppState]);
 
-  // Debounced suggestion generation
+  // ── Debounced command suggestion ──────────────────────────────────────────
   useEffect(() => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current);
-    }
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
 
     debounceTimerRef.current = setTimeout(() => {
-      if (appState.inputValue.startsWith("/")) {
-        // Use command suggestions with framework integration
-        const matches = filterCommands(appState.inputValue);
-        if (matches.length > 0) {
-          const firstMatch = matches[0].command;
-          setAppState((prev) => ({
-            ...prev,
-            promptSuggestion: {
-              text: firstMatch,
-              shownAt: Date.now(),
-            },
-          }));
-        } else {
-          setAppState((prev) => ({
-            ...prev,
-            promptSuggestion: {
-              text: null,
-              shownAt: 0,
-            },
-          }));
-        }
-      } else {
-        setAppState((prev) => ({
-          ...prev,
-          promptSuggestion: {
-            text: null,
-            shownAt: 0,
-          },
-        }));
-      }
+      const suggestion = appState.inputValue.startsWith("/")
+        ? (filterCommands(appState.inputValue)[0]?.command ?? null)
+        : null;
+      setAppState((prev) => ({
+        ...prev,
+        promptSuggestion: {
+          text: suggestion,
+          shownAt: suggestion ? Date.now() : 0,
+        },
+      }));
     }, 100);
 
     return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current);
-      }
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
     };
   }, [appState.inputValue, setAppState]);
 
-  // Auto-scroll to bottom when new messages arrive and user is at bottom (sticky)
+  // ── Auto-scroll to bottom on new messages (sticky) ───────────────────────
   useEffect(() => {
-    if (stickyRef.current) {
-      scrollRef.current?.scrollToBottom();
-    }
+    if (stickyRef.current) scrollRef.current?.scrollToBottom();
   }, [appState.messages.length]);
 
-  // Handle keyboard input
-  useInput(async (input, key) => {
-    // If selector or text-input prompt is open, let it handle input
-    if (appState.selector || appState.prompter) {
-      return;
-    }
+  // ── AI streaming pipeline ─────────────────────────────────────────────────
+  // Extracted as a stable callback to keep useInput lean.
+  const runAiTurn = useCallback(
+    async (inputText: string) => {
+      const session = appStateRef.current.session;
+      const formattedTools = buildFormattedTools(session);
+      const supportsNativeTools =
+        session.config.model?.nativeToolSupport === true;
 
-    // Handle Ctrl+C or Ctrl+D to exit
+      // Shared config for every streamChatCompletion call in this turn
+      const baseStreamConfig = {
+        baseUrl: session.config.baseUrl || "https://api.openai.com/v1",
+        apiKey: session.config.apiKey,
+        anthropicApiKey: session.config.anthropicApiKey,
+        geminiApiKey: session.config.geminiApiKey,
+        ollamaBaseUrl: session.config.ollamaBaseUrl,
+        providerType: session.config.model?.providerType,
+        model: session.config.model?.id || "gpt-4",
+        signal: session.abortController.signal,
+      };
+
+      // Helper: replace or append the last assistant message while streaming
+      const patchLastAssistant = (text: string) => {
+        setAppState((prev) => {
+          const last = prev.messages[prev.messages.length - 1];
+          const base =
+            last?.role === "assistant"
+              ? prev.messages.slice(0, -1)
+              : prev.messages;
+          return {
+            ...prev,
+            messages: [...base, { role: "assistant" as const, content: text }],
+          };
+        });
+      };
+
+      session.appendUser(inputText);
+      setAppState((prev) => ({ ...prev, isAssistantResponding: true }));
+
+      try {
+        let assistantResponse = "";
+        const result = await streamChatCompletion({
+          ...baseStreamConfig,
+          messages: session.history,
+          tools: formattedTools,
+          onDelta: (chunk) => {
+            assistantResponse += chunk;
+            patchLastAssistant(assistantResponse);
+          },
+        });
+
+        session.appendAssistantWithTools(assistantResponse, result.toolCalls);
+
+        // Warn when a native-tool model hallucinated an action via text instead of a call
+        if (
+          supportsNativeTools &&
+          result.toolsProvided &&
+          result.toolCalls.length === 0 &&
+          TOOL_ATTEMPT_PATTERN.test(assistantResponse)
+        ) {
+          setAppState((prev) => ({
+            ...prev,
+            messages: [
+              ...prev.messages,
+              {
+                role: "assistant" as const,
+                content:
+                  "⚠️ The model described an action but did not emit a structured tool call — nothing was executed.\n" +
+                  "Try rephrasing your request, or ask the model to explicitly use its tools.",
+              },
+            ],
+          }));
+        }
+
+        // Text-based INVOKE_SKILL fallback for non-native-tool models
+        if (!supportsNativeTools && result.toolCalls.length === 0) {
+          const invokeMatch = assistantResponse
+            .trim()
+            .match(/^INVOKE_SKILL:\s*(\S+)$/m);
+          if (invokeMatch) {
+            const skillName = invokeMatch[1]!;
+            const skillResult = await invokeSkill(skillName, session.modes);
+            const skillContent = skillResult.success
+              ? (skillResult.content ?? `Skill '${skillName}' has no content.`)
+              : `Error loading skill '${skillName}': ${skillResult.error}`;
+
+            setAppState((prev) => ({
+              ...prev,
+              messages: [
+                ...prev.messages,
+                {
+                  role: "assistant" as const,
+                  content: `📚 Skill injected: ${skillName}`,
+                },
+              ],
+            }));
+
+            session.appendUser(
+              `[Skill: ${skillName}]\n\n${skillContent}\n\nUsing the above skill instructions, please complete the original request.`,
+            );
+
+            let skillFollowUpText = "";
+            await streamChatCompletion({
+              ...baseStreamConfig,
+              messages: session.history,
+              onDelta: (chunk) => {
+                skillFollowUpText += chunk;
+                patchLastAssistant(skillFollowUpText);
+              },
+            });
+
+            session.appendAssistant(skillFollowUpText);
+          }
+        }
+
+        // Multi-turn tool-call loop — up to MAX_TOOL_TURNS round-trips
+        let turnResult = result;
+        for (
+          let turn = 0;
+          turn < MAX_TOOL_TURNS && turnResult.toolCalls.length > 0;
+          turn++
+        ) {
+          const pendingCalls = turnResult.toolCalls;
+          const toolNames = pendingCalls.map((t) => t.name).join(", ");
+
+          setAppState((prev) => ({
+            ...prev,
+            messages: [
+              ...prev.messages,
+              {
+                role: "assistant" as const,
+                content: `⚙️ Running: ${toolNames}…`,
+              },
+            ],
+          }));
+
+          const toolResults =
+            await session.toolDispatcher.dispatchToolCalls(pendingCalls);
+          session.appendToolResults(toolResults);
+
+          let followUpText = "";
+          turnResult = await streamChatCompletion({
+            ...baseStreamConfig,
+            messages: session.history,
+            tools: formattedTools,
+            onDelta: (chunk) => {
+              followUpText += chunk;
+              patchLastAssistant(followUpText);
+            },
+          });
+
+          session.appendAssistantWithTools(followUpText, turnResult.toolCalls);
+        }
+
+        setAppState((prev) => ({ ...prev, isAssistantResponding: false }));
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        log.error(`LLM stream error: ${errorMsg}`);
+        setAppState((prev) => ({
+          ...prev,
+          isAssistantResponding: false,
+          messages: [
+            ...prev.messages,
+            { role: "assistant", content: `❌ Error: ${errorMsg}` },
+          ],
+        }));
+        if (process.env.DEBUG) cliWarn("Debug: Model request failed", errorMsg);
+      }
+    },
+    [setAppState],
+  );
+
+  // ── Keyboard input ────────────────────────────────────────────────────────
+  useInput(async (input, key) => {
+    const state = appStateRef.current;
+
+    // Overlays consume all input
+    if (state.selector || state.prompter) return;
+
     if ((key.ctrl && input === "c") || (key.ctrl && input === "d")) {
       process.exit(0);
     }
 
-    // ── Scroll keybindings ──────────────────────────────────────
+    // Scroll
     if (key.upArrow) {
       stickyRef.current = false;
       scrollRef.current?.scrollBy(-3);
       return;
     }
     if (key.downArrow) {
-      const handle = scrollRef.current;
-      if (handle) {
+      const h = scrollRef.current;
+      if (h) {
         const atBottom =
-          handle.getScrollTop() + handle.getViewportHeight() >=
-          handle.getScrollHeight() - 1;
+          h.getScrollTop() + h.getViewportHeight() >= h.getScrollHeight() - 1;
         if (atBottom) {
           stickyRef.current = true;
-          handle.scrollToBottom();
-        } else {
-          handle.scrollBy(3);
-        }
+          h.scrollToBottom();
+        } else h.scrollBy(3);
       }
       return;
     }
@@ -197,59 +348,38 @@ export const REPL: React.FC = () => {
       return;
     }
     if (key.pageDown) {
-      const handle = scrollRef.current;
-      if (handle) {
+      const h = scrollRef.current;
+      if (h) {
         const atBottom =
-          handle.getScrollTop() + handle.getViewportHeight() >=
-          handle.getScrollHeight() - 1;
+          h.getScrollTop() + h.getViewportHeight() >= h.getScrollHeight() - 1;
         if (atBottom) {
           stickyRef.current = true;
-          handle.scrollToBottom();
-        } else {
-          handle.scrollBy(handle.getViewportHeight());
-        }
+          h.scrollToBottom();
+        } else h.scrollBy(h.getViewportHeight());
       }
       return;
     }
 
-    // Handle Tab to accept suggestion
+    // Tab — accept inline suggestion
     if (key.tab) {
-      if (appState.promptSuggestion.text) {
+      if (state.promptSuggestion.text) {
         setAppState((prev) => ({
           ...prev,
-          inputValue: appState.promptSuggestion.text!,
-          promptSuggestion: {
-            text: null,
-            shownAt: 0,
-          },
+          inputValue: prev.promptSuggestion.text!,
+          promptSuggestion: { text: null, shownAt: 0 },
         }));
       }
       return;
     }
 
-    // Handle backspace and delete
-    // Check multiple variations across different terminals
-    // Backspace can be sent as:
-    // - key.backspace or key.delete properties (Ink)
-    // - Character \b (ASCII 8)
-    // - Character \x7f (ASCII 127, DEL)
-    // - Ctrl+H combo
-    // - Some Mac terminals send raw character codes
-
-    let isBackspace = key.backspace || key.delete;
-
-    // Also check if input character is a backspace/delete code
-    if (input && input.length === 1) {
-      const code = input.charCodeAt(0);
-      isBackspace = isBackspace || code === 8 || code === 127;
-    }
-
-    // Check string comparisons too
-    isBackspace =
-      isBackspace || input === "\b" || input === "\x08" || input === "\x7f";
-
-    // Ctrl+H is also backspace
-    isBackspace = isBackspace || (key.ctrl && input === "h");
+    // Backspace — covers all terminal encodings
+    const charCode = input?.charCodeAt(0);
+    const isBackspace =
+      key.backspace ||
+      key.delete ||
+      (key.ctrl && input === "h") ||
+      charCode === 8 ||
+      charCode === 127;
 
     if (isBackspace) {
       setAppState((prev) => ({
@@ -259,43 +389,32 @@ export const REPL: React.FC = () => {
       return;
     }
 
-    // Handle enter
+    // Enter — submit
     if (key.return) {
-      const input_val = appState.inputValue.trim();
-      if (!input_val) return;
+      if (state.isSwitchingMode || state.isAssistantResponding) return;
 
-      // Add user message
+      const text = state.inputValue.trim();
+      if (!text) return;
+
+      // Commit user message and clear input
       setAppState((prev) => ({
         ...prev,
-        messages: [
-          ...prev.messages,
-          {
-            role: "user",
-            content: input_val,
-          },
-        ],
+        messages: [...prev.messages, { role: "user", content: text }],
         inputValue: "",
-        promptSuggestion: {
-          text: null,
-          shownAt: 0,
-        },
+        promptSuggestion: { text: null, shownAt: 0 },
       }));
 
-      // Process command or message
-      if (input_val.startsWith("/")) {
-        const parts = input_val.slice(1).split(" ");
-        const commandName = parts[0];
-        const args = parts.slice(1);
-
+      if (text.startsWith("/")) {
+        // ── Command dispatch ──────────────────────────────────────
+        const [commandName, ...args] = text.slice(1).split(" ");
         const command = findCommand(commandName);
+
         if (command) {
-          // Check permissions before execution
           const context = {
-            session: appState.session,
-            appState,
+            session: state.session,
+            appState: state,
             setAppState,
           };
-
           canExecuteCommand(commandName, context)
             .then(async (allowed) => {
               if (!allowed) {
@@ -303,74 +422,62 @@ export const REPL: React.FC = () => {
                   commandName,
                   context,
                 );
-                const message =
-                  reason ||
-                  `Command '${commandName}' is not allowed in current context`;
                 setAppState((prev) => ({
                   ...prev,
                   messages: [
                     ...prev.messages,
                     {
                       role: "assistant",
-                      content: `❌ Permission denied: ${message}`,
+                      content: `❌ Permission denied: ${reason ?? `Command '${commandName}' is not allowed in current context`}`,
                     },
                   ],
                 }));
                 return;
               }
-
-              // Execute with structured error handling
               try {
                 await executeCommand(commandName, args, context);
-              } catch (error) {
-                const errorMsg =
-                  error instanceof Error ? error.message : String(error);
+              } catch (err) {
+                const msg = err instanceof Error ? err.message : String(err);
                 setAppState((prev) => ({
                   ...prev,
                   messages: [
                     ...prev.messages,
                     {
                       role: "assistant",
-                      content: `❌ Error executing ${commandName}: ${errorMsg}`,
+                      content: `❌ Error executing ${commandName}: ${msg}`,
                     },
                   ],
                 }));
-                if (process.env.DEBUG) {
-                  cliWarn(`Debug: Command '${commandName}' failed`, errorMsg);
-                }
+                if (process.env.DEBUG)
+                  cliWarn(`Debug: Command '${commandName}' failed`, msg);
               }
             })
-            .catch((error) => {
+            .catch((err) => {
               setAppState((prev) => ({
                 ...prev,
                 messages: [
                   ...prev.messages,
                   {
                     role: "assistant",
-                    content: `❌ Error checking permissions: ${error instanceof Error ? error.message : String(error)}`,
+                    content: `❌ Error checking permissions: ${err instanceof Error ? err.message : String(err)}`,
                   },
                 ],
               }));
             });
         } else {
-          // Check if this is a skill invocation
-          try {
-            const skillResult = await invokeSkill(
-              commandName,
-              appState.session.modes,
-            );
-            if (skillResult.success && skillResult.content) {
+          // Unknown slash — try as skill invocation
+          invokeSkill(commandName, state.session.modes)
+            .then((skillResult) => {
+              const content =
+                skillResult.success && skillResult.content
+                  ? `📚 Skill: ${commandName}\n\n${skillResult.content}`
+                  : `Unknown command: /${commandName}. Type /help for available commands.`;
               setAppState((prev) => ({
                 ...prev,
-                messages: [
-                  ...prev.messages,
-                  {
-                    role: "assistant",
-                    content: `📚 Skill: ${commandName}\n\n${skillResult.content}`,
-                  },
-                ],
+                messages: [...prev.messages, { role: "assistant", content }],
               }));
-            } else {
+            })
+            .catch(() => {
               setAppState((prev) => ({
                 ...prev,
                 messages: [
@@ -381,351 +488,56 @@ export const REPL: React.FC = () => {
                   },
                 ],
               }));
-            }
-          } catch (error) {
-            setAppState((prev) => ({
-              ...prev,
-              messages: [
-                ...prev.messages,
-                {
-                  role: "assistant",
-                  content: `Unknown command: /${commandName}. Type /help for available commands.`,
-                },
-              ],
-            }));
-          }
+            });
         }
-      } else if ((appState as any).configEditState?.active) {
-        // In interactive config edit mode - pass plain input to config command
+      } else if ((state as any).configEditState?.active) {
+        // ── Interactive config edit mode ──────────────────────────
         const context = {
-          session: appState.session,
-          appState,
+          session: state.session,
+          appState: state,
           setAppState,
         };
-
-        try {
-          await executeCommand("config", [input_val], context);
-        } catch (error) {
-          const errorMsg =
-            error instanceof Error ? error.message : String(error);
+        executeCommand("config", [text], context).catch((err) => {
           setAppState((prev) => ({
             ...prev,
             messages: [
               ...prev.messages,
               {
                 role: "assistant",
-                content: `❌ Error: ${errorMsg}`,
+                content: `❌ Error: ${err instanceof Error ? err.message : String(err)}`,
               },
             ],
           }));
-        }
+        });
       } else {
-        // Regular message - send to AI model
-        const session = appState.session;
-
-        // Append user message to session history
-        session.appendUser(input_val);
-
-        // Mark assistant as responding
-        setAppState((prev) => ({
-          ...prev,
-          isAssistantResponding: true,
-        }));
-
-        // Send to model and stream response
-        let assistantResponse = "";
-        try {
-          // Get tools for OpenAI function calling (only for models with native support).
-          // Non-native models (e.g. Ollama/Gemma via LiteLLM) fall back to prompt injection
-          // which forces format:json on every response, breaking plain conversational replies.
-          const supportsNativeTools =
-            session.config.model?.nativeToolSupport === true;
-          const allTools = supportsNativeTools
-            ? session.toolRegistry.getCompressedTools()
-            : [];
-          const formattedTools =
-            supportsNativeTools && allTools && allTools.length > 0
-              ? allTools.map((tool) => ({
-                  type: "function" as const,
-                  function: {
-                    name: tool.name,
-                    description: tool.description,
-                    parameters: tool.inputSchema,
-                  },
-                }))
-              : undefined;
-
-          const result = await streamChatCompletion({
-            baseUrl: session.config.baseUrl || "https://api.openai.com/v1",
-            apiKey: session.config.apiKey,
-            anthropicApiKey: session.config.anthropicApiKey,
-            geminiApiKey: session.config.geminiApiKey,
-            ollamaBaseUrl: session.config.ollamaBaseUrl,
-            providerType: session.config.model?.providerType,
-            model: session.config.model?.id || "gpt-4",
-            messages: session.history,
-            signal: session.abortController.signal,
-            onDelta: (chunk) => {
-              assistantResponse += chunk;
-              setAppState((prev) => {
-                // Check if the last message is already an assistant response
-                const lastMsg = prev.messages[prev.messages.length - 1];
-                const hasAssistantResponse =
-                  lastMsg && lastMsg.role === "assistant";
-
-                // If no assistant response yet, add one; otherwise update existing
-                const updatedMessages: Array<{
-                  role: "user" | "assistant";
-                  content: string;
-                }> = hasAssistantResponse
-                  ? [
-                      ...prev.messages.slice(0, -1), // Remove old assistant response
-                      {
-                        role: "assistant" as const,
-                        content: assistantResponse,
-                      },
-                    ]
-                  : [
-                      ...prev.messages, // Keep user message
-                      {
-                        role: "assistant" as const,
-                        content: assistantResponse,
-                      },
-                    ];
-
-                return {
-                  ...prev,
-                  messages: updatedMessages,
-                };
-              });
-            },
-            tools: formattedTools,
-          });
-
-          // Use structured tool calls from the streaming parser (Phase 2).
-          // appendAssistantWithTools stores a content-array message when tool
-          // calls are present so the model can reference them next turn.
-          session.appendAssistantWithTools(assistantResponse, result.toolCalls);
-
-          // ── Warn when native-tool model returned no structured calls ─────
-          // Only fires when the response text shows the model *tried* to use a
-          // tool via text syntax (INVOKE_SKILL / action verbs) but no structured
-          // call was emitted — i.e. the model hallucinated the action.
-          const toolAttemptPattern =
-            /INVOKE_SKILL:|INVOKE_TOOL:|\bI (?:have |will |am )?(?:edited|wrote|created|inserted|deleted|updated|written|saved|modified)\b/i;
-          if (
-            supportsNativeTools &&
-            result.toolsProvided &&
-            result.toolCalls.length === 0 &&
-            toolAttemptPattern.test(assistantResponse)
-          ) {
-            setAppState((prev) => ({
-              ...prev,
-              messages: [
-                ...prev.messages,
-                {
-                  role: "assistant" as const,
-                  content:
-                    `⚠️ The model described an action but did not emit a structured tool call — nothing was executed.\n` +
-                    `Try rephrasing your request, or ask the model to explicitly use its tools.`,
-                },
-              ],
-            }));
-          }
-          // When the model is not capable of OpenAI function calling, it uses
-          // the INVOKE_SKILL: <name> text syntax instead.  We detect that here,
-          // load the skill content, inject it into history, and re-run once so
-          // the model can complete the task with the skill instructions in scope.
-          if (!supportsNativeTools && result.toolCalls.length === 0) {
-            const invokeMatch = assistantResponse
-              .trim()
-              .match(/^INVOKE_SKILL:\s*(\S+)$/m);
-            if (invokeMatch) {
-              const skillName = invokeMatch[1]!;
-              const skillResult = await invokeSkill(skillName, session.modes);
-              const skillContent = skillResult.success
-                ? (skillResult.content ??
-                  `Skill '${skillName}' has no content.`)
-                : `Error loading skill '${skillName}': ${skillResult.error}`;
-
-              // Show skill-injection indicator
-              setAppState((prev) => ({
-                ...prev,
-                messages: [
-                  ...prev.messages,
-                  {
-                    role: "assistant" as const,
-                    content: `📚 Skill injected: ${skillName}`,
-                  },
-                ],
-              }));
-
-              // Inject the skill instructions so the model can act on them
-              session.appendUser(
-                `[Skill: ${skillName}]\n\n${skillContent}\n\nUsing the above skill instructions, please complete the original request.`,
-              );
-
-              // Re-run the model once with skill context in history
-              let skillFollowUpText = "";
-              await streamChatCompletion({
-                baseUrl: session.config.baseUrl || "https://api.openai.com/v1",
-                apiKey: session.config.apiKey,
-                anthropicApiKey: session.config.anthropicApiKey,
-                geminiApiKey: session.config.geminiApiKey,
-                ollamaBaseUrl: session.config.ollamaBaseUrl,
-                providerType: session.config.model?.providerType,
-                model: session.config.model?.id || "gpt-4",
-                messages: session.history,
-                signal: session.abortController.signal,
-                onDelta: (chunk) => {
-                  skillFollowUpText += chunk;
-                  setAppState((prev) => {
-                    const lastMsg = prev.messages[prev.messages.length - 1];
-                    const base =
-                      lastMsg?.role === "assistant"
-                        ? prev.messages.slice(0, -1)
-                        : prev.messages;
-                    return {
-                      ...prev,
-                      messages: [
-                        ...base,
-                        {
-                          role: "assistant" as const,
-                          content: skillFollowUpText,
-                        },
-                      ],
-                    };
-                  });
-                },
-              });
-
-              session.appendAssistant(skillFollowUpText);
-            }
-          }
-
-          // ── Multi-turn tool-call loop ────────────────────────────────────
-          // Run up to MAX_TOOL_TURNS back-and-forth until the model stops
-          // requesting tools or the cap is reached.
-          const MAX_TOOL_TURNS = 5;
-          let turnResult = result;
-
-          for (
-            let turn = 0;
-            turn < MAX_TOOL_TURNS && turnResult.toolCalls.length > 0;
-            turn++
-          ) {
-            const pendingCalls = turnResult.toolCalls;
-            const toolNames = pendingCalls.map((t) => t.name).join(", ");
-
-            // Show execution indicator while tools run
-            setAppState((prev) => ({
-              ...prev,
-              messages: [
-                ...prev.messages,
-                {
-                  role: "assistant" as const,
-                  content: `⚙️ Running: ${toolNames}…`,
-                },
-              ],
-            }));
-
-            // ToolUseContentPart is structurally identical to ToolUseBlock —
-            // no explicit cast required by TypeScript's structural typing.
-            const toolResults =
-              await session.toolDispatcher.dispatchToolCalls(pendingCalls);
-
-            // Persist results as structured role:"tool" history messages.
-            // ToolResult is structurally identical to ToolResultContentPart.
-            session.appendToolResults(toolResults);
-
-            // Stream the follow-up model response with the updated history
-            let followUpText = "";
-            turnResult = await streamChatCompletion({
-              baseUrl: session.config.baseUrl || "https://api.openai.com/v1",
-              apiKey: session.config.apiKey,
-              anthropicApiKey: session.config.anthropicApiKey,
-              geminiApiKey: session.config.geminiApiKey,
-              ollamaBaseUrl: session.config.ollamaBaseUrl,
-              providerType: session.config.model?.providerType,
-              model: session.config.model?.id || "gpt-4",
-              messages: session.history,
-              signal: session.abortController.signal,
-              onDelta: (chunk) => {
-                followUpText += chunk;
-                setAppState((prev) => {
-                  // Replace the last assistant message (⚙️ indicator or
-                  // previous partial text) so the UI shows live output.
-                  const lastMsg = prev.messages[prev.messages.length - 1];
-                  const base =
-                    lastMsg?.role === "assistant"
-                      ? prev.messages.slice(0, -1)
-                      : prev.messages;
-                  return {
-                    ...prev,
-                    messages: [
-                      ...base,
-                      { role: "assistant" as const, content: followUpText },
-                    ],
-                  };
-                });
-              },
-              tools: formattedTools,
-            });
-
-            session.appendAssistantWithTools(
-              followUpText,
-              turnResult.toolCalls,
-            );
-          }
-
-          // Update final state
-          setAppState((prev) => ({
-            ...prev,
-            isAssistantResponding: false,
-          }));
-        } catch (error) {
-          const errorMsg =
-            error instanceof Error ? error.message : String(error);
-          setAppState((prev) => ({
-            ...prev,
-            isAssistantResponding: false,
-            messages: [
-              ...prev.messages,
-              {
-                role: "assistant",
-                content: `❌ Error: ${errorMsg}`,
-              },
-            ],
-          }));
-          if (process.env.DEBUG) {
-            cliWarn("Debug: Model request failed", errorMsg);
-          }
-        }
+        // ── AI turn ───────────────────────────────────────────────
+        await runAiTurn(text);
       }
       return;
     }
 
-    // Regular character input
-    if (!key.ctrl && !key.meta && !key.shift) {
-      setAppState((prev) => ({
-        ...prev,
-        inputValue: prev.inputValue + input,
-      }));
+    // Regular printable character
+    if (!key.ctrl && !key.meta && !key.shift && input) {
+      const code = input.charCodeAt(0);
+      // Filter control chars, ESC, and ANSI escape sequences
+      if (code < 32 || code === 27) return;
+      setAppState((prev) => ({ ...prev, inputValue: prev.inputValue + input }));
     }
   });
 
+  // ── Derived render values ─────────────────────────────────────────────────
   const modeLabel = appState.session.modes.map((m: any) => m.name).join(" + ");
   const modelLabel =
     appState.session.config.model?.label ??
     appState.session.config.model?.id ??
     "unknown";
   const responding = appState.isAssistantResponding;
-  // True when AI is processing but no response delta arrived yet
+  const switchingMode = appState.isSwitchingMode;
   const awaitingFirstDelta =
     responding &&
     appState.messages[appState.messages.length - 1]?.role === "user";
 
-  // ── Selector overlay ─────────────────────────────────────────
+  // ── Selector overlay ──────────────────────────────────────────────────────
   if (appState.selector) {
     return (
       <Box flexDirection="column" height={termRows}>
@@ -750,7 +562,7 @@ export const REPL: React.FC = () => {
     );
   }
 
-  // ── Text input prompt overlay ─────────────────────────────────
+  // ── Text input prompt overlay ─────────────────────────────────────────────
   if (appState.prompter) {
     return (
       <Box flexDirection="column" height={termRows}>
@@ -815,14 +627,16 @@ export const REPL: React.FC = () => {
         {/* Model */}
         <Text color={COLORS.model}>{modelLabel}</Text>
 
-        {/* Spinner (only when responding) */}
-        {responding && (
+        {/* Spinner (only when responding or switching mode) */}
+        {(responding || switchingMode) && (
           <>
             <Text color={COLORS.dim}> · </Text>
             <Text color={COLORS.warningBright} bold>
               {SPINNER_FRAMES[spinnerFrame]}
             </Text>
-            <Text color={COLORS.warning}> responding…</Text>
+            <Text color={COLORS.warning}>
+              {switchingMode ? " loading tools…" : " responding…"}
+            </Text>
           </>
         )}
       </Box>
@@ -988,7 +802,11 @@ export const REPL: React.FC = () => {
           </>
         ) : (
           <Text dimColor>
-            {responding ? "waiting for response…" : "type a message…"}
+            {switchingMode
+              ? "loading tools, please wait…"
+              : responding
+                ? "waiting for response…"
+                : "type a message…"}
           </Text>
         )}
         {!responding && (

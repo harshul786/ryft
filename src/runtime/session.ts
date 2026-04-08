@@ -41,7 +41,7 @@ export interface Session {
   toolDispatcher: InstanceType<typeof ToolDispatcher>;
   browserLifecycle: InstanceType<typeof BrowserLifecycleManager>;
   // Session methods
-  setModes(nextModes: Mode[]): void;
+  setModes(nextModes: Mode[]): Promise<void>;
   setMemoryMode(name: MemoryMode["name"]): void;
   setModel(model: SessionConfig["model"]): void;
   setBrowser(controller: BrowserController | null): void;
@@ -110,6 +110,25 @@ export function createSession(config: SessionConfig): Session {
     abortController: createAbortController(),
     setModes(nextModes: Mode[]) {
       activeModes = nextModes;
+      // Re-spawn MCP servers for the new modes, then rebuild system prompt.
+      const log = getFeatureLogger("MCP");
+      return session.mcpClients
+        .clear()
+        .then(() => {
+          session.toolRegistry.clear();
+          return session.initializeMcpServers();
+        })
+        .then(() => buildSystemPrompt(session))
+        .then((prompt) => {
+          if (history.length > 0 && history[0]?.role === "system") {
+            history[0] = { role: "system", content: prompt };
+          }
+        })
+        .catch((err) => {
+          log.warn("Failed to re-initialize MCP servers after mode switch", {
+            error: String(err),
+          });
+        });
     },
     setMemoryMode(name: MemoryMode["name"]) {
       memoryMode = resolveMemoryMode(name);
@@ -265,6 +284,11 @@ export function createSession(config: SessionConfig): Session {
         log.info(
           `Loading ${serverConfigs.length} server(s): ${serverConfigs.map((c) => c.id).join(", ")}`,
         );
+
+        // Set active modes env var so child processes (e.g. skills-server) can filter accordingly
+        process.env.RYFT_ACTIVE_MODES = activeModes
+          .map((m) => m.name)
+          .join(",");
 
         // Spawn all configured servers
         const spawnedServers =

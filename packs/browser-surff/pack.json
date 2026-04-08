@@ -11,7 +11,7 @@
       "name": "Browser Surff",
       "description": "Chrome automation via local remote-debugging session. Provides tab management, URL navigation, and DevTools access.",
       "command": "npx",
-      "args": ["dist/src/browser/mcp-server.ts"],
+      "args": ["tsx", "src/browser/mcp-server.ts"],
       "env": {
         "NODE_ENV": "production"
       }
@@ -22,6 +22,16 @@
       "description": "Invoke Ryft skills for specialized tasks",
       "command": "npx",
       "args": ["tsx", "src/mcp/servers/skills-server.ts"],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    },
+    {
+      "id": "playwright",
+      "name": "Playwright Browser",
+      "description": "Rich browser automation: navigate pages, click elements, type text, scroll, take screenshots, fill forms, upload files, select options, and evaluate JavaScript.",
+      "command": "node",
+      "args": ["node_modules/@playwright/mcp/cli.js"],
       "env": {
         "NODE_ENV": "production"
       }

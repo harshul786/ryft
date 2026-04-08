@@ -19,7 +19,7 @@ const MODE_DEFS: Mode[] = [
     description:
       "Use a browser session as the source of truth for UI inspection and action.",
     prompt:
-      "You are a browser session agent. Read tab context first, prefer the current browser session, and use browser tools only when they help inspect or act on the user's page.",
+      "You are a browser session agent. Read tab context first, then use Playwright tools (browser_navigate, browser_click, browser_type, browser_scroll, browser_fill, browser_screenshot, browser_upload_file, browser_select_option, browser_evaluate) for all page interactions. Use browser-session tools for tab management and DevTools. Prefer playwright tools for clicking, typing, scrolling, form filling, and file uploads.",
     skillRoots: [
       ".ryft/skills",
       "packs/shared/skills",
@@ -29,6 +29,11 @@ const MODE_DEFS: Mode[] = [
       {
         name: "browser-session",
         description: "Browser session tab context and DevTools actions.",
+      },
+      {
+        name: "playwright",
+        description:
+          "Rich browser automation: navigate, click, type, scroll, screenshot, upload files, fill forms, evaluate JS.",
       },
     ],
     memory: "hierarchy",

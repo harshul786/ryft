@@ -22,15 +22,23 @@ export class ToolDispatcher {
     const matching = this.toolRegistry.getToolsByName(toolUse.name);
 
     if (matching.length === 0) {
+      this.log.warn(`Tool '${toolUse.name}' not found in registry`, {
+        id: toolUse.id,
+        availableTools: this.toolRegistry.getStats(),
+      });
       return {
         type: "tool_result",
         tool_use_id: toolUse.id,
-        content: `Error: Tool '${toolUse.name}' not found`,
+        content: `Error: Tool '${toolUse.name}' not found in registry. Are you in the correct mode? Active tools: ${this.toolRegistry.getStats().totalTools}`,
         is_error: true,
       };
     }
 
     if (matching.length > 1) {
+      this.log.warn(`Tool '${toolUse.name}' is ambiguous`, {
+        id: toolUse.id,
+        servers: matching.map((m) => m.serverId),
+      });
       return {
         type: "tool_result",
         tool_use_id: toolUse.id,

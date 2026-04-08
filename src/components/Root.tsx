@@ -4,12 +4,15 @@
  * Sets up the application shell with all providers
  */
 
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import { Box } from "../ink.ts";
 import { REPL } from "../screens/REPL.tsx";
 import { AppStateProvider, createAppStore } from "../state/AppState.tsx";
+import { getFeatureLogger } from "../logging/index.ts";
 import type { Session } from "../runtime/session.ts";
 import type { AppState } from "../state/AppStateStore.ts";
+
+const log = getFeatureLogger("Root");
 
 export interface RootProps {
   session: Session;
@@ -17,8 +20,19 @@ export interface RootProps {
 }
 
 export const Root: React.FC<RootProps> = ({ session, initialState }) => {
+  log.info("Root component rendering", {
+    modes: session.modes.map((m) => m.name),
+    model: session.config.model,
+    hasInitialState: !!initialState,
+    sessionId: (session as any).id || "unknown",
+  });
+
   const store = useMemo(() => {
-    return createAppStore({
+    log.info("Creating app store", {
+      modes: session.modes.map((m) => m.name),
+      sessionId: (session as any).id || "unknown",
+    });
+    const newStore = createAppStore({
       session,
       messages: [],
       inputValue: "",
@@ -28,13 +42,52 @@ export const Root: React.FC<RootProps> = ({ session, initialState }) => {
       },
       currentModel: session.config.model,
       isAssistantResponding: false,
+      isSwitchingMode: false,
       selector: null,
       prompter: null,
       scrollOffset: 0,
       isScrolledToBottom: true,
       ...initialState,
     });
-  }, [session, initialState]);
+    log.info("Store created successfully", {
+      modes: session.modes.map((m) => m.name),
+      isSwitchingMode: initialState?.isSwitchingMode,
+      sessionId: (session as any).id || "unknown",
+    });
+    return newStore;
+  }, [initialState, session.modes.map((m) => m.name).join("-")]);
+
+  // Track mode changes and input handling
+  useEffect(() => {
+    log.info("Root useEffect fired - will create store subscriptions", {
+      modes: session.modes.map((m) => m.name),
+      sessionId: (session as any).id || "unknown",
+      timestamp: new Date().toISOString(),
+    });
+
+    // Subscribe to store updates for debugging
+    if (store && typeof store.subscribe === "function") {
+      const unsubscribe = store.subscribe((state: any) => {
+        if (state.isSwitchingMode) {
+          log.info("Mode switching in progress", {
+            modes: state.modes,
+            inputValue: state.inputValue?.substring?.(0, 50),
+          });
+        }
+        if (state.inputValue !== undefined) {
+          log.info("Input value updated in store", {
+            inputValue: state.inputValue?.substring?.(0, 50),
+            length: state.inputValue?.length,
+          });
+        }
+      });
+
+      return () => {
+        log.info("Root component cleanup - store unsubscribe");
+        unsubscribe?.();
+      };
+    }
+  }, [store, session]);
 
   return (
     <AppStateProvider store={store}>

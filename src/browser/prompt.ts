@@ -11,4 +11,4 @@ Rules:
 - If the browser gets flaky or the tab context is stale, stop and ask before retrying blindly.
 `;
 
-export const BROWSER_SURFF_SKILL_HINT = `Browser automation is available in browser-surff mode. Treat it as a browser session: inspect tab context first, then act on the current tabs.`;
+export const BROWSER_SURFF_SKILL_HINT = `Browser automation tools are listed in the Available Tools section above. Use them directly to carry out any browser task — do not say you cannot access a website. If a browser tool is listed, call it.`;

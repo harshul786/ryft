@@ -35,8 +35,84 @@
       "modes": ["debugger"],
       "requiredTools": ["logs", "bash"],
       "requiresPermission": false
+    },
+    "5": {
+      "id": 5,
+      "name": "browse-feed",
+      "path": "packs/browser-surff/skills/browse-feed/SKILL.md",
+      "description": "Scroll through and extract items from infinite-scroll feeds on any website",
+      "modes": ["browser-surff"],
+      "requiredTools": [
+        "browser_scroll",
+        "browser_screenshot",
+        "browser_evaluate"
+      ],
+      "requiresPermission": false
+    },
+    "6": {
+      "id": 6,
+      "name": "linkedin",
+      "path": "packs/browser-surff/skills/linkedin/SKILL.md",
+      "description": "Automate LinkedIn — browse feed, search jobs, Easy Apply, post, comment, connect, and message",
+      "modes": ["browser-surff"],
+      "requiredTools": [
+        "browser_navigate",
+        "browser_click",
+        "browser_type",
+        "browser_fill",
+        "browser_scroll",
+        "browser_screenshot"
+      ],
+      "requiresPermission": false
+    },
+    "7": {
+      "id": 7,
+      "name": "naukri",
+      "path": "packs/browser-surff/skills/naukri/SKILL.md",
+      "description": "Search jobs on Naukri.com, apply filters, read JDs, and submit applications",
+      "modes": ["browser-surff"],
+      "requiredTools": [
+        "browser_navigate",
+        "browser_click",
+        "browser_type",
+        "browser_fill",
+        "browser_scroll",
+        "browser_screenshot"
+      ],
+      "requiresPermission": false
+    },
+    "8": {
+      "id": 8,
+      "name": "job-apply",
+      "path": "packs/browser-surff/skills/job-apply/SKILL.md",
+      "description": "Fill and submit job applications on company ATS portals — Workday, Greenhouse, Lever, Ashby, BambooHR",
+      "modes": ["browser-surff"],
+      "requiredTools": [
+        "browser_navigate",
+        "browser_click",
+        "browser_type",
+        "browser_fill",
+        "browser_select_option",
+        "browser_upload_file",
+        "browser_screenshot"
+      ],
+      "requiresPermission": false
+    },
+    "9": {
+      "id": 9,
+      "name": "upload",
+      "path": "packs/browser-surff/skills/upload/SKILL.md",
+      "description": "Upload a file to any browser file input or drag-and-drop zone",
+      "modes": ["browser-surff"],
+      "requiredTools": [
+        "browser_click",
+        "browser_upload_file",
+        "browser_evaluate",
+        "browser_screenshot"
+      ],
+      "requiresPermission": false
     }
   },
-  "idCounter": 5,
+  "idCounter": 10,
   "version": "2.0.0"
 }

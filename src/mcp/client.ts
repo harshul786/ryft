@@ -1,3 +1,34 @@
+/**
+ * MCP client — spawns and communicates with MCP server subprocesses over JSON-RPC.
+ *
+ * ⚠️  CRITICAL: DO NOT change stdio back to ["pipe", "pipe", "inherit"]
+ * ═══════════════════════════════════════════════════════════════════════
+ * Using "inherit" for child stderr caused a very hard-to-diagnose bug:
+ *
+ *   After a /mode switch, users could not type — keystrokes appeared BELOW
+ *   the Ink TUI box instead of inside the input field (terminal out of raw mode).
+ *
+ * Cause (three bugs together):
+ *   1. stdio: ["pipe", "pipe", "inherit"] — child processes share the parent's
+ *      terminal file descriptor for stderr.  Any bytes they write bypass Ink's
+ *      patchStderr() intercept and hit the terminal directly.
+ *
+ *   2. Timed-out children not killed — when spawnServers() hits the 10 s timeout,
+ *      Promise.race() throws but the child process keeps running.  The browser-surff
+ *      server (which needs a running Chrome) often fails its connection *after* the
+ *      timeout, writing its error output to the raw terminal fd well after the mode-
+ *      switch UI says "ready".
+ *
+ *   3. The combined effect: inherited stderr + delayed child output = raw terminal
+ *      bytes landing inside Ink's alt-screen buffer at the wrong cursor position,
+ *      making it look like the terminal lost raw mode.
+ *
+ * Fix:
+ *   - stdio: ["pipe", "pipe", "pipe"]   — fully isolates child stderr.
+ *   - child.stderr piped to feature logger — visible in debug logs, never on screen.
+ *   - client.kill() on timeout           — abandoned process is cleaned up immediately.
+ */
+
 import { ChildProcess, spawn } from "node:child_process";
 import type {
   McpServerConfig,
@@ -5,6 +36,7 @@ import type {
   ToolSchema,
 } from "./protocol.ts";
 import type { JsonRpcRequest, JsonRpcResponse } from "./protocol.ts";
+import { getFeatureLogger } from "../logging/index.ts";
 
 // TODO #15: Implement MCP process lifecycle
 // TODO #16: Implement MCP tool discovery
@@ -30,11 +62,16 @@ export class McpClient {
     try {
       // Use the project root as cwd
       const cwd = process.env.RYFT_PROJECT_ROOT || process.cwd();
-      
+
+      const log = getFeatureLogger("MCP");
+
       this.process = spawn(this.config.command, this.config.args || [], {
         env: { ...process.env, ...this.config.env },
-        stdio: ["pipe", "pipe", "inherit"],
-        cwd, // Set working directory for the subprocess
+        // "pipe" for all three fds — child stderr must NOT inherit the parent's
+        // terminal fd or child startup noise will write directly to the terminal
+        // after the spawn timeout fires, corrupting Ink's TUI layout.
+        stdio: ["pipe", "pipe", "pipe"],
+        cwd,
       });
 
       // Handle stdout (JSON-RPC responses)
@@ -42,14 +79,40 @@ export class McpClient {
         this.handleData(data.toString());
       });
 
+      // Route child stderr through the feature logger so it never reaches the
+      // terminal directly and doesn't corrupt Ink's TUI display.
+      this.process.stderr?.on("data", (data) => {
+        const text = data.toString().trim();
+        if (text) log.debug(`[${this.config.id} stderr] ${text}`);
+      });
+
       // Handle process exit
       this.process.on("exit", (code) => {
-        console.warn(`MCP server ${this.config.id} exited with code ${code}`);
+        log.debug(`MCP server ${this.config.id} exited with code ${code}`);
         this.process = null;
       });
 
       // Give server time to start
       await new Promise((resolve) => setTimeout(resolve, 500));
+
+      // MCP protocol requires initialize handshake before any other requests
+      try {
+        await this.request("initialize", {
+          protocolVersion: "2024-11-05",
+          capabilities: {},
+          clientInfo: { name: "ryft", version: "1.0.0" },
+        });
+        // Send initialized notification (fire-and-forget, no response expected)
+        this.process!.stdin!.write(
+          JSON.stringify({
+            jsonrpc: "2.0",
+            method: "notifications/initialized",
+            params: {},
+          }) + "\n",
+        );
+      } catch {
+        // Some servers don't require initialize (e.g. custom ones) — ignore
+      }
     } catch (error) {
       this.process = null;
       throw new Error(`Failed to spawn MCP server ${this.config.id}: ${error}`);
@@ -208,23 +271,42 @@ export class McpClientPool {
   }
 
   /**
-   * Spawn all servers in list
+   * Spawn all servers in list — runs in parallel with a per-server timeout
    */
   async spawnServers(
     configs: McpServerConfig[],
+    timeoutMs = 10_000,
   ): Promise<Map<string, McpClient>> {
     const result = new Map<string, McpClient>();
 
-    for (const config of configs) {
+    const log = getFeatureLogger("MCP");
+
+    const attempts = configs.map(async (config) => {
+      const client = this.getClient(config);
       try {
-        const client = this.getClient(config);
-        await client.spawn();
+        await Promise.race([
+          client.spawn(),
+          new Promise<never>((_, reject) =>
+            setTimeout(
+              () => reject(new Error(`Spawn timeout for ${config.id}`)),
+              timeoutMs,
+            ),
+          ),
+        ]);
         result.set(config.id, client);
       } catch (error) {
-        console.error(`Failed to spawn MCP server ${config.id}:`, error);
+        log.warn(
+          `Failed to spawn MCP server ${config.id}: ${
+            error instanceof Error ? error.message : String(error)
+          }`,
+        );
+        // Kill the abandoned child process so it cannot write to the terminal
+        // later via its lingering stderr fd and corrupt Ink's TUI display.
+        void client.kill().catch(() => {});
       }
-    }
+    });
 
+    await Promise.all(attempts);
     return result;
   }
 

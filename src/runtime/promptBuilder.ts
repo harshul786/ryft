@@ -38,7 +38,7 @@ export async function buildSystemPrompt(session: Session): Promise<string> {
       ? `\n\n## Invoking Skills\nTo invoke a skill, output EXACTLY this on its own line (nothing else on that line, no markdown, no code fences):\n\nINVOKE_SKILL: <skill_name>\n\nThe system will inject the skill's instructions and you can then complete the task. Only output INVOKE_SKILL when the user explicitly asks you to use a skill or when the task clearly maps to one.`
       : "";
   const skillsInstructions = hasSkills
-    ? `## Available Skills\n\nYou have access to specialized skills for specific tasks:\n\n${skillsDescription}\n\nUse your judgment about when to invoke a skill that matches the user's request.${skillInvocationSyntax}`
+    ? `## Available Skills\n\nSkills are step-by-step playbooks for specific tasks. When you invoke a skill:\n1. You will receive its instructions as a tool result.\n2. You MUST immediately execute those instructions using your other available tools — do NOT respond with text.\n3. Never say you "cannot" do something if a tool exists that could attempt it.\n4. Complete every step before giving a final text response.\n\n${skillsDescription}${skillInvocationSyntax}`
     : "";
 
   // Tools section — only passed to models that natively support OpenAI function calling.
@@ -46,13 +46,33 @@ export async function buildSystemPrompt(session: Session): Promise<string> {
   const allTools = supportsNativeTools
     ? session.toolRegistry.getCompressedTools()
     : [];
+  const playwrightTools = allTools.filter((t) => t.name.startsWith("browser_"));
+  const skillTools = allTools.filter((t) => !t.name.startsWith("browser_"));
+
   const toolsInstructions =
     supportsNativeTools && allTools && allTools.length > 0
       ? `## Available Tools
 
-You have ${allTools.length} tool(s) available via the function-calling API: ${allTools.map((t) => t.name).join(", ")}.
+Call tools via the function-calling API — never output XML or JSON tool representations.
 
-IMPORTANT: When you want to use a tool, invoke it through the function-calling interface — DO NOT generate any XML, JSON, or text representation of a tool call. The runtime will handle execution and return results to you automatically.`
+### Direct Action Tools (call immediately — no skill needed)
+${
+  playwrightTools.length > 0
+    ? playwrightTools.map((t) => `- **${t.name}**`).join("\n")
+    : "(none)"
+}
+
+For ANY web task (browsing, searching, clicking, typing, uploading), call these tools directly.
+Do NOT say you "cannot" access a URL — call \`browser_navigate\` now.
+
+### Skill Tools (invoke to get step-by-step instructions for complex workflows)
+${
+  skillTools.length > 0
+    ? skillTools.map((t) => `- **${t.name}**`).join("\n")
+    : "(none)"
+}
+
+After a skill returns its instructions, IMMEDIATELY execute them using the Direct Action Tools above.`
       : "";
 
   const systemPrompt = applyTokenCap(

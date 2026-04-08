@@ -54,6 +54,7 @@ export interface AppState {
   // Model & Status
   currentModel: ModelOption;
   isAssistantResponding: boolean;
+  isSwitchingMode: boolean;
 
   // Selector Modal
   selector: SelectorState | null;
@@ -77,6 +78,7 @@ export const createInitialState = (session: Session): AppState => ({
   },
   currentModel: session.config.model,
   isAssistantResponding: false,
+  isSwitchingMode: false,
   selector: null,
   prompter: null,
   scrollOffset: 0,

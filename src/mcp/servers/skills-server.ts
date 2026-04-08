@@ -23,8 +23,18 @@ export class SkillsMcpServer {
     }
 
     try {
-      // Get all skills from skills database
-      const skillEntries = getAllSkillsAcrossModes();
+      // Get all skills from skills database, filtered to active modes when set
+      const allSkillEntries = getAllSkillsAcrossModes();
+      const activeModes = (process.env.RYFT_ACTIVE_MODES ?? "")
+        .split(",")
+        .map((m) => m.trim())
+        .filter(Boolean);
+      const skillEntries =
+        activeModes.length > 0
+          ? allSkillEntries.filter((e) =>
+              e.modes.some((m) => activeModes.includes(m)),
+            )
+          : allSkillEntries;
 
       const skillMap = new Map<
         string,
@@ -101,7 +111,17 @@ export class SkillsMcpServer {
       // Cache for future requests
       this.skillsCache.set(skillName, content);
 
-      return content;
+      // Wrap with imperative framing so the model knows it must execute,
+      // not just read and respond with text.
+      return [
+        `=== SKILL ACTIVATED: ${skillName} ===`,
+        `You MUST execute every step below using your available tools.`,
+        `Do NOT respond with text — call your tools now to carry out each step.`,
+        ``,
+        content.trim(),
+        ``,
+        `=== BEGIN EXECUTION: Call your first tool now to start Step 1 above. ===`,
+      ].join("\n");
     } catch (error) {
       throw new Error(
         `Failed to invoke skill '${skillName}': ${error instanceof Error ? error.message : String(error)}`,
