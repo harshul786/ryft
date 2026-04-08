@@ -5,6 +5,7 @@
  * Skills are executed inline by embedding their content in the prompt.
  */
 
+import { readFile } from "node:fs/promises";
 import type { Skill } from "../types.ts";
 import { getModeSkills } from "../modes/skill-merger.ts";
 import type { Mode } from "../types.ts";
@@ -54,9 +55,18 @@ export async function invokeSkill(
       };
     }
 
-    // For now, return the skill metadata and file content
-    // In a real implementation, this would read the skill file
-    const skillContent = formatSkillForModel(skill);
+    // Read the raw skill file content (the full SKILL.md with instructions),
+    // then fall back to synthesised metadata if the file isn't accessible.
+    let fileContent: string | undefined;
+    if (skill.file) {
+      try {
+        fileContent = await readFile(skill.file, "utf-8");
+      } catch {
+        // File unreadable — we'll fall back to metadata only
+      }
+    }
+
+    const skillContent = formatSkillForModel(skill, fileContent);
 
     return {
       success: true,
@@ -73,9 +83,23 @@ export async function invokeSkill(
 }
 
 /**
- * Format skill information for the model to understand and use
+ * Format skill information for the model to understand and use.
+ * When the raw file content is available, it is included in full so the model
+ * receives the complete skill instructions rather than just extracted metadata.
  */
-function formatSkillForModel(skill: Skill): string {
+function formatSkillForModel(skill: Skill, fileContent?: string): string {
+  if (fileContent) {
+    // Strip YAML frontmatter (between leading --- delimiters) — we only want
+    // the human-readable instruction body for the model.
+    const withoutFrontmatter = fileContent
+      .replace(/^---[\s\S]*?---\s*/m, "")
+      .trim();
+    if (withoutFrontmatter.length > 0) {
+      return `# Skill: ${skill.name}\n\n${withoutFrontmatter}`;
+    }
+  }
+
+  // Fallback: synthesise from metadata fields
   const lines = [`# Skill: ${skill.name}`, `Description: ${skill.description}`];
 
   if (skill.metadata?.title) {

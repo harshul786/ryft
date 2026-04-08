@@ -1,4 +1,5 @@
 import { getAllSkillsAcrossModes } from "../../modes/skill-merger.ts";
+import { resolve } from "node:path";
 
 /**
  * MCP server for skill invocation
@@ -33,7 +34,7 @@ export class SkillsMcpServer {
         skillMap.set(entry.name, {
           name: entry.name,
           description: entry.description,
-          filePath: entry.filePath,
+          filePath: resolve(process.cwd(), entry.path),
         });
       }
 
@@ -46,7 +47,9 @@ export class SkillsMcpServer {
   }
 
   /**
-   * List all available skills as MCP tools
+   * List all available skills as MCP tools.
+   * Each skill is exposed as its own named tool so the model can call
+   * e.g. `edit({context: "…"})` or `compact({})` directly.
    */
   async listSkills(): Promise<
     Array<{
@@ -56,36 +59,22 @@ export class SkillsMcpServer {
     }>
   > {
     const allSkills = await this.loadAllSkills();
-    const skillNames = Array.from(allSkills.keys()).join(", ");
 
-    return [
-      {
-        name: "list_skills",
-        description:
-          "List all available skills that can be invoked. Returns skill names and descriptions.",
-        inputSchema: {
-          type: "object",
-          properties: {},
-          required: [],
-        },
-      },
-      {
-        name: "invoke_skill",
-        description:
-          "Invoke a specific skill by name to perform a task. Available skills: " +
-          skillNames,
-        inputSchema: {
-          type: "object",
-          properties: {
-            skill: {
-              type: "string",
-              description: `The name of the skill to invoke. Available: ${skillNames}`,
-            },
+    return Array.from(allSkills.values()).map((skill) => ({
+      name: skill.name,
+      description: skill.description,
+      inputSchema: {
+        type: "object",
+        properties: {
+          context: {
+            type: "string",
+            description:
+              "Optional extra context or instructions for this skill invocation.",
           },
-          required: ["skill"],
         },
+        required: [],
       },
-    ];
+    }));
   }
 
   /**
@@ -136,82 +125,17 @@ export async function handleSkillsMcpRequest(
   }
 
   if (method === "tools/call") {
-    // Call tool by name with arguments
     const toolName = params.name as string;
-    const toolArgs = params.arguments as Record<string, unknown>;
-
     if (!toolName) {
       throw new Error("Missing required parameter: name");
     }
 
-    // Handle list_skills
-    if (toolName === "list_skills") {
-      const skills = await server.listSkills();
-      return {
-        type: "text",
-        text: JSON.stringify(
-          {
-            tools: skills.map((t) => ({
-              name: t.name,
-              description: t.description,
-            })),
-          },
-          null,
-          2,
-        ),
-      };
-    }
-
-    // Handle invoke_skill
-    if (toolName === "invoke_skill") {
-      const skillName = toolArgs.skill as string;
-      if (!skillName) {
-        throw new Error("Missing required argument: skill");
-      }
-      const content = await server.invokeSkill(skillName);
-      return {
-        type: "text",
-        text: content,
-      };
-    }
-
-    throw new Error(`Unknown tool: ${toolName}`);
+    // Every skill is a directly callable tool by its own name.
+    const content = await server.invokeSkill(toolName);
+    return { type: "text", text: content };
   }
 
-  // Handle custom methods (legacy support)
-  switch (method) {
-    case "list_skills": {
-      // Return structured list of available skills
-      const skills = await server.listSkills();
-      const listSkillsTool = skills.find((t) => t.name === "list_skills");
-
-      if (!listSkillsTool) {
-        return {
-          skills: skills
-            .filter((t) => t.name !== "list_skills")
-            .map((t) => ({
-              name: t.name,
-              description: t.description,
-            })),
-        };
-      }
-
-      return {
-        skills: skills
-          .filter((t) => t.name !== "list_skills")
-          .map((t) => ({
-            name: t.name,
-            description: t.description,
-          })),
-      };
-    }
-
-    case "invoke_skill":
-      return server.invokeSkill(params.skill as string);
-
-    default:
-      throw new Error(`Unknown method: ${method}`);
-  }
+  throw new Error(`Unknown method: ${method}`);
 }
 
 /**
@@ -233,12 +157,14 @@ export async function runSkillsMcpServerProcess(): Promise<void> {
   });
 
   rl.on("line", async (line: string) => {
+    let requestId: string | number | undefined;
     try {
       const request = JSON.parse(line) as {
         id?: string | number;
         method: string;
         params?: Record<string, unknown>;
       };
+      requestId = request.id;
       const result = await handleSkillsMcpRequest(
         request.method,
         request.params || {},
@@ -248,7 +174,7 @@ export async function runSkillsMcpServerProcess(): Promise<void> {
       process.stdout.write(JSON.stringify(response) + "\n");
     } catch (error) {
       const response = {
-        id: undefined,
+        id: requestId,
         error: {
           code: -32603,
           message: error instanceof Error ? error.message : String(error),

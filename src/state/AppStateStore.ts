@@ -31,6 +31,15 @@ export type SelectorState<T = any> = {
   initialFocusIndex?: number;
 };
 
+export type PrompterState = {
+  type: "input";
+  label: string;
+  placeholder?: string;
+  initialValue?: string;
+  onSubmit: (value: string) => void;
+  onCancel?: () => void;
+};
+
 export interface AppState {
   // Session
   session: Session;
@@ -49,6 +58,9 @@ export interface AppState {
   // Selector Modal
   selector: SelectorState | null;
 
+  // Text input prompt overlay (used by multi-step model picker)
+  prompter: PrompterState | null;
+
   // Scroll state: how many messages from the bottom are hidden (0 = pinned to bottom)
   scrollOffset: number;
   // When true, scrollOffset resets to 0 on new messages (sticky bottom)
@@ -66,6 +78,7 @@ export const createInitialState = (session: Session): AppState => ({
   currentModel: session.config.model,
   isAssistantResponding: false,
   selector: null,
+  prompter: null,
   scrollOffset: 0,
   isScrolledToBottom: true,
 });

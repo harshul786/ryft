@@ -30,16 +30,24 @@ export async function buildSystemPrompt(session: Session): Promise<string> {
     skillsDescription &&
     skillsDescription !== "No skills loaded." &&
     skillsDescription.trim().length > 0;
+  // For non-native models we need a text-based invocation mechanism because we
+  // cannot pass tools via the API without triggering LiteLLM's JSON-injection fallback.
+  const supportsNativeTools = session.config.model?.nativeToolSupport === true;
+  const skillInvocationSyntax =
+    hasSkills && !supportsNativeTools
+      ? `\n\n## Invoking Skills\nTo invoke a skill, output EXACTLY this on its own line (nothing else on that line, no markdown, no code fences):\n\nINVOKE_SKILL: <skill_name>\n\nThe system will inject the skill's instructions and you can then complete the task. Only output INVOKE_SKILL when the user explicitly asks you to use a skill or when the task clearly maps to one.`
+      : "";
   const skillsInstructions = hasSkills
-    ? `## Available Skills\n\nYou have access to specialized skills for specific tasks:\n\n${skillsDescription}\n\nUse your judgment about when to invoke a skill that matches the user's request.`
+    ? `## Available Skills\n\nYou have access to specialized skills for specific tasks:\n\n${skillsDescription}\n\nUse your judgment about when to invoke a skill that matches the user's request.${skillInvocationSyntax}`
     : "";
 
-  // Tools section — tools are passed to the model via the OpenAI `tools` API
-  // parameter (native function-calling), NOT via system-prompt XML instructions.
-  // We just tell the model that tools exist; the API handles the rest.
-  const allTools = session.toolRegistry.getCompressedTools();
+  // Tools section — only passed to models that natively support OpenAI function calling.
+  // Non-native models use the text-based INVOKE_SKILL mechanism above instead.
+  const allTools = supportsNativeTools
+    ? session.toolRegistry.getCompressedTools()
+    : [];
   const toolsInstructions =
-    allTools && allTools.length > 0
+    supportsNativeTools && allTools && allTools.length > 0
       ? `## Available Tools
 
 You have ${allTools.length} tool(s) available via the function-calling API: ${allTools.map((t) => t.name).join(", ")}.

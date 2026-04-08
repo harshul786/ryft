@@ -16,7 +16,7 @@ import { resolveModes } from "./modes/catalog.ts";
 import { promptWithSession } from "./runtime/promptBuilder.ts";
 import { createSession } from "./runtime/session.ts";
 import { openProxyServer } from "./runtime/proxyServer.ts";
-import { streamChatCompletion } from "./runtime/openaiClient.ts";
+import { streamChatCompletion } from "./runtime/llmClient.ts";
 import { renderBanner, renderStatusLine } from "./ui/chalkDraw.ts";
 import {
   loadConfig,
@@ -67,21 +67,19 @@ program
     }
   });
 
-// If only the script name is provided (no args), run the interactive REPL
-if (process.argv.length <= 2) {
-  // No arguments provided, go straight to REPL
-  (async () => {
-    try {
-      await main();
-    } catch (err) {
-      console.error(chalk.red("Error:"), err);
-      process.exit(1);
-    }
-  })();
-} else {
-  // Parse arguments normally for commands and options
-  program.parse();
-}
+// Root action — triggered for interactive REPL and all root-level flags
+// (e.g. --prompt, --model, --browser).  Subcommands (e.g. `logs`) have their
+// own .action() handlers that call process.exit() before reaching here.
+program.action(async () => {
+  try {
+    await main();
+  } catch (err) {
+    console.error(chalk.red("Error:"), err);
+    process.exit(1);
+  }
+});
+
+program.parse();
 
 async function main(): Promise<void> {
   const opts = program.opts<{
@@ -151,12 +149,32 @@ async function main(): Promise<void> {
       process.env.OPENAI_BASE_URL ??
       "https://api.openai.com/v1",
     apiKey: opts.apiKey ?? config.apiKey ?? process.env.OPENAI_API_KEY ?? "",
+    anthropicApiKey:
+      config.anthropicApiKey || process.env.ANTHROPIC_API_KEY || "",
+    geminiApiKey:
+      config.geminiApiKey ||
+      process.env.GEMINI_API_KEY ||
+      process.env.GOOGLE_API_KEY ||
+      "",
+    ollamaBaseUrl:
+      config.ollamaBaseUrl ||
+      process.env.OLLAMA_BASE_URL ||
+      "http://localhost:11434",
   });
 
   // Reload global config into session to ensure absolutely latest values
   const freshGlobalConfig = loadGlobalConfig();
   if (freshGlobalConfig.apiKey) {
     session.config.apiKey = freshGlobalConfig.apiKey;
+  }
+  if (freshGlobalConfig.anthropicApiKey) {
+    session.config.anthropicApiKey = freshGlobalConfig.anthropicApiKey;
+  }
+  if (freshGlobalConfig.geminiApiKey) {
+    session.config.geminiApiKey = freshGlobalConfig.geminiApiKey;
+  }
+  if (freshGlobalConfig.ollamaBaseUrl) {
+    session.config.ollamaBaseUrl = freshGlobalConfig.ollamaBaseUrl;
   }
   if (freshGlobalConfig.baseUrl) {
     session.config.baseUrl = freshGlobalConfig.baseUrl;
@@ -186,6 +204,10 @@ async function main(): Promise<void> {
     const response = await streamChatCompletion({
       baseUrl: session.config.baseUrl,
       apiKey: session.config.apiKey,
+      anthropicApiKey: session.config.anthropicApiKey,
+      geminiApiKey: session.config.geminiApiKey,
+      ollamaBaseUrl: session.config.ollamaBaseUrl,
+      providerType: session.config.model.providerType,
       model: session.config.model.id,
       messages: prompt,
       signal: session.abortController.signal,
@@ -217,6 +239,10 @@ async function main(): Promise<void> {
         turnResult = await streamChatCompletion({
           baseUrl: session.config.baseUrl,
           apiKey: session.config.apiKey,
+          anthropicApiKey: session.config.anthropicApiKey,
+          geminiApiKey: session.config.geminiApiKey,
+          ollamaBaseUrl: session.config.ollamaBaseUrl,
+          providerType: session.config.model.providerType,
           model: session.config.model.id,
           messages: session.history,
           signal: session.abortController.signal,

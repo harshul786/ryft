@@ -7,9 +7,14 @@
   "disabledTools": ["editor", "browser"],
   "mcpServers": [
     {
-      "id": "logs",
-      "name": "Logs",
-      "description": "Log aggregation and analysis for debugging"
+      "id": "coder",
+      "name": "Coder",
+      "description": "File reading, writing, str_replace editing, directory ops, and bash execution",
+      "command": "npx",
+      "args": ["tsx", "src/mcp/servers/coder-server.ts"],
+      "env": {
+        "NODE_ENV": "production"
+      }
     },
     {
       "id": "skills",

@@ -6,6 +6,16 @@
   "enabledTools": ["bash", "node", "typescript"],
   "mcpServers": [
     {
+      "id": "coder",
+      "name": "Coder",
+      "description": "File reading, writing, str_replace editing, directory ops, and bash execution",
+      "command": "npx",
+      "args": ["tsx", "src/mcp/servers/coder-server.ts"],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    },
+    {
       "id": "skills",
       "name": "Skills Server",
       "description": "Invoke Ryft skills for specialized tasks",

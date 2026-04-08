@@ -9,6 +9,7 @@ import type {
   ToolUseContentPart,
   ToolResultContentPart,
 } from "../types.ts";
+import { buildSystemPrompt } from "./promptBuilder.ts";
 import { defaultMemoryMode, resolveMemoryMode } from "../memory/catalog.ts";
 import { getModeSkills } from "../modes/skill-merger.ts";
 import { createAbortController } from "./util.ts";
@@ -115,6 +116,28 @@ export function createSession(config: SessionConfig): Session {
     },
     setModel(model: SessionConfig["model"]) {
       session.config.model = model;
+      // Sync the URL routing fields so streamChatCompletion uses the right endpoint.
+      if (model?.baseUrl) {
+        if (model.providerType === "ollama") {
+          session.config.ollamaBaseUrl = model.baseUrl;
+        } else if (
+          model.providerType !== "anthropic" &&
+          model.providerType !== "google"
+        ) {
+          session.config.baseUrl = model.baseUrl;
+        }
+      }
+      // Rebuild system prompt in history[0] so the new model gets correct
+      // tool-calling vs INVOKE_SKILL instructions — not the startup model's.
+      buildSystemPrompt(session)
+        .then((prompt) => {
+          if (history.length > 0 && history[0]?.role === "system") {
+            history[0] = { role: "system", content: prompt };
+          }
+        })
+        .catch(() => {
+          /* non-fatal */
+        });
     },
     setBrowser(controller: BrowserController | null) {
       session.browser = controller;

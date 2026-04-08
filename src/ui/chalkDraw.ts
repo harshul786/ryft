@@ -1,31 +1,41 @@
-import chalk from 'chalk';
-import type { Session } from '../runtime/session.ts';
-import type { Usage } from '../types.ts';
+import chalk from "chalk";
+import type { Session } from "../runtime/session.ts";
+import type { Usage } from "../types.ts";
 
 export function renderBanner(session: Session): string {
-  const title = chalk.bold.cyan('Ryft');
-  const subtitle = chalk.dim('OpenAI-native modular code CLI [TEST CHANGE]');
-  const modeLine = chalk.white(`modes: ${session.modes.map(mode => mode.name).join(', ')}`);
-  const memoryLine = chalk.white(`memory: ${session.memoryMode.name}`);
-  const modelLine = chalk.white(`model: ${session.config.model.label} (${session.config.model.provider})`);
+  const brand = chalk.bold.blue("Ryft");
+  const tagline = chalk.dim("modular AI coding CLI");
+  const sep = chalk.blue("│");
+
+  const modeVal = chalk.blueBright(session.modes.map((m) => m.name).join(", "));
+  const memVal = chalk.cyan(session.memoryMode.name);
+  const modelVal = chalk.white(`${session.config.model.label}`);
+  const provVal = chalk.dim(`(${session.config.model.provider})`);
+
+  const divider = chalk.blue("─".repeat(50));
+
   return [
-    '',
-    ` ${title}  ${subtitle}`,
-    ` ${modeLine}`,
-    ` ${memoryLine}`,
-    ` ${modelLine}`,
-    '',
-  ].join('\n');
+    "",
+    ` ${brand}  ${sep}  ${tagline}`,
+    ` ${chalk.dim("mode")}   ${modeVal}   ${chalk.dim("memory")}  ${memVal}`,
+    ` ${chalk.dim("model")}  ${modelVal} ${provVal}`,
+    ` ${divider}`,
+    "",
+  ].join("\n");
 }
 
 export function renderStatusLine(session: Session, usage?: Usage): string {
   const parts = [
-    chalk.green(`modes=${session.modes.map(mode => mode.name).join('+')}`),
-    chalk.blue(`memory=${session.memoryMode.name}`),
-    chalk.magenta(`model=${session.config.model.id}`),
+    chalk.blue(`mode=${session.modes.map((m) => m.name).join("+")} `),
+    chalk.cyan(`memory=${session.memoryMode.name}`),
+    chalk.white(`model=${session.config.model.id}`),
   ];
   if (usage) {
-    parts.push(chalk.yellow(`tokens=${usage.input_tokens ?? 0}/${usage.output_tokens ?? 0}`));
+    parts.push(
+      chalk.yellow(
+        `tokens=${usage.input_tokens ?? 0}↑ ${usage.output_tokens ?? 0}↓`,
+      ),
+    );
   }
-  return parts.join('  ');
+  return parts.join(chalk.dim("  ·  "));
 }

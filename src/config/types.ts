@@ -29,6 +29,9 @@ export interface ConfigFile {
   proxyUrl?: string;
   baseUrl?: string;
   apiKey?: string;
+  anthropicApiKey?: string;
+  geminiApiKey?: string;
+  ollamaBaseUrl?: string;
 
   // Logging and UI settings
   logLevel?: "debug" | "info" | "warn" | "error";
@@ -60,6 +63,9 @@ export const CONFIG_DEFAULTS: Required<ConfigFile> = {
   proxyUrl: "",
   baseUrl: "https://api.openai.com/v1",
   apiKey: "",
+  anthropicApiKey: "",
+  geminiApiKey: "",
+  ollamaBaseUrl: "",
   logLevel: "info",
   showTokens: true,
 };
@@ -239,6 +245,36 @@ export function validateConfig(config: unknown): ValidationError[] {
       field: "apiKey",
       message: "apiKey must be a string",
       value: cfg.apiKey,
+    });
+  }
+
+  if (
+    cfg.anthropicApiKey !== undefined &&
+    typeof cfg.anthropicApiKey !== "string"
+  ) {
+    errors.push({
+      field: "anthropicApiKey",
+      message: "anthropicApiKey must be a string",
+      value: cfg.anthropicApiKey,
+    });
+  }
+
+  if (cfg.geminiApiKey !== undefined && typeof cfg.geminiApiKey !== "string") {
+    errors.push({
+      field: "geminiApiKey",
+      message: "geminiApiKey must be a string",
+      value: cfg.geminiApiKey,
+    });
+  }
+
+  if (
+    cfg.ollamaBaseUrl !== undefined &&
+    typeof cfg.ollamaBaseUrl !== "string"
+  ) {
+    errors.push({
+      field: "ollamaBaseUrl",
+      message: "ollamaBaseUrl must be a string",
+      value: cfg.ollamaBaseUrl,
     });
   }
 

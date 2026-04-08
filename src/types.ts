@@ -173,6 +173,13 @@ export interface BrowserController {
   close(): Promise<void>;
 }
 
+export type ProviderType =
+  | "openai"
+  | "anthropic"
+  | "google"
+  | "ollama"
+  | "openai-compatible";
+
 export interface ModelOption {
   id: string;
   label: string;
@@ -180,6 +187,12 @@ export interface ModelOption {
   description: string;
   baseUrl?: string;
   aliases?: string[];
+  /** Whether this model supports native function calling via the provider's API tools parameter.
+   * When false (or omitted), tools are NOT passed to avoid prompt-injection JSON mode fallbacks. */
+  nativeToolSupport?: boolean;
+  /** Which LangChain provider adapter to use. Detected automatically from baseUrl/model prefix
+   * when not set explicitly. Defaults to "openai-compatible" for unknown models. */
+  providerType?: ProviderType;
 }
 
 export type MemoryModeName = "claude-like" | "hierarchy" | "session";
@@ -207,8 +220,16 @@ export interface SessionConfig {
   cwd?: string;
   homeDir?: string;
   proxyUrl: string | null;
+  /** OpenAI (and OpenAI-compatible) API base URL */
   baseUrl: string;
+  /** OpenAI API key */
   apiKey: string;
+  /** Anthropic API key (for claude-* models) */
+  anthropicApiKey?: string;
+  /** Google / Gemini API key (for gemini-* models) */
+  geminiApiKey?: string;
+  /** Ollama base URL (defaults to http://localhost:11434) */
+  ollamaBaseUrl?: string;
 }
 
 export interface MemoryState {

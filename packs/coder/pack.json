@@ -7,9 +7,14 @@
   "disabledTools": ["browser"],
   "mcpServers": [
     {
-      "id": "filesystem",
-      "name": "Filesystem",
-      "description": "Local filesystem operations for code editing"
+      "id": "coder",
+      "name": "Coder",
+      "description": "File reading, writing, str_replace editing, directory ops, and bash execution",
+      "command": "npx",
+      "args": ["tsx", "src/mcp/servers/coder-server.ts"],
+      "env": {
+        "NODE_ENV": "production"
+      }
     },
     {
       "id": "skills",

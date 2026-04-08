@@ -7,18 +7,66 @@ export interface ModelProviderGroup {
   models: ModelOption[];
 }
 
+// The 4 primary selectable providers surfaced in the `/model` picker.
+export const PRIMARY_PROVIDERS = [
+  "OpenAI",
+  "Claude",
+  "Gemini",
+  "Ollama",
+] as const;
+export type PrimaryProvider = (typeof PRIMARY_PROVIDERS)[number];
+
+/** Default API base URLs surfaced at the baseUrl prompt step. */
+export const PROVIDER_DEFAULT_BASE_URLS: Record<PrimaryProvider, string> = {
+  OpenAI: "https://api.openai.com/v1",
+  Claude: "", // SDK reads ANTHROPIC_API_KEY from env; no baseUrl needed
+  Gemini: "", // SDK reads GEMINI_API_KEY / GOOGLE_API_KEY from env; no baseUrl needed
+  Ollama: "http://localhost:11434",
+};
+
 const MODEL_GROUPS: ModelProviderGroup[] = [
   {
     provider: "OpenAI",
-    description:
-      "OpenAI-hosted models for direct use or via an OpenAI-compatible proxy.",
+    description: "OpenAI-hosted GPT models. Requires OPENAI_API_KEY.",
     models: [
+      {
+        id: "gpt-5.4",
+        label: "GPT-5.4",
+        provider: "OpenAI",
+        description: "Latest GPT-5.4 — best reasoning, multimodal, tool use.",
+        baseUrl: "https://api.openai.com/v1",
+        providerType: "openai",
+        nativeToolSupport: true,
+        aliases: ["5.4", "openai/gpt-5.4"],
+      },
+      {
+        id: "gpt-5.4-mini",
+        label: "GPT-5.4 Mini",
+        provider: "OpenAI",
+        description: "Fast and cost-efficient variant of GPT-5.4.",
+        baseUrl: "https://api.openai.com/v1",
+        providerType: "openai",
+        nativeToolSupport: true,
+        aliases: ["5.4-mini", "openai/gpt-5.4-mini"],
+      },
+      {
+        id: "gpt-5.3-codex",
+        label: "GPT-5.3 Codex",
+        provider: "OpenAI",
+        description: "GPT-5.3 fine-tuned for code generation and completion.",
+        baseUrl: "https://api.openai.com/v1",
+        providerType: "openai",
+        nativeToolSupport: true,
+        aliases: ["codex", "openai/gpt-5.3-codex"],
+      },
       {
         id: "gpt-4.1",
         label: "GPT-4.1",
         provider: "OpenAI",
         description: "Balanced general-purpose model for code and analysis.",
         baseUrl: "https://api.openai.com/v1",
+        providerType: "openai",
+        nativeToolSupport: true,
         aliases: [
           "4.1",
           "openai/gpt-4.1",
@@ -34,6 +82,8 @@ const MODEL_GROUPS: ModelProviderGroup[] = [
         provider: "OpenAI",
         description: "Faster and cheaper model for lightweight coding work.",
         baseUrl: "https://api.openai.com/v1",
+        providerType: "openai",
+        nativeToolSupport: true,
         aliases: [
           "mini",
           "openai/gpt-4.1-mini",
@@ -49,7 +99,212 @@ const MODEL_GROUPS: ModelProviderGroup[] = [
         provider: "OpenAI",
         description: "Smallest option for quick, low-cost tasks.",
         baseUrl: "https://api.openai.com/v1",
+        providerType: "openai",
+        nativeToolSupport: true,
         aliases: ["nano", "openai/gpt-4.1-nano"],
+      },
+    ],
+  },
+  {
+    provider: "Claude",
+    description: "Claude models by Anthropic. Requires ANTHROPIC_API_KEY.",
+    models: [
+      {
+        id: "claude-opus-4-6",
+        label: "Claude Opus 4.6",
+        provider: "Claude",
+        description:
+          "Most capable Claude — complex reasoning and long context.",
+        providerType: "anthropic",
+        nativeToolSupport: true,
+        aliases: ["opus", "claude-opus", "anthropic/claude-opus-4-6"],
+      },
+      {
+        id: "claude-sonnet-4-6",
+        label: "Claude Sonnet 4.6",
+        provider: "Claude",
+        description: "Balanced Claude — everyday coding and analysis.",
+        providerType: "anthropic",
+        nativeToolSupport: true,
+        aliases: ["sonnet", "claude-sonnet", "anthropic/claude-sonnet-4-6"],
+      },
+      {
+        id: "claude-haiku-4-6",
+        label: "Claude Haiku 4.6",
+        provider: "Claude",
+        description: "Fastest, most compact Claude for lightweight tasks.",
+        providerType: "anthropic",
+        nativeToolSupport: true,
+        aliases: ["haiku", "claude-haiku", "anthropic/claude-haiku-4-6"],
+      },
+      // Previous generation — kept for compatibility
+      {
+        id: "claude-opus-4-5",
+        label: "Claude Opus 4.5",
+        provider: "Claude",
+        description: "Previous-gen Opus — strong at complex multi-step tasks.",
+        providerType: "anthropic",
+        nativeToolSupport: true,
+        aliases: ["opus-4-5", "anthropic/claude-opus-4-5"],
+      },
+      {
+        id: "claude-sonnet-4-5",
+        label: "Claude Sonnet 4.5",
+        provider: "Claude",
+        description: "Previous-gen Sonnet.",
+        providerType: "anthropic",
+        nativeToolSupport: true,
+        aliases: ["sonnet-4-5", "anthropic/claude-sonnet-4-5"],
+      },
+      {
+        id: "claude-haiku-3-5",
+        label: "Claude Haiku 3.5",
+        provider: "Claude",
+        description: "Previous-gen Haiku.",
+        providerType: "anthropic",
+        nativeToolSupport: true,
+        aliases: ["haiku-3-5", "anthropic/claude-haiku-3-5"],
+      },
+    ],
+  },
+  {
+    provider: "Gemini",
+    description: "Gemini models by Google. Requires GEMINI_API_KEY.",
+    models: [
+      {
+        id: "gemini-3.0-flash",
+        label: "Gemini 3 Flash",
+        provider: "Gemini",
+        description: "Latest Gemini Flash — fast and highly capable.",
+        providerType: "google",
+        nativeToolSupport: true,
+        aliases: ["flash", "gemini-flash", "google/gemini-3.0-flash"],
+      },
+      {
+        id: "gemini-2.5-flash",
+        label: "Gemini 2.5 Flash",
+        provider: "Gemini",
+        description: "Efficient Gemini with strong multimodal support.",
+        providerType: "google",
+        nativeToolSupport: true,
+        aliases: ["2.5-flash", "google/gemini-2.5-flash"],
+      },
+      {
+        id: "gemini-3.0-pro",
+        label: "Gemini 3.0 Pro",
+        provider: "Gemini",
+        description: "Most capable Gemini with 1M token context window.",
+        providerType: "google",
+        nativeToolSupport: true,
+        aliases: ["gemini-pro", "google/gemini-3.0-pro"],
+      },
+      {
+        id: "gemini-2.5-pro",
+        label: "Gemini 2.5 Pro",
+        provider: "Gemini",
+        description: "Previous-gen Pro — still excellent for complex tasks.",
+        providerType: "google",
+        nativeToolSupport: true,
+        aliases: ["2.5-pro", "google/gemini-2.5-pro"],
+      },
+      {
+        id: "gemini-2.0-flash",
+        label: "Gemini 2.0 Flash",
+        provider: "Gemini",
+        description: "Previous-gen Flash.",
+        providerType: "google",
+        nativeToolSupport: true,
+        aliases: ["2.0-flash", "google/gemini-2.0-flash"],
+      },
+    ],
+  },
+  {
+    provider: "Ollama",
+    description:
+      "Locally-hosted models via Ollama. Must be running on port 11434.",
+    models: [
+      // Gemma 4 family (prioritised — latest as of April 2026)
+      {
+        id: "gemma4:31b",
+        label: "Gemma 4 31B",
+        provider: "Ollama",
+        description: "Google's Gemma 4 — largest, strongest local model.",
+        baseUrl: "http://localhost:11434",
+        providerType: "ollama",
+        nativeToolSupport: true,
+        aliases: ["gemma4-31b", "ollama/gemma4:31b"],
+      },
+      {
+        id: "gemma4:26b",
+        label: "Gemma 4 26B",
+        provider: "Ollama",
+        description: "Gemma 4 26B — excellent balance of size and quality.",
+        baseUrl: "http://localhost:11434",
+        providerType: "ollama",
+        nativeToolSupport: true,
+        aliases: ["gemma4-26b", "ollama/gemma4:26b"],
+      },
+      {
+        id: "gemma4:e4b",
+        label: "Gemma 4 E4B",
+        provider: "Ollama",
+        description: "Gemma 4 E4B — efficient 4-bit quantised variant.",
+        baseUrl: "http://localhost:11434",
+        providerType: "ollama",
+        nativeToolSupport: true,
+        aliases: ["gemma4-e4b", "ollama/gemma4:e4b"],
+      },
+      {
+        id: "gemma4:e2b",
+        label: "Gemma 4 E2B",
+        provider: "Ollama",
+        description: "Gemma 4 E2B — smallest Gemma 4, fastest inference.",
+        baseUrl: "http://localhost:11434",
+        providerType: "ollama",
+        nativeToolSupport: true,
+        aliases: ["gemma4-e2b", "ollama/gemma4:e2b"],
+      },
+      // GPT-OSS family
+      {
+        id: "gpt-oss:20b",
+        label: "GPT OSS 20B",
+        provider: "Ollama",
+        description: "OpenAI's open-source 20B — strong reasoning locally.",
+        baseUrl: "http://localhost:11434",
+        providerType: "ollama",
+        nativeToolSupport: true,
+        aliases: ["gpt-oss", "gpt-oss-20b", "ollama/gpt-oss:20b"],
+      },
+      // Classic models
+      {
+        id: "mistral",
+        label: "Mistral 7B",
+        provider: "Ollama",
+        description: "Mistral 7B — efficient with strong code support.",
+        baseUrl: "http://localhost:11434",
+        providerType: "ollama",
+        nativeToolSupport: true,
+        aliases: ["ollama/mistral"],
+      },
+      {
+        id: "llama3.3",
+        label: "Llama 3.3",
+        provider: "Ollama",
+        description: "Meta's Llama 3.3 — fast general-purpose local model.",
+        baseUrl: "http://localhost:11434",
+        providerType: "ollama",
+        nativeToolSupport: true,
+        aliases: ["llama", "llama3", "ollama/llama3.3"],
+      },
+      {
+        id: "qwen2.5-coder",
+        label: "Qwen 2.5 Coder",
+        provider: "Ollama",
+        description: "Qwen 2.5 fine-tuned for code generation.",
+        baseUrl: "http://localhost:11434",
+        providerType: "ollama",
+        nativeToolSupport: true,
+        aliases: ["qwen", "qwen-coder", "ollama/qwen2.5-coder"],
       },
     ],
   },
@@ -63,6 +318,7 @@ const MODEL_GROUPS: ModelProviderGroup[] = [
         provider: "Local Proxy",
         description: "Use the project proxy with a compact coding profile.",
         baseUrl: "http://127.0.0.1:8787/v1",
+        providerType: "openai-compatible",
         aliases: ["local", "proxy", "local/gpt-4.1-mini"],
       },
       {
@@ -71,11 +327,20 @@ const MODEL_GROUPS: ModelProviderGroup[] = [
         provider: "Local Proxy",
         description: "Use the current proxy base URL with a custom model name.",
         baseUrl: "http://127.0.0.1:8787/v1",
+        providerType: "openai-compatible",
         aliases: ["custom", "proxy/custom"],
       },
     ],
   },
 ];
+
+/** Returns models belonging to the given provider group name. */
+export function listModelsForProvider(providerName: string): ModelOption[] {
+  const group = MODEL_GROUPS.find(
+    (g) => g.provider.toLowerCase() === providerName.toLowerCase(),
+  );
+  return group ? group.models.map((m) => ({ ...m })) : [];
+}
 
 export function listModelGroups(): ModelProviderGroup[] {
   return MODEL_GROUPS.map((group) => ({
@@ -167,12 +432,35 @@ export function initializeModelFromConfig(configModel?: string): ModelOption {
   // This allows users to configure external models (e.g., gemma-lite, ollama models, etc.)
   console.log(chalk.dim(`Using custom external model: ${configModel}`));
 
+  // Infer providerType from model-id prefix so llmClient.ts routes correctly
+  let providerType: ModelOption["providerType"] = "openai-compatible";
+  let nativeToolSupport = false;
+  let baseUrl: string | undefined;
+
+  if (configModel.startsWith("claude-")) {
+    providerType = "anthropic";
+    nativeToolSupport = true;
+  } else if (configModel.startsWith("gemini-")) {
+    providerType = "google";
+    nativeToolSupport = true;
+  } else if (
+    configModel.startsWith("ollama/") ||
+    configModel.startsWith("ollama:")
+  ) {
+    providerType = "ollama";
+    nativeToolSupport = true;
+    baseUrl = "http://localhost:11434";
+  }
+
   // Create a ModelOption for the custom model
   const customModel: ModelOption = {
     id: configModel,
     label: configModel,
     provider: "custom",
     description: `Custom external model: ${configModel}`,
+    providerType,
+    nativeToolSupport,
+    ...(baseUrl ? { baseUrl } : {}),
   };
 
   return customModel;

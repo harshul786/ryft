@@ -3,7 +3,7 @@
  * Main interaction loop for the CLI
  */
 
-import React, { useEffect, useRef, useCallback } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Box,
   Text,
@@ -21,8 +21,9 @@ import {
 } from "../cli/permissions.ts";
 import { cliWarn } from "../cli/exit.ts";
 import { Select } from "../ui/Select.tsx";
+import { TextInput } from "../ui/TextInput.tsx";
 import { buildSystemPrompt } from "../runtime/promptBuilder.ts";
-import { streamChatCompletion } from "../runtime/openaiClient.ts";
+import { streamChatCompletion } from "../runtime/llmClient.ts";
 import { applyTokenCap } from "../runtime/tokenBudget.ts";
 import { getModeSkills } from "../modes/skill-merger.ts";
 import { invokeSkill } from "../tools/skill-tool.ts";
@@ -30,6 +31,7 @@ import {
   BROWSER_SURFF_PROMPT,
   BROWSER_SURFF_SKILL_HINT,
 } from "../browser/prompt.ts";
+import { COLORS, SPINNER_FRAMES, SPINNER_INTERVAL_MS } from "../ui/theme.ts";
 
 // Initialize command system on import
 initializeCommands();
@@ -41,6 +43,32 @@ export const REPL: React.FC = () => {
   const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
   const scrollRef = useRef<ScrollBoxHandle>(null);
   const stickyRef = useRef(true);
+  const [spinnerFrame, setSpinnerFrame] = useState(0);
+  const [termRows, setTermRows] = useState<number>(process.stdout.rows ?? 24);
+  const [termCols, setTermCols] = useState<number>(
+    process.stdout.columns ?? 80,
+  );
+
+  // Track terminal dimensions on resize
+  useEffect(() => {
+    const onResize = () => {
+      setTermRows(process.stdout.rows ?? 24);
+      setTermCols(process.stdout.columns ?? 80);
+    };
+    process.stdout.on("resize", onResize);
+    return () => {
+      process.stdout.off("resize", onResize);
+    };
+  }, []);
+
+  // Animate spinner while responding
+  useEffect(() => {
+    if (!appState.isAssistantResponding) return;
+    const id = setInterval(() => {
+      setSpinnerFrame((f) => (f + 1) % SPINNER_FRAMES.length);
+    }, SPINNER_INTERVAL_MS);
+    return () => clearInterval(id);
+  }, [appState.isAssistantResponding]);
 
   useEffect(() => {
     // Initialize on first render only
@@ -130,8 +158,8 @@ export const REPL: React.FC = () => {
 
   // Handle keyboard input
   useInput(async (input, key) => {
-    // If selector is open, let it handle input
-    if (appState.selector) {
+    // If selector or text-input prompt is open, let it handle input
+    if (appState.selector || appState.prompter) {
       return;
     }
 
@@ -407,10 +435,16 @@ export const REPL: React.FC = () => {
         // Send to model and stream response
         let assistantResponse = "";
         try {
-          // Get tools for OpenAI function calling (if model supports it)
-          const allTools = session.toolRegistry.getCompressedTools();
+          // Get tools for OpenAI function calling (only for models with native support).
+          // Non-native models (e.g. Ollama/Gemma via LiteLLM) fall back to prompt injection
+          // which forces format:json on every response, breaking plain conversational replies.
+          const supportsNativeTools =
+            session.config.model?.nativeToolSupport === true;
+          const allTools = supportsNativeTools
+            ? session.toolRegistry.getCompressedTools()
+            : [];
           const formattedTools =
-            allTools && allTools.length > 0
+            supportsNativeTools && allTools && allTools.length > 0
               ? allTools.map((tool) => ({
                   type: "function" as const,
                   function: {
@@ -424,6 +458,10 @@ export const REPL: React.FC = () => {
           const result = await streamChatCompletion({
             baseUrl: session.config.baseUrl || "https://api.openai.com/v1",
             apiKey: session.config.apiKey,
+            anthropicApiKey: session.config.anthropicApiKey,
+            geminiApiKey: session.config.geminiApiKey,
+            ollamaBaseUrl: session.config.ollamaBaseUrl,
+            providerType: session.config.model?.providerType,
             model: session.config.model?.id || "gpt-4",
             messages: session.history,
             signal: session.abortController.signal,
@@ -469,6 +507,102 @@ export const REPL: React.FC = () => {
           // calls are present so the model can reference them next turn.
           session.appendAssistantWithTools(assistantResponse, result.toolCalls);
 
+          // ── Warn when native-tool model returned no structured calls ─────
+          // Only fires when the response text shows the model *tried* to use a
+          // tool via text syntax (INVOKE_SKILL / action verbs) but no structured
+          // call was emitted — i.e. the model hallucinated the action.
+          const toolAttemptPattern =
+            /INVOKE_SKILL:|INVOKE_TOOL:|\bI (?:have |will |am )?(?:edited|wrote|created|inserted|deleted|updated|written|saved|modified)\b/i;
+          if (
+            supportsNativeTools &&
+            result.toolsProvided &&
+            result.toolCalls.length === 0 &&
+            toolAttemptPattern.test(assistantResponse)
+          ) {
+            setAppState((prev) => ({
+              ...prev,
+              messages: [
+                ...prev.messages,
+                {
+                  role: "assistant" as const,
+                  content:
+                    `⚠️ The model described an action but did not emit a structured tool call — nothing was executed.\n` +
+                    `Try rephrasing your request, or ask the model to explicitly use its tools.`,
+                },
+              ],
+            }));
+          }
+          // When the model is not capable of OpenAI function calling, it uses
+          // the INVOKE_SKILL: <name> text syntax instead.  We detect that here,
+          // load the skill content, inject it into history, and re-run once so
+          // the model can complete the task with the skill instructions in scope.
+          if (!supportsNativeTools && result.toolCalls.length === 0) {
+            const invokeMatch = assistantResponse
+              .trim()
+              .match(/^INVOKE_SKILL:\s*(\S+)$/m);
+            if (invokeMatch) {
+              const skillName = invokeMatch[1]!;
+              const skillResult = await invokeSkill(skillName, session.modes);
+              const skillContent = skillResult.success
+                ? (skillResult.content ??
+                  `Skill '${skillName}' has no content.`)
+                : `Error loading skill '${skillName}': ${skillResult.error}`;
+
+              // Show skill-injection indicator
+              setAppState((prev) => ({
+                ...prev,
+                messages: [
+                  ...prev.messages,
+                  {
+                    role: "assistant" as const,
+                    content: `📚 Skill injected: ${skillName}`,
+                  },
+                ],
+              }));
+
+              // Inject the skill instructions so the model can act on them
+              session.appendUser(
+                `[Skill: ${skillName}]\n\n${skillContent}\n\nUsing the above skill instructions, please complete the original request.`,
+              );
+
+              // Re-run the model once with skill context in history
+              let skillFollowUpText = "";
+              await streamChatCompletion({
+                baseUrl: session.config.baseUrl || "https://api.openai.com/v1",
+                apiKey: session.config.apiKey,
+                anthropicApiKey: session.config.anthropicApiKey,
+                geminiApiKey: session.config.geminiApiKey,
+                ollamaBaseUrl: session.config.ollamaBaseUrl,
+                providerType: session.config.model?.providerType,
+                model: session.config.model?.id || "gpt-4",
+                messages: session.history,
+                signal: session.abortController.signal,
+                onDelta: (chunk) => {
+                  skillFollowUpText += chunk;
+                  setAppState((prev) => {
+                    const lastMsg = prev.messages[prev.messages.length - 1];
+                    const base =
+                      lastMsg?.role === "assistant"
+                        ? prev.messages.slice(0, -1)
+                        : prev.messages;
+                    return {
+                      ...prev,
+                      messages: [
+                        ...base,
+                        {
+                          role: "assistant" as const,
+                          content: skillFollowUpText,
+                        },
+                      ],
+                    };
+                  });
+                },
+              });
+
+              session.appendAssistant(skillFollowUpText);
+            }
+          }
+
           // ── Multi-turn tool-call loop ────────────────────────────────────
           // Run up to MAX_TOOL_TURNS back-and-forth until the model stops
           // requesting tools or the cap is reached.
@@ -509,6 +643,10 @@ export const REPL: React.FC = () => {
             turnResult = await streamChatCompletion({
               baseUrl: session.config.baseUrl || "https://api.openai.com/v1",
               apiKey: session.config.apiKey,
+              anthropicApiKey: session.config.anthropicApiKey,
+              geminiApiKey: session.config.geminiApiKey,
+              ollamaBaseUrl: session.config.ollamaBaseUrl,
+              providerType: session.config.model?.providerType,
               model: session.config.model?.id || "gpt-4",
               messages: session.history,
               signal: session.abortController.signal,
@@ -576,31 +714,60 @@ export const REPL: React.FC = () => {
     }
   });
 
-  // Calculate heights for layout
-  const suggestionHeight = appState.promptSuggestion.text ? 1 : 0;
+  const modeLabel = appState.session.modes.map((m: any) => m.name).join(" + ");
+  const modelLabel =
+    appState.session.config.model?.label ??
+    appState.session.config.model?.id ??
+    "unknown";
+  const responding = appState.isAssistantResponding;
+  // True when AI is processing but no response delta arrived yet
+  const awaitingFirstDelta =
+    responding &&
+    appState.messages[appState.messages.length - 1]?.role === "user";
 
-  // If selector is open, show it instead of normal REPL
+  // ── Selector overlay ─────────────────────────────────────────
   if (appState.selector) {
     return (
-      <Box flexDirection="column" width={100} height={30}>
+      <Box flexDirection="column" height={termRows}>
         <Box flexDirection="column" overflow="hidden" flexGrow={1}>
           <Select
             options={appState.selector.options}
             label={appState.selector.title}
             initialFocusIndex={appState.selector.initialFocusIndex ?? 0}
             onSelect={(value) => {
-              appState.selector!.onSelect(value);
-              setAppState((prev) => ({
-                ...prev,
-                selector: null,
-              }));
+              const handler = appState.selector!.onSelect;
+              setAppState((prev) => ({ ...prev, selector: null }));
+              handler(value);
             }}
             onCancel={() => {
-              appState.selector?.onCancel?.();
-              setAppState((prev) => ({
-                ...prev,
-                selector: null,
-              }));
+              const handler = appState.selector?.onCancel;
+              setAppState((prev) => ({ ...prev, selector: null }));
+              handler?.();
+            }}
+          />
+        </Box>
+      </Box>
+    );
+  }
+
+  // ── Text input prompt overlay ─────────────────────────────────
+  if (appState.prompter) {
+    return (
+      <Box flexDirection="column" height={termRows}>
+        <Box flexDirection="column" overflow="hidden" flexGrow={1}>
+          <TextInput
+            label={appState.prompter.label}
+            placeholder={appState.prompter.placeholder}
+            initialValue={appState.prompter.initialValue}
+            onSubmit={(value) => {
+              const handler = appState.prompter!.onSubmit;
+              setAppState((prev) => ({ ...prev, prompter: null }));
+              handler(value);
+            }}
+            onCancel={() => {
+              const handler = appState.prompter?.onCancel;
+              setAppState((prev) => ({ ...prev, prompter: null }));
+              handler?.();
             }}
           />
         </Box>
@@ -609,65 +776,234 @@ export const REPL: React.FC = () => {
   }
 
   return (
-    <Box flexDirection="column" width={100} height={30}>
-      {/* Messages area — ScrollBox handles vertical overflow + sticky scroll */}
+    /*
+     * ROOT LAYOUT CONTRACT — DO NOT BREAK
+     * ─────────────────────────────────────────────────────────
+     * height={termRows} pins the entire UI to the terminal height.
+     * Every direct child EXCEPT <ScrollBox> must have flexShrink={0}
+     * so Yoga never steals their space to satisfy the height constraint.
+     * Only the ScrollBox is allowed to grow/shrink (flexGrow={1}).
+     * Breaking this causes the input box to vanish when messages fill up.
+     * ─────────────────────────────────────────────────────────
+     */
+    <Box flexDirection="column" height={termRows}>
+      {/* ══════════════════════════════════════════════════════════
+          HEADER — brand bar with bordered box
+          flexShrink={0}: never compress, always show full header
+          ══════════════════════════════════════════════════════════ */}
+      <Box
+        borderStyle="single"
+        borderColor={responding ? COLORS.border : COLORS.brand}
+        flexDirection="row"
+        flexShrink={0}
+        paddingX={1}
+      >
+        {/* App icon + name */}
+        <Text bold color={COLORS.brand}>
+          ⬡ Ryft
+        </Text>
+
+        <Text color={COLORS.dim}> · </Text>
+
+        {/* Mode */}
+        <Text bold color={COLORS.mode}>
+          {modeLabel}
+        </Text>
+
+        <Text color={COLORS.dim}> · </Text>
+
+        {/* Model */}
+        <Text color={COLORS.model}>{modelLabel}</Text>
+
+        {/* Spinner (only when responding) */}
+        {responding && (
+          <>
+            <Text color={COLORS.dim}> · </Text>
+            <Text color={COLORS.warningBright} bold>
+              {SPINNER_FRAMES[spinnerFrame]}
+            </Text>
+            <Text color={COLORS.warning}> responding…</Text>
+          </>
+        )}
+      </Box>
+
+      {/* ══════════════════════════════════════════════════════════
+          MESSAGES — ScrollBox is the ONLY element allowed to grow/shrink.
+          flexGrow={1}: fill all space not claimed by fixed siblings.
+          ══════════════════════════════════════════════════════════ */}
       <ScrollBox
         ref={scrollRef}
         flexDirection="column"
         flexGrow={1}
-        marginBottom={1}
+        flexShrink={1}
+        paddingX={2}
+        paddingTop={1}
         stickyScroll={stickyRef.current}
       >
-        {appState.messages.length > 0 ? (
-          appState.messages.map((msg, idx) => (
-            <Box key={idx} marginBottom={0}>
-              <Text
-                color={msg.role === "user" ? "cyan" : "green"}
-                bold={msg.role === "assistant"}
-              >
-                {msg.role === "user" ? "> " : "< "}
+        {appState.messages.length === 0 ? (
+          /* Empty state */
+          <Box
+            flexDirection="column"
+            paddingX={2}
+            paddingY={1}
+            borderStyle="round"
+            borderColor={COLORS.border}
+          >
+            <Text bold color={COLORS.brand}>
+              Welcome to Ryft ⬡
+            </Text>
+            <Text color={COLORS.dim}>─────────────────────────</Text>
+            <Box marginTop={1}>
+              <Text color={COLORS.dim}> Send a message or type </Text>
+              <Text bold color={COLORS.assistant}>
+                /help
               </Text>
-              <Text wrap="wrap">{msg.content}</Text>
+              <Text color={COLORS.dim}> to get started.</Text>
             </Box>
-          ))
+          </Box>
         ) : (
-          <Text color="gray">No messages yet</Text>
+          appState.messages.map((msg, idx) => {
+            const isUser = msg.role === "user";
+            const isError = msg.content.startsWith("❌");
+            const isToolCall =
+              msg.content.startsWith("⚙️") || msg.content.startsWith("⚙");
+            const isSkill = msg.content.startsWith("📚");
+
+            const barColor = isError
+              ? COLORS.errorBright
+              : isToolCall
+                ? COLORS.warningBright
+                : isSkill
+                  ? COLORS.success
+                  : isUser
+                    ? COLORS.user
+                    : COLORS.assistant;
+
+            const contentColor = isError
+              ? COLORS.error
+              : isToolCall
+                ? COLORS.warning
+                : isSkill
+                  ? COLORS.success
+                  : isUser
+                    ? COLORS.user // user text: green
+                    : COLORS.assistantText; // assistant text: cyan (distinct from white!)
+
+            return (
+              <Box
+                key={idx}
+                flexDirection="row"
+                marginBottom={1}
+                alignItems="flex-start"
+              >
+                {/* Colored vertical bar */}
+                <Text color={barColor} bold>
+                  {"▍"}
+                </Text>
+                <Box flexDirection="column" paddingLeft={1} flexGrow={1}>
+                  {/* Role label */}
+                  <Text bold color={barColor}>
+                    {isUser
+                      ? "you"
+                      : isToolCall
+                        ? "tool"
+                        : isSkill
+                          ? "skill"
+                          : "ryft"}
+                  </Text>
+                  {/* Message body */}
+                  <Text color={contentColor} wrap="wrap">
+                    {msg.content}
+                  </Text>
+                </Box>
+              </Box>
+            );
+          })
+        )}
+
+        {/* Inline spinner — shows when waiting for first delta */}
+        {awaitingFirstDelta && (
+          <Box flexDirection="row" alignItems="flex-start">
+            <Text color={COLORS.warningBright} bold>
+              {"▍"}
+            </Text>
+            <Box flexDirection="column" paddingLeft={1}>
+              <Text bold color={COLORS.assistant}>
+                ryft
+              </Text>
+              <Text color={COLORS.warningBright}>
+                {SPINNER_FRAMES[spinnerFrame]}{" "}
+              </Text>
+              <Text color={COLORS.warning}>generating response…</Text>
+            </Box>
+          </Box>
         )}
       </ScrollBox>
 
-      {/* Scroll hint when user has scrolled up */}
+      {/* ── Scroll hint — flexShrink={0}: keep this row visible ── */}
       {!stickyRef.current && (
-        <Box marginBottom={0}>
-          <Text color="gray" dimColor>
-            ↓ scroll down to latest (↑↓ PgUp/PgDn to navigate)
+        <Box paddingX={2} flexShrink={0}>
+          <Text color={COLORS.scrollHint} bold>
+            ↓{" "}
           </Text>
+          <Text color={COLORS.dim}>scroll to latest</Text>
+          <Text color={COLORS.hint}> (↑↓ PgUp/PgDn)</Text>
         </Box>
       )}
 
-      {/* Input area — overflow:hidden prevents the box from expanding */}
+      {/* ══════════════════════════════════════════════════════════
+          INPUT — flexShrink={0} is CRITICAL.
+          Without it, Yoga compresses this box when ScrollBox fills the
+          terminal, making the input invisible or untyp-able.
+          minHeight={3} = 1 content row + 2 border rows (top+bottom).
+          ══════════════════════════════════════════════════════════ */}
       <Box
         borderStyle="round"
-        borderColor="gray"
+        borderColor={
+          responding ? COLORS.inputBorderWaiting : COLORS.inputBorder
+        }
         paddingX={1}
-        marginBottom={appState.promptSuggestion.text ? 1 : 0}
-        overflow="hidden"
+        marginX={0}
+        marginTop={0}
+        flexDirection="row"
+        flexShrink={0}
+        minHeight={3}
       >
-        <Text color="yellow">$ </Text>
-        <Text wrap="truncate-end">{appState.inputValue}</Text>
-        {appState.promptSuggestion.text && (
-          <Text color="gray" wrap="truncate-end">
-            {appState.promptSuggestion.text.slice(appState.inputValue.length)}
+        <Text bold color={responding ? COLORS.dim : COLORS.user}>
+          ›
+        </Text>
+        <Text> </Text>
+        {appState.inputValue ? (
+          <>
+            <Text color="white" wrap="wrap">
+              {appState.inputValue}
+            </Text>
+            {appState.promptSuggestion.text && (
+              <Text color={COLORS.dim}>
+                {appState.promptSuggestion.text.slice(
+                  appState.inputValue.length,
+                )}
+              </Text>
+            )}
+          </>
+        ) : (
+          <Text dimColor>
+            {responding ? "waiting for response…" : "type a message…"}
           </Text>
         )}
-        <Text color="gray">_</Text>
+        {!responding && (
+          <Text color={COLORS.user} bold>
+            ▌
+          </Text>
+        )}
       </Box>
 
-      {/* Suggestions footer */}
+      {/* ── Tab suggestion hint — flexShrink={0}: never get squished ── */}
       {appState.promptSuggestion.text && (
-        <Box flexDirection="column" marginTop={0}>
-          <Text color="gray" italic>
-            Press Tab to accept: {appState.promptSuggestion.text}
-          </Text>
+        <Box paddingX={3} marginBottom={0} flexShrink={0}>
+          <Text color={COLORS.hint}>tab </Text>
+          <Text color={COLORS.border}>→ </Text>
+          <Text color={COLORS.assistant}>{appState.promptSuggestion.text}</Text>
         </Box>
       )}
     </Box>

@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 import type { ChatMessage } from "../types.ts";
 import { getMessageText } from "../types.ts";
 import { summarizeMemory } from "../memory/compose.ts";
-import { streamChatCompletion } from "../runtime/openaiClient.ts";
+import { streamChatCompletion } from "../runtime/llmClient.ts";
 import type { Session } from "../runtime/session.ts";
 import { COMPACT_PROMPT } from "./compact/prompts.ts";
 
@@ -76,6 +76,10 @@ async function summarizeWithModel(input: CompactSummaryInput): Promise<string> {
   await streamChatCompletion({
     baseUrl: input.session.config.baseUrl,
     apiKey: input.session.config.apiKey,
+    anthropicApiKey: input.session.config.anthropicApiKey,
+    geminiApiKey: input.session.config.geminiApiKey,
+    ollamaBaseUrl: input.session.config.ollamaBaseUrl,
+    providerType: input.session.config.model.providerType,
     model: input.session.config.model.id,
     messages: [
       { role: "system", content: systemPrompt },
