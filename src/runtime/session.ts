@@ -188,6 +188,19 @@ export function createSession(config: SessionConfig): Session {
           content: result.content,
           tool_call_id: result.tool_use_id,
         });
+        // When the tool returned image data (e.g. a screenshot), inject it as
+        // a vision-capable user message so the model can actually "see" it.
+        // A plain ToolMessage with embedded base64 JSON is not understood by
+        // vision models and causes requests to time out or fail.
+        if (result.imageData) {
+          history.push({
+            role: "user",
+            content: [
+              { type: "text", text: "Here is the screenshot from the tool:" },
+              { type: "image_url", image_url: { url: result.imageData } },
+            ] as unknown as import("../types.ts").MessageContentPart[],
+          });
+        }
       }
     },
     async describeSkills() {

@@ -1,5 +1,9 @@
+/// <reference types="node" />
 import { getAllSkillsAcrossModes } from "../../modes/skill-merger.ts";
 import { resolve } from "node:path";
+import { getFeatureLogger } from "../../logging/index.ts";
+
+const log = getFeatureLogger("SkillsServer");
 
 /**
  * MCP server for skill invocation
@@ -27,7 +31,7 @@ export class SkillsMcpServer {
       const allSkillEntries = getAllSkillsAcrossModes();
       const activeModes = (process.env.RYFT_ACTIVE_MODES ?? "")
         .split(",")
-        .map((m) => m.trim())
+        .map((m: string) => m.trim())
         .filter(Boolean);
       const skillEntries =
         activeModes.length > 0
@@ -48,18 +52,30 @@ export class SkillsMcpServer {
         });
       }
 
+      log.info("Skills loaded from filesystem", {
+        total: skillMap.size,
+        activeModes: activeModes.length ? activeModes : "all",
+        skills: Array.from(skillMap.keys()),
+      });
+
       this.allSkillsCache = skillMap;
       return skillMap;
     } catch (error) {
+      log.error("Failed to load skills from filesystem", error as Error);
       console.error("Failed to load skills:", error);
       return new Map();
     }
   }
 
+  /** Public accessor for loadAllSkills (used by JSON-RPC handler) */
+  async getSkills() {
+    return this.loadAllSkills();
+  }
+
   /**
-   * List all available skills as MCP tools.
-   * Each skill is exposed as its own named tool so the model can call
-   * e.g. `edit({context: "…"})` or `compact({})` directly.
+   * Return the two skill meta-tools:
+   * - list_skills: discover available skill names
+   * - skill_fetcher_by_name: load a specific skill's instructions
    */
   async listSkills(): Promise<
     Array<{
@@ -69,22 +85,41 @@ export class SkillsMcpServer {
     }>
   > {
     const allSkills = await this.loadAllSkills();
+    const availableNames = Array.from(allSkills.keys());
 
-    return Array.from(allSkills.values()).map((skill) => ({
-      name: skill.name,
-      description: skill.description,
-      inputSchema: {
-        type: "object",
-        properties: {
-          context: {
-            type: "string",
-            description:
-              "Optional extra context or instructions for this skill invocation.",
-          },
+    const tools = [
+      {
+        name: "list_skills",
+        description:
+          "List the names and descriptions of all available skills. Call this first to discover what skills exist before fetching one.",
+        inputSchema: {
+          type: "object",
+          properties: {},
+          required: [],
         },
-        required: [],
       },
-    }));
+      {
+        name: "skill_fetcher_by_name",
+        description: `Fetch the step-by-step instructions for a named skill. This is NOT a browser control tool — it only loads a skill guide. Available skills: ${availableNames.join(", ")}.`,
+        inputSchema: {
+          type: "object",
+          properties: {
+            name: {
+              type: "string",
+              description: `Name of the skill to load. One of: ${availableNames.join(", ")}.`,
+            },
+          },
+          required: ["name"],
+        },
+      },
+    ];
+
+    log.debug("Advertising skill meta-tools", {
+      tools: tools.map((t) => t.name),
+      availableSkills: availableNames,
+    });
+
+    return tools;
   }
 
   /**
@@ -92,8 +127,11 @@ export class SkillsMcpServer {
    */
   async invokeSkill(skillName: string): Promise<string> {
     try {
-      // Check cache first
+      log.info("Skill invocation requested", { skill: skillName });
+
+      // Check content cache
       if (this.skillsCache.has(skillName)) {
+        log.debug("Serving skill from content cache", { skill: skillName });
         return this.skillsCache.get(skillName)!;
       }
 
@@ -101,19 +139,28 @@ export class SkillsMcpServer {
       const skills = await this.loadAllSkills();
       const skill = skills.get(skillName);
       if (!skill) {
+        log.warn("Skill not found", {
+          requested: skillName,
+          available: Array.from(skills.keys()),
+        });
         throw new Error(`Skill not found: ${skillName}`);
       }
 
+      log.debug("Reading skill file from disk", {
+        skill: skillName,
+        filePath: skill.filePath,
+      });
+
       // Read skill file
-      const fs = await import("fs/promises");
+      const fs = await import("node:fs/promises");
       const content = await fs.readFile(skill.filePath, "utf-8");
 
-      // Cache for future requests
+      // Cache content
       this.skillsCache.set(skillName, content);
 
       // Wrap with imperative framing so the model knows it must execute,
       // not just read and respond with text.
-      return [
+      const wrapped = [
         `=== SKILL ACTIVATED: ${skillName} ===`,
         `You MUST execute every step below using your available tools.`,
         `Do NOT respond with text — call your tools now to carry out each step.`,
@@ -122,7 +169,19 @@ export class SkillsMcpServer {
         ``,
         `=== BEGIN EXECUTION: Call your first tool now to start Step 1 above. ===`,
       ].join("\n");
+
+      log.info("Skill content sent to model", {
+        skill: skillName,
+        byteLen: wrapped.length,
+        lines: wrapped.split("\n").length,
+        preview: content.trim().split("\n").slice(0, 3).join(" | "),
+      });
+
+      return wrapped;
     } catch (error) {
+      log.error(`Failed to invoke skill '${skillName}'`, error as Error, {
+        skill: skillName,
+      });
       throw new Error(
         `Failed to invoke skill '${skillName}': ${error instanceof Error ? error.message : String(error)}`,
       );
@@ -138,9 +197,12 @@ export async function handleSkillsMcpRequest(
   params: Record<string, unknown>,
   server: SkillsMcpServer,
 ): Promise<unknown> {
+  log.debug("JSON-RPC request received", { method });
+
   // Handle standard MCP methods
   if (method === "tools/list") {
     const skills = await server.listSkills();
+    log.debug("tools/list response", { toolCount: skills.length });
     return { tools: skills };
   }
 
@@ -150,11 +212,39 @@ export async function handleSkillsMcpRequest(
       throw new Error("Missing required parameter: name");
     }
 
-    // Every skill is a directly callable tool by its own name.
-    const content = await server.invokeSkill(toolName);
-    return { type: "text", text: content };
+    log.info("tools/call dispatched", {
+      tool: toolName,
+      args: params.arguments ?? {},
+    });
+
+    if (toolName === "list_skills") {
+      const skills = await server.getSkills();
+      const listing = Array.from(skills.values())
+        .map((s) => `- ${s.name}: ${s.description}`)
+        .join("\n");
+      const text = `Available skills:\n${listing}`;
+      log.debug("list_skills response", { skillCount: skills.size });
+      return { type: "text", text };
+    }
+
+    if (toolName === "skill_fetcher_by_name") {
+      const args = (params.arguments ?? {}) as Record<string, string>;
+      const skillName = args.name;
+      if (!skillName) {
+        throw new Error("skill_fetcher_by_name requires a 'name' argument");
+      }
+      const content = await server.invokeSkill(skillName);
+      log.debug("skill_fetcher_by_name response ready", {
+        skill: skillName,
+        byteLen: content.length,
+      });
+      return { type: "text", text: content };
+    }
+
+    throw new Error(`Unknown skill tool: ${toolName}`);
   }
 
+  log.warn("Unknown JSON-RPC method", { method });
   throw new Error(`Unknown method: ${method}`);
 }
 
@@ -164,7 +254,9 @@ export async function handleSkillsMcpRequest(
  */
 export async function runSkillsMcpServerProcess(): Promise<void> {
   const server = new SkillsMcpServer();
-  const readline = await import("readline");
+  const readline = await import("node:readline");
+
+  log.info("Skills MCP server starting");
 
   // Signal ready
   process.stdout.write(JSON.stringify({ type: "ready" }) + "\n");
@@ -185,6 +277,12 @@ export async function runSkillsMcpServerProcess(): Promise<void> {
         params?: Record<string, unknown>;
       };
       requestId = request.id;
+
+      log.debug("Raw JSON-RPC line received", {
+        id: request.id,
+        method: request.method,
+      });
+
       const result = await handleSkillsMcpRequest(
         request.method,
         request.params || {},
@@ -193,6 +291,7 @@ export async function runSkillsMcpServerProcess(): Promise<void> {
       const response = { id: request.id, result };
       process.stdout.write(JSON.stringify(response) + "\n");
     } catch (error) {
+      log.error("JSON-RPC request failed", error as Error, { id: requestId });
       const response = {
         id: requestId,
         error: {
@@ -205,6 +304,7 @@ export async function runSkillsMcpServerProcess(): Promise<void> {
   });
 
   rl.on("close", () => {
+    log.info("Skills MCP server stdin closed — exiting");
     process.exit(0);
   });
 }

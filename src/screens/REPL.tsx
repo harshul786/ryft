@@ -27,6 +27,7 @@ import { streamChatCompletion } from "../runtime/llmClient.ts";
 import { invokeSkill } from "../tools/skill-tool.ts";
 import { COLORS, SPINNER_FRAMES, SPINNER_INTERVAL_MS } from "../ui/theme.ts";
 import type { Session } from "../runtime/session.ts";
+import type { ProviderType } from "../types.ts";
 
 const log = getFeatureLogger("REPL");
 
@@ -34,13 +35,13 @@ initializeCommands();
 
 // ── Module-level constants ────────────────────────────────────────────────────
 
-const MAX_TOOL_TURNS = 5;
+const MAX_TOOL_TURNS = 100;
 
 const TOOL_ATTEMPT_PATTERN =
   /INVOKE_SKILL:|INVOKE_TOOL:|\bI (?:have |will |am )?(?:edited|wrote|created|inserted|deleted|updated|written|saved|modified)\b/i;
 
 /** Build the OpenAI function-calling tool list for a session, or undefined for non-native models. */
-function buildFormattedTools(session: Session) {
+function buildFormattedTools(session: Session, provider?: ProviderType) {
   if (session.config.model?.nativeToolSupport !== true) return undefined;
   const tools = session.toolRegistry.getCompressedTools();
   if (!tools?.length) return undefined;
@@ -144,7 +145,10 @@ export const REPL: React.FC = () => {
   const runAiTurn = useCallback(
     async (inputText: string) => {
       const session = appStateRef.current.session;
-      const formattedTools = buildFormattedTools(session);
+      const formattedTools = buildFormattedTools(
+        session,
+        session.config.model?.providerType,
+      );
       const supportsNativeTools =
         session.config.model?.nativeToolSupport === true;
 

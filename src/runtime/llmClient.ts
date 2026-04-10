@@ -160,6 +160,14 @@ function toLC(messages: ChatMessage[]): BaseMessage[] {
       continue;
     }
 
+    // ── Structured user content (e.g., vision message with image data) ────
+    if (msg.role === "user") {
+      result.push(
+        new HumanMessage({ content: msg.content as unknown as string }),
+      );
+      continue;
+    }
+
     // ── Structured content array (assistant with tool calls) ──────────────
     const textParts = msg.content
       .filter((p) => p.type === "text")
@@ -222,11 +230,54 @@ export interface StreamChatCompletionResult {
   toolCalls: ToolUseContentPart[];
 }
 
+// ─── Retry helpers ───────────────────────────────────────────────────────────
+
+/**
+ * Extract retry delay in milliseconds from error message.
+ * Looks for patterns like "Please retry in X.XXXs" or "Please retry in Xs"
+ */
+function extractRetryDelayMs(errorText: string): number | null {
+  const match = errorText.match(/Please retry in ([\d.]+)s/i);
+  if (match && match[1]) {
+    const seconds = parseFloat(match[1]);
+    if (!isNaN(seconds)) {
+      // Return delay in ms, add 5 seconds buffer as requested
+      return Math.ceil((seconds + 5) * 1000);
+    }
+  }
+  return null;
+}
+
+/**
+ * Check if error is a quota/rate-limit error (429)
+ */
+function isQuotaError(err: unknown): boolean {
+  const errStr = String(err ?? "").toLowerCase();
+  return (
+    errStr.includes("429") ||
+    errStr.includes("too many requests") ||
+    errStr.includes("quota exceeded") ||
+    errStr.includes("rate limit")
+  );
+}
+
+/**
+ * Sleep for a given number of milliseconds
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// ─── Stream ──────────────────────────────────────────────────────────────────
+
 /**
  * Stream a chat completion through the appropriate LangChain provider.
  *
  * This function is a drop-in replacement for the previous `openaiClient.ts`
  * implementation and is called identically from all existing call sites.
+ *
+ * Automatically retries on Gemini quota/rate-limit errors (429) by extracting
+ * the retry delay from the error message and waiting (+ 5s buffer) before retrying.
  */
 export async function streamChatCompletion({
   baseUrl,
@@ -274,54 +325,90 @@ export async function streamChatCompletion({
   // Convert messages to LangChain format
   const lcMessages = toLC(messages);
 
-  // ── Stream ────────────────────────────────────────────────────────────────
+  // ── Stream with retry for quota errors ────────────────────────────────────
   let assistantText = "";
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   let finalChunk: any = undefined;
+  let retryCount = 0;
+  const MAX_RETRIES = 3;
 
-  try {
-    const stream = await chatModel.stream(lcMessages, { signal });
+  while (retryCount <= MAX_RETRIES) {
+    try {
+      const stream = await chatModel.stream(lcMessages, { signal });
 
-    for await (const chunk of stream) {
-      // Extract text delta — content can be a string or content-block array
-      const textDelta: string =
-        typeof chunk.content === "string"
-          ? chunk.content
-          : Array.isArray(chunk.content)
+      for await (const chunk of stream) {
+        // Extract text delta — content can be a string or content-block array
+        const textDelta: string =
+          typeof chunk.content === "string"
             ? chunk.content
-                .filter(
-                  (c: unknown) =>
-                    (c as { type?: string }).type === "text" ||
-                    typeof c === "string",
-                )
-                .map((c: unknown) =>
-                  typeof c === "string"
-                    ? c
-                    : ((c as { text?: string }).text ?? ""),
-                )
-                .join("")
-            : "";
+            : Array.isArray(chunk.content)
+              ? chunk.content
+                  .filter(
+                    (c: unknown) =>
+                      (c as { type?: string }).type === "text" ||
+                      typeof c === "string",
+                  )
+                  .map((c: unknown) =>
+                    typeof c === "string"
+                      ? c
+                      : ((c as { text?: string }).text ?? ""),
+                  )
+                  .join("")
+              : "";
 
-      if (textDelta) {
-        assistantText += textDelta;
-        onDelta(textDelta);
+        if (textDelta) {
+          assistantText += textDelta;
+          onDelta(textDelta);
+        }
+
+        // Accumulate chunks — LangChain's concat() merges tool_call_chunks correctly
+        finalChunk = finalChunk ? finalChunk.concat(chunk) : chunk;
       }
 
-      // Accumulate chunks — LangChain's concat() merges tool_call_chunks correctly
-      finalChunk = finalChunk ? finalChunk.concat(chunk) : chunk;
+      // Success — break out of retry loop
+      break;
+    } catch (err) {
+      if (
+        (err as { name?: string })?.name === "AbortError" ||
+        signal?.aborted
+      ) {
+        log.info("Stream aborted by user");
+        return {
+          usage: null,
+          text: assistantText,
+          toolCalls: [],
+          toolsProvided: !!(tools && tools.length > 0),
+        };
+      }
+
+      // Check for quota/rate-limit error
+      if (isQuotaError(err) && retryCount < MAX_RETRIES) {
+        const delayMs = extractRetryDelayMs(String(err));
+        const waitMs = delayMs ?? 60000; // Default to 60s if delay not found
+        const waitSecs = Math.round(waitMs / 1000);
+
+        retryCount++;
+        log.warn(
+          `Quota/rate limit error, retrying in ${waitSecs}s (attempt ${retryCount}/${MAX_RETRIES})`,
+          {
+            error: String(err).slice(0, 200),
+            waitMs,
+          },
+        );
+
+        // Wait before retrying
+        await sleep(waitMs);
+        continue; // Retry loop will continue
+      }
+
+      // Not a quota error, or max retries exceeded
+      log.error("Stream failed", new Error(String(err)));
+      throw err;
     }
-  } catch (err) {
-    if ((err as { name?: string })?.name === "AbortError" || signal?.aborted) {
-      log.info("Stream aborted by user");
-      return {
-        usage: null,
-        text: assistantText,
-        toolCalls: [],
-        toolsProvided: !!(tools && tools.length > 0),
-      };
-    }
-    log.error("Stream failed", new Error(String(err)));
-    throw err;
+  }
+
+  if (retryCount > 0) {
+    log.info(`Stream succeeded after ${retryCount} retry attempt(s)`);
   }
 
   // ── Extract tool calls from the fully accumulated chunk ───────────────────

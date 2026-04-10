@@ -6,7 +6,7 @@ context: inline
 effort: Low
 when-to-use: Use whenever a form requires uploading a file — resume, cover letter, portfolio, or any document. Called by linkedin, naukri, and job-apply skills when file upload is needed.
 tags: [browser, upload, resume, file, form]
-allowed-tools: browser_click, browser_upload_file, browser_evaluate, browser_screenshot, browser_scroll
+allowed-tools: browser_click, browser_file_upload, browser_evaluate, browser_take_screenshot, browser_mouse_wheel
 ---
 
 # Upload
@@ -39,11 +39,11 @@ document.querySelector('input[type="file"]')?.outerHTML;
 
 If an `input[type="file"]` element exists (visible or hidden):
 
-1. Call `browser_upload_file` with:
+1. Call `browser_file_upload` with:
    - `selector`: the CSS selector for the file input (e.g., `input[type="file"]`)
    - `files`: array containing the absolute path to the file
 
-2. If the selector doesn't work because the input is hidden inside a shadow DOM or iframe, try clicking the visible "Upload" button first, then retry `browser_upload_file`.
+2. If the selector doesn't work because the input is hidden inside a shadow DOM or iframe, try clicking the visible "Upload" button first, then retry `browser_file_upload`.
 
 ---
 
@@ -59,7 +59,7 @@ const dt = new DataTransfer();
 ```
 
 2. Fall back to clicking the drop zone — most drop zones also trigger a file picker on click.
-3. After the click triggers the file picker, use `browser_upload_file` with the drop zone selector.
+3. After the click triggers the file picker, use `browser_file_upload` with the drop zone selector.
 
 ---
 

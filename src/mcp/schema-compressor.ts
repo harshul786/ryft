@@ -1,20 +1,41 @@
 import type { ToolSchema, CompressedToolSchema } from "./protocol.ts";
+import type { ProviderType } from "../types.ts";
 
 // TODO #17: Implement tool schema compression
 // Compresses full MCP tool schemas to lightweight versions for prompt context
 
 /**
- * Compress a full tool schema for LLM prompt inclusion
- * Removes verbose descriptions, examples, output schemas, and nested complexity
+ * Provider-specific schema compression.
+ * Different LLM providers have different JSON schema validation requirements.
  */
-export function compressToolSchema(tool: ToolSchema): CompressedToolSchema {
-  // Keep only first sentence of description
-  const description = tool.description
-    .split(/[.!?]/)[0] // First sentence
-    .trim()
-    .substring(0, 100); // Max 100 chars
+export function compressToolSchemaForProvider(
+  tool: ToolSchema,
+  provider?: ProviderType,
+): CompressedToolSchema {
+  switch (provider) {
+    case "google":
+      return compressToolSchemaForGemini(tool);
+    case "ollama":
+      return compressToolSchemaForOllama(tool);
+    case "anthropic":
+      return compressToolSchemaForAnthropic(tool);
+    case "openai":
+    case "openai-compatible":
+    default:
+      return compressToolSchemaForOpenAI(tool);
+  }
+}
 
-  // Compress input schema: keep only essential fields
+/**
+ * Gemini (Google) — Requires strict JSON Schema validation.
+ * Keep all required schema fields: type, items for arrays, enum, required with validation.
+ */
+function compressToolSchemaForGemini(tool: ToolSchema): CompressedToolSchema {
+  const description = tool.description
+    .split(/[.!?]/)[0]
+    .trim()
+    .substring(0, 100);
+
   let compressed: CompressedToolSchema = {
     name: tool.name,
     description,
@@ -23,14 +44,81 @@ export function compressToolSchema(tool: ToolSchema): CompressedToolSchema {
   if (tool.inputSchema) {
     compressed.inputSchema = {
       type: tool.inputSchema.type,
-      required: tool.inputSchema.required,
     };
 
-    // Only include properties with descriptions, limit to 3 top-level fields
+    if (tool.inputSchema.properties) {
+      const properties: Record<
+        string,
+        { type: string; description?: string; items?: any; enum?: any[] }
+      > = {};
+      const keys = Object.keys(tool.inputSchema.properties).slice(0, 3);
+
+      for (const key of keys) {
+        const prop = tool.inputSchema.properties[key] as any;
+        const propSchema: any = {
+          type: prop.type || "string",
+        };
+
+        if (prop.description) {
+          propSchema.description = prop.description.substring(0, 50);
+        }
+
+        // CRITICAL for Gemini: Always include items for arrays
+        if (prop.type === "array" && prop.items) {
+          propSchema.items = prop.items;
+        }
+
+        // Include enum if present
+        if (prop.enum) {
+          propSchema.enum = prop.enum;
+        }
+
+        properties[key] = propSchema;
+      }
+
+      if (Object.keys(properties).length > 0) {
+        compressed.inputSchema.properties = properties;
+      }
+
+      // Only include required fields that exist in properties
+      if (tool.inputSchema.required) {
+        const validRequired = tool.inputSchema.required.filter(
+          (req) => properties[req],
+        );
+        if (validRequired.length > 0) {
+          compressed.inputSchema.required = validRequired;
+        }
+      }
+    }
+  }
+
+  return compressed;
+}
+
+/**
+ * Ollama — Less strict validation. Can use aggressive compression.
+ * Focus on descriptions and basic types, drop complex nested schemas.
+ */
+function compressToolSchemaForOllama(tool: ToolSchema): CompressedToolSchema {
+  const description = tool.description
+    .split(/[.!?]/)[0]
+    .trim()
+    .substring(0, 100);
+
+  let compressed: CompressedToolSchema = {
+    name: tool.name,
+    description,
+  };
+
+  if (tool.inputSchema) {
+    compressed.inputSchema = {
+      type: tool.inputSchema.type,
+    };
+
     if (tool.inputSchema.properties) {
       const properties: Record<string, { type: string; description?: string }> =
         {};
-      const keys = Object.keys(tool.inputSchema.properties).slice(0, 3);
+      const keys = Object.keys(tool.inputSchema.properties).slice(0, 5); // More fields for Ollama
 
       for (const key of keys) {
         const prop = tool.inputSchema.properties[key] as any;
@@ -45,10 +133,149 @@ export function compressToolSchema(tool: ToolSchema): CompressedToolSchema {
       if (Object.keys(properties).length > 0) {
         compressed.inputSchema.properties = properties;
       }
+
+      // Don't require exact required field matching for Ollama
+      if (tool.inputSchema.required) {
+        compressed.inputSchema.required = tool.inputSchema.required;
+      }
     }
   }
 
   return compressed;
+}
+
+/**
+ * Anthropic (Claude) — Standard JSON Schema support.
+ * Balance between Gemini strictness and Ollama laxness.
+ */
+function compressToolSchemaForAnthropic(tool: ToolSchema): CompressedToolSchema {
+  const description = tool.description
+    .split(/[.!?]/)[0]
+    .trim()
+    .substring(0, 100);
+
+  let compressed: CompressedToolSchema = {
+    name: tool.name,
+    description,
+  };
+
+  if (tool.inputSchema) {
+    compressed.inputSchema = {
+      type: tool.inputSchema.type,
+    };
+
+    if (tool.inputSchema.properties) {
+      const properties: Record<
+        string,
+        { type: string; description?: string; items?: any }
+      > = {};
+      const keys = Object.keys(tool.inputSchema.properties).slice(0, 4);
+
+      for (const key of keys) {
+        const prop = tool.inputSchema.properties[key] as any;
+        const propSchema: any = {
+          type: prop.type || "string",
+        };
+
+        if (prop.description) {
+          propSchema.description = prop.description.substring(0, 50);
+        }
+
+        // Include items for arrays for safety
+        if (prop.type === "array" && prop.items) {
+          propSchema.items = prop.items;
+        }
+
+        properties[key] = propSchema;
+      }
+
+      if (Object.keys(properties).length > 0) {
+        compressed.inputSchema.properties = properties;
+      }
+
+      if (tool.inputSchema.required) {
+        const validRequired = tool.inputSchema.required.filter(
+          (req) => properties[req],
+        );
+        if (validRequired.length > 0) {
+          compressed.inputSchema.required = validRequired;
+        }
+      }
+    }
+  }
+
+  return compressed;
+}
+
+/**
+ * OpenAI / OpenAI-compatible — Standard JSON Schema support with flexible validation.
+ * Medium compression level.
+ */
+function compressToolSchemaForOpenAI(tool: ToolSchema): CompressedToolSchema {
+  const description = tool.description
+    .split(/[.!?]/)[0]
+    .trim()
+    .substring(0, 100);
+
+  let compressed: CompressedToolSchema = {
+    name: tool.name,
+    description,
+  };
+
+  if (tool.inputSchema) {
+    compressed.inputSchema = {
+      type: tool.inputSchema.type,
+    };
+
+    if (tool.inputSchema.properties) {
+      const properties: Record<
+        string,
+        { type: string; description?: string; items?: any }
+      > = {};
+      const keys = Object.keys(tool.inputSchema.properties).slice(0, 4);
+
+      for (const key of keys) {
+        const prop = tool.inputSchema.properties[key] as any;
+        const propSchema: any = {
+          type: prop.type || "string",
+        };
+
+        if (prop.description) {
+          propSchema.description = prop.description.substring(0, 50);
+        }
+
+        // Include items for arrays
+        if (prop.type === "array" && prop.items) {
+          propSchema.items = prop.items;
+        }
+
+        properties[key] = propSchema;
+      }
+
+      if (Object.keys(properties).length > 0) {
+        compressed.inputSchema.properties = properties;
+      }
+
+      if (tool.inputSchema.required) {
+        const validRequired = tool.inputSchema.required.filter(
+          (req) => properties[req],
+        );
+        if (validRequired.length > 0) {
+          compressed.inputSchema.required = validRequired;
+        }
+      }
+    }
+  }
+
+  return compressed;
+}
+
+/**
+ * Compress a full tool schema for LLM prompt inclusion (uses default provider)
+ * @deprecated Use compressToolSchemaForProvider instead
+ */
+export function compressToolSchema(tool: ToolSchema): CompressedToolSchema {
+  return compressToolSchemaForProvider(tool, "openai");
 }
 
 /**

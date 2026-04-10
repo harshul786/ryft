@@ -6,7 +6,7 @@ context: inline
 effort: High
 when-to-use: Use for any task on naukri.com — searching jobs, filtering by role/location/experience/salary, reading JDs, and submitting applications.
 tags: [browser, naukri, jobs, apply, india, search]
-allowed-tools: browser_navigate, browser_click, browser_type, browser_scroll, browser_fill, browser_screenshot, browser_evaluate, browser_select_option, browser_upload_file
+allowed-tools: browser_navigate, browser_click, browser_type, browser_mouse_wheel, browser_fill_form, browser_take_screenshot, browser_evaluate, browser_select_option, browser_file_upload
 ---
 
 # Naukri
@@ -72,7 +72,7 @@ For each job card, extract:
    - Select the most relevant one (or the one user specifies) — click its radio button.
    - If "Upload new resume" is shown, invoke the **upload** skill.
 3. If additional questions appear (notice period, current CTC, expected CTC, etc.):
-   - Fill each field using `browser_fill` or `browser_select_option`.
+   - Fill each field using `browser_fill_form` or `browser_select_option`.
 4. Click **Apply** / **Submit** to finish.
 5. Screenshot the confirmation ("Application submitted successfully").
 

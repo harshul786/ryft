@@ -1,0 +1,869 @@
+- generic:
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - link:
+                - /url: /bookkeeping
+                - generic:
+                  - img
+                - generic: Hedgi
+            - button:
+              - img
+          - generic:
+            - navigation:
+              - link:
+                - /url: /dashboard
+                - generic:
+                  - img
+                - generic:
+                  - generic: Dashboard
+              - link:
+                - /url: /admin
+                - generic:
+                  - img
+                - generic:
+                  - generic: Settings
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - img
+                    - generic: Books
+                  - img
+                - generic:
+                  - link:
+                    - /url: /bookkeeping
+                    - generic:
+                      - img
+                    - generic: Bookkeeping
+                  - link:
+                    - /url: /audit-reclass
+                    - generic:
+                      - img
+                    - generic: Reclassify
+                  - link:
+                    - /url: /transactions
+                    - generic:
+                      - img
+                    - generic: Transactions
+                  - link:
+                    - /url: /vendors
+                    - generic:
+                      - img
+                    - generic: Vendors
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - img
+                    - generic: AI Co-Pilot
+                  - img
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - img
+                    - generic: Reports
+                  - img
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - img
+                    - generic: Tax Prep
+                  - img
+          - generic:
+            - link:
+              - /url: https://apps.apple.com/app/id6756781889
+              - generic:
+                - img
+              - generic:
+                - paragraph: Get Mobile App
+                - paragraph: iPhone companion app
+            - generic:
+              - generic:
+                - generic:
+                  - generic: J
+              - generic:
+                - paragraph: Jacob Schwartz (Hedgi)
+            - generic:
+              - generic:
+                - img
+              - generic:
+                - paragraph: Log out
+      - generic:
+        - banner:
+          - generic:
+            - button:
+              - generic:
+                - generic:
+                  - img
+                - generic:
+                  - generic: 5D Creations, LLC
+                  - generic: Owner
+              - img
+          - generic:
+            - button
+            - button:
+              - img
+              - generic: "8"
+            - button:
+              - generic:
+                - generic: J
+              - generic: Jacob Schwartz (Hedgi)
+        - main:
+          - generic:
+            - generic:
+              - generic:
+                - generic:
+                  - heading [level=1]: Bookkeeping
+                  - paragraph: Review, categorize, and confirm your transactions.
+                - generic:
+                  - button:
+                    - img
+                  - button:
+                    - img
+                    - text: Add Account
+              - generic:
+                - generic:
+                  - generic:
+                    - generic: AI Automation Active
+                    - heading [level=2]: Hedgi is automatically categorizing high-confidence transactions.
+                    - paragraph: Confirm or adjust transactions in this queue to keep improving future automation accuracy.
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: 12/31/25, 06:09 AM
+                      - generic:
+                        - button:
+                          - img
+                        - button: ⚠️
+                        - button:
+                          - img
+                    - generic:
+                      - generic:
+                        - generic: Plaid Student Loan
+                        - button: R
+                      - generic: Last synced as of 2/18/26
+                  - generic:
+                    - generic:
+                      - generic: 12/31/25, 06:09 AM
+                      - generic:
+                        - button:
+                          - img
+                        - button: ⚠️
+                        - button:
+                          - img
+                    - generic:
+                      - generic:
+                        - generic: Plaid Mortgage
+                        - button: R
+                      - generic: Last synced as of 1/30/26
+                  - generic:
+                    - generic:
+                      - generic: 12/31/25, 06:09 AM
+                      - generic:
+                        - button:
+                          - img
+                        - button: ⚠️
+                        - button:
+                          - img
+                    - generic:
+                      - generic:
+                        - generic: Plaid Money Market
+                        - button: R
+                      - generic: Last synced as of 2/21/26
+                  - generic:
+                    - generic:
+                      - generic: 12/31/25, 06:09 AM
+                      - generic:
+                        - button:
+                          - img
+                        - button: ⚠️
+                        - button:
+                          - img
+                    - generic:
+                      - generic:
+                        - generic: Plaid 401k
+                        - button: R
+                      - generic: Last synced as of 1/30/26
+                  - generic:
+                    - generic:
+                      - generic: 12/31/25, 06:09 AM
+                      - generic:
+                        - button:
+                          - img
+                        - button: ⚠️
+                        - button:
+                          - img
+                    - generic:
+                      - generic:
+                        - generic: Plaid Cash Management
+                        - button: R
+                      - generic: Last synced as of 1/30/26
+                  - generic:
+                    - generic:
+                      - generic: 12/31/25, 06:09 AM
+                      - generic:
+                        - button:
+                          - img
+                        - button: ⚠️
+                        - button:
+                          - img
+                    - generic:
+                      - generic:
+                        - generic: Plaid HSA
+                        - button: R
+                      - generic: Last synced as of 1/30/26
+                  - generic:
+                    - generic:
+                      - generic: 12/31/25, 06:09 AM
+                      - generic:
+                        - button:
+                          - img
+                        - button: ⚠️
+                        - button:
+                          - img
+                    - generic:
+                      - generic:
+                        - generic: Plaid Business Credit Card
+                        - button: R
+                      - generic: Last synced as of 1/30/26
+                  - generic:
+                    - generic:
+                      - generic: 12/31/25, 06:09 AM
+                      - generic:
+                        - button:
+                          - img
+                        - button: ⚠️
+                        - button:
+                          - img
+                    - generic:
+                      - generic:
+                        - generic: Plaid CD
+                        - button: R
+                      - generic: Last synced as of 2/21/26
+                  - generic:
+                    - generic:
+                      - generic: 12/31/25, 06:09 AM
+                      - generic:
+                        - button:
+                          - img
+                        - button: ⚠️
+                        - button:
+                          - img
+                    - generic:
+                      - generic:
+                        - generic: Plaid Credit Card
+                        - button: R
+                      - generic: Last synced as of 2/12/26
+                  - generic:
+                    - generic:
+                      - generic: 12/31/25, 06:09 AM
+                      - generic:
+                        - button:
+                          - img
+                        - button: ⚠️
+                        - button:
+                          - img
+                    - generic:
+                      - generic:
+                        - generic: Plaid IRA
+                        - button: R
+                      - generic: Last synced as of 1/30/26
+                  - generic:
+                    - generic:
+                      - generic: 12/29/25, 07:18 AM
+                      - generic:
+                        - button:
+                          - img
+                        - button:
+                          - img
+                    - generic:
+                      - generic:
+                        - generic: Plaid Saving
+                        - button: R
+                      - generic: Last synced as of 2/12/26
+                  - generic:
+                    - generic:
+                      - generic: 12/29/25, 07:18 AM
+                      - generic:
+                        - button:
+                          - img
+                        - button: ⚠️
+                        - button:
+                          - img
+                    - generic:
+                      - generic:
+                        - generic: Plaid Checking
+                        - button: R
+                      - generic: Last synced as of 2/21/26
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                          - text: AI processing completed with issues
+                        - generic: Some transactions may need manual review. You can continue now or retry AI processing.
+                      - button: Retry
+                  - generic:
+                    - generic:
+                      - generic: 4/2/24, 10:55 PM
+                      - generic:
+                        - button:
+                          - img
+                        - button:
+                          - img
+                    - generic:
+                      - generic:
+                        - generic: BUS COMPLETE CHK
+                        - button: R
+                      - generic: Last synced as of 11/26/25
+                  - generic:
+                    - generic:
+                      - generic: 3/28/24, 04:47 AM
+                      - generic:
+                        - button:
+                          - img
+                    - generic:
+                      - generic:
+                        - generic: Journal Entry
+                        - button: R
+                  - generic:
+                    - generic:
+                      - generic: 6/14/24, 10:53 PM
+                      - generic:
+                        - button:
+                          - img
+                    - generic:
+                      - generic:
+                        - generic: Adjusting Entries
+                        - button: R
+                  - generic:
+                    - generic:
+                      - generic: 1/27/26, 01:19 PM
+                      - generic:
+                        - button:
+                          - img
+                    - generic:
+                      - generic:
+                        - generic: Test 1
+                        - button: R
+                      - generic: Need Review Transactions 96
+                    - generic:
+                      - generic:
+                        - generic:
+                          - img
+                          - text: AI processing completed with issues
+                        - generic: Some transactions may need manual review. You can continue now or retry AI processing.
+                      - button: Retry
+                  - generic:
+                    - generic:
+                      - generic: 4/2/24, 10:55 PM
+                      - generic:
+                        - button:
+                          - img
+                    - generic:
+                      - generic:
+                        - generic: D. TURNER
+                      - generic: Last synced as of 11/10/25
+              - generic:
+                - button:
+                  - generic:
+                    - generic:
+                      - img
+                    - generic:
+                      - generic:
+                        - generic: Hedgi Autopilot
+                        - generic: Active
+                      - generic:
+                        - generic:
+                          - img
+                          - text: 0 auto-confirmed
+                        - generic:
+                          - img
+                          - text: 1 likely matches
+                        - generic:
+                          - img
+                          - text: 14 need review
+                  - generic:
+                    - img
+              - generic:
+                - generic:
+                  - generic: Transactions
+                  - generic:
+                    - generic:
+                      - img
+                      - generic:
+                        - textbox:
+                          - /placeholder: Search Transactions
+                    - button:
+                      - img
+                      - generic: Date Range
+                - generic:
+                  - generic:
+                    - generic:
+                      - tablist:
+                        - tab [selected]: Need Review
+                        - tab: Reviewed
+                        - tab: Excluded
+                  - tabpanel:
+                    - generic:
+                      - generic:
+                        - generic:
+                          - tablist:
+                            - tab [selected]: All
+                            - tab: Auto-Matched
+                            - tab: AI-Suggested
+                    - generic:
+                      - generic:
+                        - generic:
+                          - heading [level=3]: Transactions to Review
+                          - generic:
+                            - generic:
+                              - img
+                              - text: 96 uncategorized
+                        - generic:
+                          - link:
+                            - /url: /vendors
+                            - text: View All Vendors
+                          - button: Automations
+                          - button:
+                            - img
+                            - text: Export
+                      - generic:
+                        - generic:
+                          - table:
+                            - rowgroup:
+                              - row:
+                                - columnheader:
+                                  - checkbox
+                                - columnheader:
+                                  - generic: Date
+                                - columnheader:
+                                  - generic: Description
+                                - columnheader:
+                                  - generic: Amount
+                                - columnheader:
+                                  - generic: Suggested Category
+                                - columnheader:
+                                  - generic: Vendor
+                                - columnheader: Actions
+                            - rowgroup:
+                              - row:
+                                - cell:
+                                  - checkbox
+                                - cell: 11/30/25
+                                - cell:
+                                  - generic: STRIPE PROCESSING FEES NOV
+                                - cell: $430.00
+                                - cell
+                                - cell:
+                                  - generic:
+                                    - generic: "-"
+                                - cell:
+                                  - generic:
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                              - row:
+                                - cell:
+                                  - checkbox
+                                - cell: 11/1/25
+                                - cell:
+                                  - generic: WEWORK SUITE 301 NOV RENT
+                                - cell: $3,500.00
+                                - cell:
+                                  - generic:
+                                    - generic:
+                                      - generic: Rents
+                                      - generic: "|"
+                                      - generic: Likely
+                                - cell:
+                                  - generic:
+                                    - generic: "-"
+                                - cell:
+                                  - generic:
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                              - row:
+                                - cell:
+                                  - checkbox
+                                - cell: 6/30/25
+                                - cell:
+                                  - generic: "Online Transfer From Copperhead Cakes Inc. Ref #Ib0Sy4Qpbm Business Checking Royalties"
+                                - cell: $5,000.00
+                                - cell
+                                - cell:
+                                  - generic:
+                                    - generic: "-"
+                                - cell:
+                                  - generic:
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                              - row:
+                                - cell:
+                                  - checkbox
+                                - cell: 6/30/25
+                                - cell:
+                                  - generic: "Online Transfer From Rvz Management, Inc Business Market Rate Savings xxxxxx8803 Ref #Ib0Sxvlkvw on 06/29/25"
+                                - cell: $2,000.00
+                                - cell
+                                - cell:
+                                  - generic:
+                                    - generic: "-"
+                                - cell:
+                                  - generic:
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                              - row:
+                                - cell:
+                                  - checkbox
+                                - cell: 6/30/25
+                                - cell:
+                                  - generic: Instant Pmt From Venmo on 06/30 Ref#20250630021000021P1Brjpc01760218495
+                                - cell: $2,850.00
+                                - cell
+                                - cell:
+                                  - generic:
+                                    - generic: "-"
+                                - cell:
+                                  - generic:
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                              - row:
+                                - cell:
+                                  - checkbox
+                                - cell: 6/24/25
+                                - cell:
+                                  - generic: Central Loan Adm 1 Time Dft 062025 0193878618 David Donner
+                                - cell: $1,227.26
+                                - cell
+                                - cell:
+                                  - generic:
+                                    - generic: "-"
+                                - cell:
+                                  - generic:
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                              - row:
+                                - cell:
+                                  - checkbox
+                                - cell: 6/24/25
+                                - cell:
+                                  - generic: "Online Transfer From Donner D Everyday Checking xxxxxx8760 Ref #Ib0Svznxbv on 06/24/25"
+                                - cell: $1,000.00
+                                - cell
+                                - cell:
+                                  - generic:
+                                    - generic: "-"
+                                - cell:
+                                  - generic:
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                              - row:
+                                - cell:
+                                  - checkbox
+                                - cell: 6/23/25
+                                - cell:
+                                  - generic: "Online Transfer From Copperhead Cakes Inc. Ref #Ib0Svpql5M Business Checking Royalties"
+                                - cell: $7,000.00
+                                - cell
+                                - cell:
+                                  - generic:
+                                    - generic: "-"
+                                - cell:
+                                  - generic:
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                              - row:
+                                - cell:
+                                  - checkbox
+                                - cell: 6/16/25
+                                - cell:
+                                  - generic: "Online Transfer From Copperhead Cakes Inc. Ref #Ib0Ssc8Jm2 Business Checking Royalties"
+                                - cell: $10,000.00
+                                - cell
+                                - cell:
+                                  - generic:
+                                    - generic: "-"
+                                - cell:
+                                  - generic:
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                              - row:
+                                - cell:
+                                  - checkbox
+                                - cell: 6/9/25
+                                - cell:
+                                  - generic: Crosscountry Mortgage 250607 3777576 David Donner
+                                - cell: $3,810.96
+                                - cell
+                                - cell:
+                                  - generic:
+                                    - generic: "-"
+                                - cell:
+                                  - generic:
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                              - row:
+                                - cell:
+                                  - checkbox
+                                - cell: 6/9/25
+                                - cell:
+                                  - generic: "Online Transfer From Copperhead Cakes Inc. Ref #Ib0Spwd4M5 Business Checking Royalties"
+                                - cell: $6,000.00
+                                - cell
+                                - cell:
+                                  - generic:
+                                    - generic: "-"
+                                - cell:
+                                  - generic:
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                              - row:
+                                - cell:
+                                  - checkbox
+                                - cell: 6/6/25
+                                - cell:
+                                  - generic: "Online Transfer From Donner D Everyday Checking xxxxxx8760 Ref #Ib0Snvqwch on 06/06/25"
+                                - cell: $1,000.00
+                                - cell
+                                - cell:
+                                  - generic:
+                                    - generic: "-"
+                                - cell:
+                                  - generic:
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                              - row:
+                                - cell:
+                                  - checkbox
+                                - cell: 6/6/25
+                                - cell:
+                                  - generic: "Online Transfer From Copperhead Consultants, LLC Business Checking xxxxxx7817 Ref #Ib0Snvqrmn on 06/06/25"
+                                - cell: $1,000.00
+                                - cell
+                                - cell:
+                                  - generic:
+                                    - generic: "-"
+                                - cell:
+                                  - generic:
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                              - row:
+                                - cell:
+                                  - checkbox
+                                - cell: 6/4/25
+                                - cell:
+                                  - generic: Instant Pmt From Venmo on 06/04 Ref#20250604021000021P1Brjpc05360147552
+                                - cell: $3,100.00
+                                - cell
+                                - cell:
+                                  - generic:
+                                    - generic: "-"
+                                - cell:
+                                  - generic:
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                              - row:
+                                - cell:
+                                  - checkbox
+                                - cell: 6/2/25
+                                - cell:
+                                  - generic: "Online Transfer From Copperhead Cakes Inc. Ref #Ib0Smc9Nqb Business Checking Royaties"
+                                - cell: $6,000.00
+                                - cell
+                                - cell:
+                                  - generic:
+                                    - generic: "-"
+                                - cell:
+                                  - generic:
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                                    - button:
+                                      - img
+                        - generic:
+                          - generic:
+                            - button [disabled]:
+                              - img
+                              - text: Prev
+                            - generic: Page 1 of 7
+                            - button:
+                              - text: Next
+                              - img
+                          - generic: "Total Transactions: 96"
+    - list
+  - dialog "🔐 Reconnect Accounts" [ref=e1340]:
+    - generic [ref=e1341]:
+      - heading "🔐 Reconnect Accounts" [level=2] [ref=e1342]
+      - paragraph [ref=e1343]: "The following accounts need to be reconnected:"
+    - generic [ref=e1344]:
+      - generic [ref=e1346]:
+        - generic [ref=e1347]: ⚠️
+        - generic [ref=e1348]:
+          - generic [ref=e1349]: Plaid Student Loan
+          - generic [ref=e1350]: Plaid Student Loan
+          - generic [ref=e1351]: Bank login required. Please reconnect your account.
+      - generic [ref=e1353]:
+        - generic [ref=e1354]: ⚠️
+        - generic [ref=e1355]:
+          - generic [ref=e1356]: Plaid Mortgage
+          - generic [ref=e1357]: Plaid Mortgage
+          - generic [ref=e1358]: the login details of this item have changed (credentials, MFA, or required user action) and a user login is required to update this information. use Link's update mode to restore the item to a good state
+      - generic [ref=e1360]:
+        - generic [ref=e1361]: ⚠️
+        - generic [ref=e1362]:
+          - generic [ref=e1363]: Plaid Money Market
+          - generic [ref=e1364]: Plaid Money Market
+          - generic [ref=e1365]: the login details of this item have changed (credentials, MFA, or required user action) and a user login is required to update this information. use Link's update mode to restore the item to a good state
+      - generic [ref=e1367]:
+        - generic [ref=e1368]: ⚠️
+        - generic [ref=e1369]:
+          - generic [ref=e1370]: Plaid 401k
+          - generic [ref=e1371]: Plaid 401k
+          - generic [ref=e1372]: the login details of this item have changed (credentials, MFA, or required user action) and a user login is required to update this information. use Link's update mode to restore the item to a good state
+      - generic [ref=e1374]:
+        - generic [ref=e1375]: ⚠️
+        - generic [ref=e1376]:
+          - generic [ref=e1377]: Plaid Cash Management
+          - generic [ref=e1378]: Plaid Cash Management
+          - generic [ref=e1379]: the login details of this item have changed (credentials, MFA, or required user action) and a user login is required to update this information. use Link's update mode to restore the item to a good state
+      - generic [ref=e1381]:
+        - generic [ref=e1382]: ⚠️
+        - generic [ref=e1383]:
+          - generic [ref=e1384]: Plaid HSA
+          - generic [ref=e1385]: Plaid HSA
+          - generic [ref=e1386]: the login details of this item have changed (credentials, MFA, or required user action) and a user login is required to update this information. use Link's update mode to restore the item to a good state
+      - generic [ref=e1388]:
+        - generic [ref=e1389]: ⚠️
+        - generic [ref=e1390]:
+          - generic [ref=e1391]: Plaid Business Credit Card
+          - generic [ref=e1392]: Plaid Business Credit Card
+          - generic [ref=e1393]: the login details of this item have changed (credentials, MFA, or required user action) and a user login is required to update this information. use Link's update mode to restore the item to a good state
+      - generic [ref=e1395]:
+        - generic [ref=e1396]: ⚠️
+        - generic [ref=e1397]:
+          - generic [ref=e1398]: Plaid CD
+          - generic [ref=e1399]: Plaid CD
+          - generic [ref=e1400]: the login details of this item have changed (credentials, MFA, or required user action) and a user login is required to update this information. use Link's update mode to restore the item to a good state
+      - generic [ref=e1402]:
+        - generic [ref=e1403]: ⚠️
+        - generic [ref=e1404]:
+          - generic [ref=e1405]: Plaid Credit Card
+          - generic [ref=e1406]: Plaid Credit Card
+          - generic [ref=e1407]: the login details of this item have changed (credentials, MFA, or required user action) and a user login is required to update this information. use Link's update mode to restore the item to a good state
+      - generic [ref=e1409]:
+        - generic [ref=e1410]: ⚠️
+        - generic [ref=e1411]:
+          - generic [ref=e1412]: Plaid IRA
+          - generic [ref=e1413]: Plaid IRA
+          - generic [ref=e1414]: the login details of this item have changed (credentials, MFA, or required user action) and a user login is required to update this information. use Link's update mode to restore the item to a good state
+      - generic [ref=e1416]:
+        - generic [ref=e1417]: ⚠️
+        - generic [ref=e1418]:
+          - generic [ref=e1419]: Plaid Checking
+          - generic [ref=e1420]: Plaid Checking
+          - generic [ref=e1421]: the login details of this item have changed (credentials, MFA, or required user action) and a user login is required to update this information. use Link's update mode to restore the item to a good state
+    - generic [ref=e1422]:
+      - button "Remind Me Later" [active] [ref=e1423] [cursor=pointer]
+      - generic [ref=e1425]:
+        - paragraph [ref=e1426]: Close this dialog and show it again next time
+        - tooltip "Close this dialog and show it again next time" [ref=e1427]:
+          - paragraph [ref=e1428]: Close this dialog and show it again next time
+      - button "🔗 Reconnect Now" [ref=e1429] [cursor=pointer]
+    - button "Close" [ref=e1430] [cursor=pointer]:
+      - img [ref=e1431]
+      - generic [ref=e1434]: Close

@@ -77,7 +77,34 @@ export class ToolDispatcher {
       const result = await client.callTool(toolUse.name, toolUse.input);
 
       let resultText: string;
-      if (typeof result === "string") {
+      let imageData: string | undefined;
+
+      // MCP tools/call responses have shape { content: Array<{ type, text?, data?, mimeType? }> }
+      type McpContentPart = {
+        type: string;
+        text?: string;
+        data?: string;
+        mimeType?: string;
+      };
+      if (
+        result &&
+        typeof result === "object" &&
+        "content" in result &&
+        Array.isArray((result as { content: unknown }).content)
+      ) {
+        const parts = (result as { content: McpContentPart[] }).content;
+        const textParts = parts
+          .filter((p) => p.type === "text")
+          .map((p) => p.text ?? "")
+          .join("\n");
+        const imagePart = parts.find((p) => p.type === "image");
+        if (imagePart?.data && imagePart?.mimeType) {
+          imageData = `data:${imagePart.mimeType};base64,${imagePart.data}`;
+        }
+        resultText =
+          textParts ||
+          (imageData ? "Screenshot captured." : "Tool executed successfully.");
+      } else if (typeof result === "string") {
         resultText = result;
       } else if (result && typeof result === "object") {
         resultText = JSON.stringify(result, null, 2);
@@ -87,13 +114,20 @@ export class ToolDispatcher {
 
       this.log.info(`Tool '${toolUse.name}' succeeded`, {
         id: toolUse.id,
-        byteLen: resultText.length,
+        byteLen: resultText.length + (imageData?.length ?? 0),
+        ...(imageData
+          ? { image: `${imageData.slice(0, 40)}… (${imageData.length} bytes)` }
+          : {
+              preview:
+                resultText.slice(0, 200) + (resultText.length > 200 ? "…" : ""),
+            }),
       });
 
       return {
         type: "tool_result",
         tool_use_id: toolUse.id,
         content: resultText,
+        ...(imageData && { imageData }),
       };
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : String(error);

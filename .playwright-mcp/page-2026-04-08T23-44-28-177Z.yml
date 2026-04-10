@@ -1,0 +1,618 @@
+- generic [active] [ref=e1]:
+  - generic:
+    - generic:
+      - link "Skip to main content" [ref=e2] [cursor=pointer]
+      - link "Accessibility help" [ref=e3] [cursor=pointer]:
+        - /url: https://support.google.com/websearch/answer/181196?hl=en-IN
+      - link "Accessibility feedback" [ref=e4] [cursor=pointer]
+  - generic [ref=e9]:
+    - search [ref=e10]:
+      - generic [ref=e12]:
+        - link "Go to Google Home" [ref=e14] [cursor=pointer]:
+          - /url: https://www.google.com/webhp?hl=en&sa=X&ved=0ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8QPAgJ
+          - img [ref=e15]
+        - generic [ref=e22]:
+          - generic [ref=e23]:
+            - combobox "Search" [ref=e26]: weather in ajmer rajasthan weather in ajmer rajasthan
+            - generic [ref=e27]:
+              - button "Clear" [ref=e29] [cursor=pointer]:
+                - img [ref=e31]
+              - generic [ref=e34]:
+                - button "Search by voice" [ref=e35] [cursor=pointer]:
+                  - img [ref=e36]
+                - button "Search by image" [ref=e38] [cursor=pointer]:
+                  - img [ref=e39]
+          - button "Search" [ref=e41] [cursor=pointer]:
+            - img [ref=e44]
+    - generic [ref=e46]:
+      - button "Settings" [ref=e48] [cursor=pointer]:
+        - img [ref=e51]
+      - generic [ref=e54]:
+        - button "Google apps" [ref=e56] [cursor=pointer]:
+          - img [ref=e57]
+        - link "Sign in" [ref=e61] [cursor=pointer]:
+          - /url: https://accounts.google.com/ServiceLogin?hl=en&passive=true&continue=https://www.google.com/search%3Fq%3Dweather%2Bin%2Bajmer%2Brajasthan&ec=futura_srp_og_si_72236_p
+  - generic [ref=e63]:
+    - navigation [ref=e69]:
+      - generic [ref=e73]:
+        - list [ref=e74]:
+          - listitem [ref=e75]:
+            - link "AI Mode" [ref=e78] [cursor=pointer]:
+              - /url: /search?q=weather+in+ajmer+rajasthan&sca_esv=e5a82f36d3850ce9&udm=50&fbs=ADc_l-aN0CWEZBOHjofHoaMMDiKp0UJuhqwKhR0QUhF54-6jIf5FTMC_zgepHBqt1YxkrDc7UKkeLkqmlgcJTOaXASt80jNYKHwMUgCpEy2fJyNfi97__3QfE6VihtFY551MsP9QmNppEqJ2g3sYdocCofJudBoKqY0SLRBHI8Q6qahXH8hS0AbYp7bia0KmNRMSybS4F1U5vS8a5TwoNhlt9QBWYW8g9g&aep=1&ntc=1&sa=X&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8Q2J8OegQIDxAE
+              - generic [ref=e81]: AI Mode
+          - listitem [ref=e82]:
+            - link "All" [disabled] [ref=e83]:
+              - generic [ref=e85]: All
+          - listitem [ref=e86]:
+            - link "News" [ref=e87] [cursor=pointer]:
+              - /url: /search?sca_esv=e5a82f36d3850ce9&q=weather+in+ajmer+rajasthan&tbm=nws&source=lnms&fbs=ADc_l-aN0CWEZBOHjofHoaMMDiKp0UJuhqwKhR0QUhF54-6jIf5FTMC_zgepHBqt1YxkrDc7UKkeLkqmlgcJTOaXASt80jNYKHwMUgCpEy2fJyNfi97__3QfE6VihtFY551MsP9QmNppEqJ2g3sYdocCofJudBoKqY0SLRBHI8Q6qahXH8hS0AbYp7bia0KmNRMSybS4F1U5vS8a5TwoNhlt9QBWYW8g9g&sa=X&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8Q0pQJegQIFRAB
+              - generic [ref=e89]: News
+          - listitem [ref=e90]:
+            - link "Images" [ref=e91] [cursor=pointer]:
+              - /url: /search?sca_esv=e5a82f36d3850ce9&udm=2&fbs=ADc_l-aN0CWEZBOHjofHoaMMDiKp0UJuhqwKhR0QUhF54-6jIf5FTMC_zgepHBqt1YxkrDc7UKkeLkqmlgcJTOaXASt80jNYKHwMUgCpEy2fJyNfi97__3QfE6VihtFY551MsP9QmNppEqJ2g3sYdocCofJudBoKqY0SLRBHI8Q6qahXH8hS0AbYp7bia0KmNRMSybS4F1U5vS8a5TwoNhlt9QBWYW8g9g&q=weather+in+ajmer+rajasthan&sa=X&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8QtKgLegQIFBAB
+              - generic [ref=e93]: Images
+          - listitem [ref=e94]:
+            - link "Forums" [ref=e95] [cursor=pointer]:
+              - /url: /search?sca_esv=e5a82f36d3850ce9&udm=18&fbs=ADc_l-aN0CWEZBOHjofHoaMMDiKp0UJuhqwKhR0QUhF54-6jIf5FTMC_zgepHBqt1YxkrDc7UKkeLkqmlgcJTOaXASt80jNYKHwMUgCpEy2fJyNfi97__3QfE6VihtFY551MsP9QmNppEqJ2g3sYdocCofJudBoKqY0SLRBHI8Q6qahXH8hS0AbYp7bia0KmNRMSybS4F1U5vS8a5TwoNhlt9QBWYW8g9g&q=weather+in+ajmer+rajasthan&sa=X&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8Qs6gLegQIERAB
+              - generic [ref=e97]: Forums
+          - listitem [ref=e98]:
+            - link "Shopping" [ref=e99] [cursor=pointer]:
+              - /url: /search?sca_esv=e5a82f36d3850ce9&udm=28&fbs=ADc_l-aN0CWEZBOHjofHoaMMDiKp0UJuhqwKhR0QUhF54-6jIf5FTMC_zgepHBqt1YxkrDc7UKkeLkqmlgcJTOaXASt80jNYKHwMUgCpEy2fJyNfi97__3QfE6VihtFY551MsP9QmNppEqJ2g3sYdocCofJudBoKqY0SLRBHI8Q6qahXH8hS0AbYp7bia0KmNRMSybS4F1U5vS8a5TwoNhlt9QBWYW8g9g&q=weather+in+ajmer+rajasthan&ved=1t:220175&ictx=111
+              - generic [ref=e101]: Shopping
+          - listitem [ref=e102]:
+            - link "Videos" [ref=e103] [cursor=pointer]:
+              - /url: /search?sca_esv=e5a82f36d3850ce9&udm=7&fbs=ADc_l-aN0CWEZBOHjofHoaMMDiKp0UJuhqwKhR0QUhF54-6jIf5FTMC_zgepHBqt1YxkrDc7UKkeLkqmlgcJTOaXASt80jNYKHwMUgCpEy2fJyNfi97__3QfE6VihtFY551MsP9QmNppEqJ2g3sYdocCofJudBoKqY0SLRBHI8Q6qahXH8hS0AbYp7bia0KmNRMSybS4F1U5vS8a5TwoNhlt9QBWYW8g9g&q=weather+in+ajmer+rajasthan&sa=X&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8QtKgLegQIExAB
+              - generic [ref=e105]: Videos
+          - listitem [ref=e106]:
+            - button "More filters" [ref=e107] [cursor=pointer]:
+              - generic "More filters" [ref=e108]:
+                - generic [ref=e109]:
+                  - generic [ref=e110]: More
+                  - img [ref=e112]
+        - button "Tools" [ref=e115] [cursor=pointer]:
+          - generic [ref=e117]:
+            - generic [ref=e118]: Tools
+            - img [ref=e120]
+    - heading "Search Results" [level=1] [ref=e122]
+    - main [ref=e128]:
+      - generic [ref=e134]:
+        - heading "Results for Ajmer, Rajasthan" [level=2] [ref=e135]:
+          - generic [ref=e136]:
+            - text: Results for
+            - text: Ajmer, Rajasthan
+        - generic [ref=e138]:
+          - text: ∙
+          - button "Choose area" [ref=e139] [cursor=pointer]
+        - button "How location is used" [ref=e142] [cursor=pointer]:
+          - img [ref=e144]
+      - generic [ref=e149]:
+        - generic [ref=e154]:
+          - heading "Weather result" [level=2] [ref=e155]
+          - generic [ref=e156]:
+            - generic [ref=e157]:
+              - img "Clear" [ref=e159]
+              - heading "18 °Celsius °Fahrenheit" [level=3] [ref=e160]:
+                - generic [ref=e161]:
+                  - generic [ref=e162]: "18"
+                  - generic [ref=e163]:
+                    - button "°Celsius" [disabled] [ref=e164]: °C
+                    - button "°Fahrenheit" [ref=e166] [cursor=pointer]: °F
+              - generic [ref=e167]:
+                - generic [ref=e168]: "Precipitation: 0%"
+                - generic [ref=e169]: "Humidity: 48%"
+                - generic [ref=e170]:
+                  - text: "Wind:"
+                  - generic [ref=e171]: 10 km/h
+            - heading "Weather Thursday, 5:00 am Clear" [level=3] [ref=e173]:
+              - generic [ref=e174]: Weather
+              - generic [ref=e175]: Thursday, 5:00 am
+              - generic [ref=e176]: Clear
+            - generic [ref=e177]:
+              - tablist [ref=e178]:
+                - tab "Temperature" [selected] [ref=e179]
+                - tab "Precipitation" [ref=e181] [cursor=pointer]
+                - tab "Wind" [ref=e183] [cursor=pointer]
+              - generic [ref=e185]:
+                - img [ref=e186] [cursor=pointer]:
+                  - generic [ref=e187]: "18"
+                  - generic [ref=e188]: "22"
+                  - generic [ref=e189]: "28"
+                  - generic [ref=e190]: "31"
+                  - generic [ref=e191]: "29"
+                  - generic [ref=e192]: "24"
+                  - generic [ref=e193]: "22"
+                  - generic [ref=e194]: "20"
+                  - generic [ref=e195]: "18"
+                  - generic [ref=e196]: "24"
+                  - generic [ref=e197]: "30"
+                  - generic [ref=e198]: "32"
+                  - generic [ref=e199]: "32"
+                  - generic [ref=e200]: "26"
+                  - generic [ref=e201]: "24"
+                  - generic [ref=e202]: "22"
+                  - generic [ref=e203]: "21"
+                  - generic [ref=e204]: "28"
+                  - generic [ref=e205]: "34"
+                  - generic [ref=e206]: "36"
+                  - generic [ref=e207]: "34"
+                  - generic [ref=e208]: "29"
+                  - generic [ref=e209]: "27"
+                  - generic [ref=e210]: "24"
+                  - generic [ref=e211]: "22"
+                  - generic [ref=e212]: "27"
+                  - generic [ref=e213]: "33"
+                  - generic [ref=e214]: "34"
+                  - generic [ref=e215]: "33"
+                  - generic [ref=e216]: "27"
+                  - generic [ref=e217]: "25"
+                  - generic [ref=e218]: "23"
+                  - generic [ref=e219]: "22"
+                  - generic [ref=e220]: "27"
+                  - generic [ref=e221]: "33"
+                  - generic [ref=e222]: "36"
+                  - generic [ref=e223]: "35"
+                  - generic [ref=e224]: "29"
+                  - generic [ref=e225]: "26"
+                  - generic [ref=e226]: "24"
+                  - generic [ref=e227]: "23"
+                  - generic [ref=e228]: "29"
+                  - generic [ref=e229]: "36"
+                  - generic [ref=e230]: "38"
+                  - generic [ref=e231]: "37"
+                  - generic [ref=e232]: "31"
+                  - generic [ref=e233]: "28"
+                  - generic [ref=e234]: "26"
+                  - generic [ref=e235]: "24"
+                  - generic [ref=e236]: "29"
+                  - generic [ref=e237]: "36"
+                  - generic [ref=e238]: "38"
+                  - generic [ref=e239]: "37"
+                  - generic [ref=e240]: "32"
+                  - generic [ref=e241]: "29"
+                  - generic [ref=e242]: "27"
+                  - generic [ref=e243]: "25"
+                  - generic [ref=e244]: "29"
+                  - generic [ref=e245]: "36"
+                  - generic [ref=e246]: "38"
+                  - generic [ref=e247]: "36"
+                  - generic [ref=e248]: "31"
+                  - generic [ref=e249]: "29"
+                  - generic [ref=e250]: "27"
+                  - generic [ref=e251]: "25"
+                  - generic [ref=e252]: "28"
+                  - generic [ref=e253]: "34"
+                  - generic [ref=e254]: "37"
+                  - generic [ref=e255]: "35"
+                  - generic [ref=e256]: "31"
+                  - generic [ref=e257]: "28"
+                  - generic [ref=e258]: "25"
+                  - generic [ref=e259]: "24"
+                  - generic [ref=e260]: "29"
+                  - generic [ref=e261]: "35"
+                  - generic [ref=e262]: "37"
+                  - generic [ref=e263]: "36"
+                  - generic [ref=e264]: "33"
+                  - generic [ref=e265]: "29"
+                - generic [ref=e268]:
+                  - generic [ref=e269]: 6 am
+                  - generic [ref=e270]: 9 am
+                  - generic [ref=e271]: 12 pm
+                  - generic [ref=e272]: 3 pm
+                  - generic [ref=e273]: 6 pm
+                  - generic [ref=e274]: 9 pm
+                  - generic [ref=e275]: 12 am
+                  - generic [ref=e276]: 3 am
+                  - generic [ref=e277]: 6 am
+                  - generic [ref=e278]: 9 am
+                  - generic [ref=e279]: 12 pm
+                  - generic [ref=e280]: 3 pm
+                  - generic [ref=e281]: 6 pm
+                  - generic [ref=e282]: 9 pm
+                  - generic [ref=e283]: 12 am
+                  - generic [ref=e284]: 3 am
+                  - generic [ref=e285]: 6 am
+                  - generic [ref=e286]: 9 am
+                  - generic [ref=e287]: 12 pm
+                  - generic [ref=e288]: 3 pm
+                  - generic [ref=e289]: 6 pm
+                  - generic [ref=e290]: 9 pm
+                  - generic [ref=e291]: 12 am
+                  - generic [ref=e292]: 3 am
+                  - generic [ref=e293]: 6 am
+                  - generic [ref=e294]: 9 am
+                  - generic [ref=e295]: 12 pm
+                  - generic [ref=e296]: 3 pm
+                  - generic [ref=e297]: 6 pm
+                  - generic [ref=e298]: 9 pm
+                  - generic [ref=e299]: 12 am
+                  - generic [ref=e300]: 3 am
+                  - generic [ref=e301]: 6 am
+                  - generic [ref=e302]: 9 am
+                  - generic [ref=e303]: 12 pm
+                  - generic [ref=e304]: 3 pm
+                  - generic [ref=e305]: 6 pm
+                  - generic [ref=e306]: 9 pm
+                  - generic [ref=e307]: 12 am
+                  - generic [ref=e308]: 3 am
+                  - generic [ref=e309]: 6 am
+                  - generic [ref=e310]: 9 am
+                  - generic [ref=e311]: 12 pm
+                  - generic [ref=e312]: 3 pm
+                  - generic [ref=e313]: 6 pm
+                  - generic [ref=e314]: 9 pm
+                  - generic [ref=e315]: 12 am
+                  - generic [ref=e316]: 3 am
+                  - generic [ref=e317]: 6 am
+                  - generic [ref=e318]: 9 am
+                  - generic [ref=e319]: 12 pm
+                  - generic [ref=e320]: 3 pm
+                  - generic [ref=e321]: 6 pm
+                  - generic [ref=e322]: 9 pm
+                  - generic [ref=e323]: 12 am
+                  - generic [ref=e324]: 3 am
+                  - generic [ref=e325]: 6 am
+                  - generic [ref=e326]: 9 am
+                  - generic [ref=e327]: 12 pm
+                  - generic [ref=e328]: 3 pm
+                  - generic [ref=e329]: 6 pm
+                  - generic [ref=e330]: 9 pm
+                  - generic [ref=e331]: 12 am
+                  - generic [ref=e332]: 3 am
+                  - generic [ref=e333]: 6 am
+                  - generic [ref=e334]: 9 am
+                  - generic [ref=e335]: 12 pm
+                  - generic [ref=e336]: 3 pm
+                  - generic [ref=e337]: 6 pm
+                  - generic [ref=e338]: 9 pm
+                  - generic [ref=e339]: 12 am
+                  - generic [ref=e340]: 3 am
+                  - generic [ref=e341]: 6 am
+                  - generic [ref=e342]: 9 am
+                  - generic [ref=e343]: 12 pm
+                  - generic [ref=e344]: 3 pm
+                  - generic [ref=e345]: 6 pm
+                  - generic [ref=e346]: 9 pm
+              - generic [ref=e348] [cursor=pointer]:
+                - button "Thursday Sunny 31 ° 18 °" [ref=e349]:
+                  - generic "Thursday" [ref=e350]: Thu
+                  - img "Sunny" [ref=e353]
+                  - generic [ref=e354]:
+                    - generic [ref=e355]: 31 °
+                    - generic [ref=e356]: 18 °
+                - button "Friday Sunny 32 ° 21 °" [ref=e357]:
+                  - generic "Friday" [ref=e358]: Fri
+                  - img "Sunny" [ref=e361]
+                  - generic [ref=e362]:
+                    - generic [ref=e363]: 32 °
+                    - generic [ref=e364]: 21 °
+                - button "Saturday Sunny 36 ° 22 °" [ref=e365]:
+                  - generic "Saturday" [ref=e366]: Sat
+                  - img "Sunny" [ref=e369]
+                  - generic [ref=e370]:
+                    - generic [ref=e371]: 36 °
+                    - generic [ref=e372]: 22 °
+                - button "Sunday Sunny 34 ° 21 °" [ref=e373]:
+                  - generic "Sunday" [ref=e374]: Sun
+                  - img "Sunny" [ref=e377]
+                  - generic [ref=e378]:
+                    - generic [ref=e379]: 34 °
+                    - generic [ref=e380]: 21 °
+                - button "Monday Sunny 36 ° 23 °" [ref=e381]:
+                  - generic "Monday" [ref=e382]: Mon
+                  - img "Sunny" [ref=e385]
+                  - generic [ref=e386]:
+                    - generic [ref=e387]: 36 °
+                    - generic [ref=e388]: 23 °
+                - button "Tuesday Sunny 38 ° 24 °" [ref=e389]:
+                  - generic "Tuesday" [ref=e390]: Tue
+                  - img "Sunny" [ref=e393]
+                  - generic [ref=e394]:
+                    - generic [ref=e395]: 38 °
+                    - generic [ref=e396]: 24 °
+                - button "Wednesday Sunny 38 ° 25 °" [ref=e397]:
+                  - generic "Wednesday" [ref=e398]: Wed
+                  - img "Sunny" [ref=e401]
+                  - generic [ref=e402]:
+                    - generic [ref=e403]: 38 °
+                    - generic [ref=e404]: 25 °
+                - button "Thursday Partly sunny 38 ° 25 °" [ref=e405]:
+                  - generic "Thursday" [ref=e406]: Thu
+                  - img "Partly sunny" [ref=e409]
+                  - generic [ref=e410]:
+                    - generic [ref=e411]: 38 °
+                    - generic [ref=e412]: 25 °
+          - generic [ref=e416]:
+            - link "Google Weather" [ref=e417] [cursor=pointer]:
+              - /url: https://support.google.com/websearch/answer/13687874
+            - generic [ref=e418]: •
+            - group [ref=e419]:
+              - button "Feedback" [ref=e420] [cursor=pointer]:
+                - generic [ref=e422]: Feedback
+        - generic [ref=e425]:
+          - heading "Web results" [level=2] [ref=e426]
+          - generic [ref=e427]:
+            - generic [ref=e430]:
+              - link "Ajmer, Rajasthan, India Weather Forecast AccuWeather https://www.accuweather.com › ajmer › weather-forecast" [ref=e432] [cursor=pointer]:
+                - /url: https://www.accuweather.com/en/in/ajmer/190208/weather-forecast/190208
+                - heading "Ajmer, Rajasthan, India Weather Forecast" [level=3] [ref=e433]
+                - generic [ref=e438]:
+                  - generic [ref=e440]: AccuWeather
+                  - generic [ref=e442]: https://www.accuweather.com › ajmer › weather-forecast
+              - button "About this result" [ref=e443] [cursor=pointer]:
+                - img [ref=e446]
+            - generic [ref=e449]:
+              - generic [ref=e450]:
+                - emphasis [ref=e451]: Hourly Weather
+                - text: · 1 AM 69°. rain drop 0% · 2 AM 68°. rain drop 0% · 3 AM 67°. rain drop 0% · 4 AM 66°. rain drop 0% · 5 AM 65°. rain drop 0% · 6 AM 64°. rain ...
+              - link "Read more" [ref=e452] [cursor=pointer]:
+                - /url: https://www.accuweather.com/en/in/ajmer/190208/weather-forecast/190208#:~:text=Hourly%20Weather&text=1%20AM,0%25&text=2%20AM,0%25&text=3%20AM,0%25&text=4%20AM,0%25&text=10%2DDay%20Weather%20Forecast&text=10%2DDay%20Weather%20Forecast
+        - generic [ref=e456]:
+          - heading "People also ask" [level=2] [ref=e458]
+          - generic [ref=e459]:
+            - button "How is the climate in Ajmer today?" [ref=e465] [cursor=pointer]:
+              - generic [ref=e467]: How is the climate in Ajmer today?
+              - img [ref=e470]
+            - button "Is this a good time to visit Ajmer?" [ref=e479] [cursor=pointer]:
+              - generic [ref=e481]: Is this a good time to visit Ajmer?
+              - img [ref=e484]
+            - button "Will it rain today in Ajmer Sharif?" [ref=e493] [cursor=pointer]:
+              - generic [ref=e495]: Will it rain today in Ajmer Sharif?
+              - img [ref=e498]
+            - button "Does it rain heavily in Rajasthan?" [ref=e507] [cursor=pointer]:
+              - generic [ref=e509]: Does it rain heavily in Rajasthan?
+              - img [ref=e512]
+        - generic [ref=e517]:
+          - heading "Web results" [level=2] [ref=e518]
+          - generic [ref=e519]:
+            - generic [ref=e522]:
+              - link "Ajmer, Rajasthan, India 14 day weather forecast Time and Date https://www.timeanddate.com › Weather › India › Ajmer" [ref=e524] [cursor=pointer]:
+                - /url: https://www.timeanddate.com/weather/india/ajmer/ext
+                - heading "Ajmer, Rajasthan, India 14 day weather forecast" [level=3] [ref=e525]
+                - generic [ref=e530]:
+                  - generic [ref=e532]: Time and Date
+                  - generic [ref=e534]: https://www.timeanddate.com › Weather › India › Ajmer
+              - button "About this result" [ref=e535] [cursor=pointer]:
+                - img [ref=e538]
+            - generic [ref=e541]:
+              - generic [ref=e542]:
+                - text: Ajmer Extended Forecast with high and low temperatures ...
+                - emphasis [ref=e543]: "Mostly sunny. Feels Like: 82 °F"
+                - text: ". Humidity: 18%. Precipitation: Rain: 0.01 Snow: 0. Precipitation ..."
+              - link "Read more" [ref=e544] [cursor=pointer]:
+                - /url: https://www.timeanddate.com/weather/india/ajmer/ext#:~:text=Ajmer%20Extended%20Forecast%20with%20high,and%20low%20temperatures&text=Mostly%20sunny.,Precipitation%20Chance%3A%2039%25
+        - generic [ref=e548]:
+          - generic [ref=e551]:
+            - link "Local Weather Report and Forecast India Meteorological Department https://city.imd.gov.in › citywx › city_weather_test" [ref=e553] [cursor=pointer]:
+              - /url: https://city.imd.gov.in/citywx/city_weather_test.php?id=42343
+              - heading "Local Weather Report and Forecast" [level=3] [ref=e554]
+              - generic [ref=e559]:
+                - generic [ref=e561]: India Meteorological Department
+                - generic [ref=e563]: https://city.imd.gov.in › citywx › city_weather_test
+            - button "About this result" [ref=e564] [cursor=pointer]:
+              - img [ref=e567]
+          - generic [ref=e570]:
+            - generic [ref=e571]:
+              - emphasis [ref=e572]: 7 Day's Forecast
+              - text: . Date, Min Temp, Max Temp, Weather. 08-Apr, 16.0, 30.0, Partly cloudy sky. 09-Apr, 18.0, 33.0, Mainly Clear sky.
+            - link "Read more" [ref=e573] [cursor=pointer]:
+              - /url: https://city.imd.gov.in/citywx/city_weather_test.php?id=42343#:~:text=7%20Day's%20Forecast,Mainly%20Clear%20sky
+        - generic [ref=e577]:
+          - generic [ref=e580]:
+            - link "Ajmer, India 10-Day Weather Forecast Weather Underground https://www.wunderground.com › forecast › ajmer" [ref=e582] [cursor=pointer]:
+              - /url: https://www.wunderground.com/forecast/in/ajmer
+              - heading "Ajmer, India 10-Day Weather Forecast" [level=3] [ref=e583]
+              - generic [ref=e588]:
+                - generic [ref=e590]: Weather Underground
+                - generic [ref=e592]: https://www.wunderground.com › forecast › ajmer
+            - button "About this result" [ref=e593] [cursor=pointer]:
+              - img [ref=e596]
+          - generic [ref=e599]:
+            - generic [ref=e600]:
+              - text: 26.47 °N, 74.64 °E.
+              - emphasis [ref=e601]: Ajmer, Rajasthan, India 10-Day Weather
+              - text: Forecaststar_ratehome. icon 73 °F Kishangarh Airport Ajmer Station|Report. Report Station.
+            - link "Read more" [ref=e602] [cursor=pointer]:
+              - /url: https://www.wunderground.com/forecast/in/ajmer#:~:text=26.47%20%C2%B0N%2C%2074.64%20%C2%B0E,Report%20Station
+        - generic [ref=e606]:
+          - generic [ref=e609]:
+            - 'link "Ajmer Weather Conditions: Temperature | 30 Days Forecast AQI.in https://www.aqi.in › Home › Weather › India › Rajasthan" [ref=e611] [cursor=pointer]':
+              - /url: https://www.aqi.in/weather/in/india/rajasthan/ajmer
+              - 'heading "Ajmer Weather Conditions: Temperature | 30 Days Forecast" [level=3] [ref=e612]'
+              - generic [ref=e617]:
+                - generic [ref=e619]: AQI.in
+                - generic [ref=e621]: https://www.aqi.in › Home › Weather › India › Rajasthan
+            - button "About this result" [ref=e622] [cursor=pointer]:
+              - img [ref=e625]
+          - generic [ref=e629]:
+            - text: Current
+            - emphasis [ref=e630]: Ajmer weather
+            - text: condition is Clear with real-time temperature (24°C), humidity 25%, wind 8.6km/h, pressure (1010mb), UV (0), visibility (10km) in ...
+        - generic [ref=e634]:
+          - generic [ref=e637]:
+            - link "10-day weather forecast for Ajmer, Rajasthan 305005 The Weather Channel https://weather.com › en-IN › weather › tenday › Ajme..." [ref=e639] [cursor=pointer]:
+              - /url: https://weather.com/en-IN/weather/tenday/l/Ajmer+Rajasthan+305005?canonicalCityId=9362b53d9e034ef567b207d39135d452
+              - heading "10-day weather forecast for Ajmer, Rajasthan 305005" [level=3] [ref=e640]
+              - generic [ref=e645]:
+                - generic [ref=e647]: The Weather Channel
+                - generic [ref=e649]: https://weather.com › en-IN › weather › tenday › Ajme...
+            - button "About this result" [ref=e650] [cursor=pointer]:
+              - img [ref=e653]
+          - generic [ref=e656]:
+            - generic [ref=e657]:
+              - emphasis [ref=e658]: Partly cloudy
+              - text: . Expect widespread areas of smoke and haze, reducing visibility at times. Low 19°C. Winds light and variable. Humidity55%. UV ...
+            - link "Read more" [ref=e659] [cursor=pointer]:
+              - /url: https://weather.com/en-IN/weather/tenday/l/Ajmer+Rajasthan+305005?canonicalCityId=9362b53d9e034ef567b207d39135d452#:~:text=Partly%20cloudy.%20Expect%20widespread%20areas,UV%20Index0%20of%2011
+        - generic [ref=e663]:
+          - generic [ref=e666]:
+            - 'link "Ajmer Weather Forecast 2026 : Today''s Temperature, ... NDTV https://www.ndtv.com › NDTV Weather" [ref=e668] [cursor=pointer]':
+              - /url: https://www.ndtv.com/weather/ajmer-weather-forecast-today
+              - 'heading "Ajmer Weather Forecast 2026 : Today''s Temperature, ..." [level=3] [ref=e669]'
+              - generic [ref=e674]:
+                - generic [ref=e676]: NDTV
+                - generic [ref=e678]: https://www.ndtv.com › NDTV Weather
+            - button "About this result" [ref=e679] [cursor=pointer]:
+              - img [ref=e682]
+          - generic [ref=e685]:
+            - generic [ref=e686]:
+              - text: Today's
+              - emphasis [ref=e687]: weather
+              - text: forecast in
+              - emphasis [ref=e688]: Ajmer
+              - text: is Overall clear sky. High 32°C, Low 19°C . Currently 23°C. Stay updated for accurate
+              - emphasis [ref=e689]: weather
+              - text: information in
+              - emphasis [ref=e690]: Ajmer
+              - text: . What is ...
+            - link "Read more" [ref=e691] [cursor=pointer]:
+              - /url: https://www.ndtv.com/weather/ajmer-weather-forecast-today#:~:text=Today's%20weather%20forecast%20in%20Ajmer,7%2Dday%20weather%20forecast%20for%20Ajmer%3F
+        - generic [ref=e695]:
+          - generic [ref=e698]:
+            - link "Ajmer, Rajasthan, IN Weather Today & Tomorrow WeatherBug https://www.weatherbug.com › weather-forecast › now" [ref=e700] [cursor=pointer]:
+              - /url: https://www.weatherbug.com/weather-forecast/now/ajmer-rajasthan-in
+              - heading "Ajmer, Rajasthan, IN Weather Today & Tomorrow" [level=3] [ref=e701]
+              - generic [ref=e706]:
+                - generic [ref=e708]: WeatherBug
+                - generic [ref=e710]: https://www.weatherbug.com › weather-forecast › now
+            - button "About this result" [ref=e711] [cursor=pointer]:
+              - img [ref=e714]
+          - generic [ref=e717]:
+            - text: Partly cloudy. Low temperature around 67F. Dew point will be around 55F with an average humidity of 28%. Winds will be 4 mph from the NE.
+            - link "Read more" [ref=e718] [cursor=pointer]:
+              - /url: https://www.weatherbug.com/weather-forecast/now/ajmer-rajasthan-in#:~:text=Partly%20cloudy.%20Low%20temperature%20around,4%20mph%20from%20the%20NE.
+        - generic [ref=e722]:
+          - generic [ref=e725]:
+            - link "Ajmer Weather Forecast & 10-Day Outlook PredictWind https://www.predictwind.com › weather › india › rajasthan" [ref=e727] [cursor=pointer]:
+              - /url: https://www.predictwind.com/weather/india/rajasthan/ajmer
+              - heading "Ajmer Weather Forecast & 10-Day Outlook" [level=3] [ref=e728]
+              - generic [ref=e733]:
+                - generic [ref=e735]: PredictWind
+                - generic [ref=e737]: https://www.predictwind.com › weather › india › rajasthan
+            - button "About this result" [ref=e738] [cursor=pointer]:
+              - img [ref=e741]
+          - generic [ref=e744]:
+            - generic [ref=e745]:
+              - text: This page provides the
+              - emphasis [ref=e746]: current weather forecast for Ajmer, Rajasthan
+              - text: ", India, including hourly conditions, a 10-day outlook, wind speed and direction, ..."
+            - link "Read more" [ref=e747] [cursor=pointer]:
+              - /url: https://www.predictwind.com/weather/india/rajasthan/ajmer#:~:text=This%20page%20provides%20the%20current,your%20day%20in%20one%20view.
+        - generic [ref=e751]:
+          - generic [ref=e754]:
+            - link "Current weather for Ajmer Weather & Radar India https://www.weatherandradar.in › weather › ajmer" [ref=e756] [cursor=pointer]:
+              - /url: https://www.weatherandradar.in/weather/ajmer/12891729
+              - heading "Current weather for Ajmer" [level=3] [ref=e757]
+              - generic [ref=e762]:
+                - generic [ref=e764]: Weather & Radar India
+                - generic [ref=e766]: https://www.weatherandradar.in › weather › ajmer
+            - button "About this result" [ref=e767] [cursor=pointer]:
+              - img [ref=e770]
+          - generic [ref=e773]:
+            - generic [ref=e774]:
+              - emphasis [ref=e775]: During the night it is partly cloudy
+              - text: . The temperature is currently 23 degrees. Today, it is sunny all day. Temperatures reach highs of around 31 degrees.
+            - link "Read more" [ref=e776] [cursor=pointer]:
+              - /url: https://www.weatherandradar.in/weather/ajmer/12891729#:~:text=During%20the%20night%20it%20is,highs%20of%20around%2031%20degrees.
+      - generic [ref=e778]:
+        - generic [ref=e783]:
+          - heading "People also search for" [level=2] [ref=e785]
+          - generic [ref=e787]:
+            - generic [ref=e788]:
+              - link "Weather in ajmer rajasthan 10 days" [ref=e792] [cursor=pointer]:
+                - /url: /search?sca_esv=e5a82f36d3850ce9&q=Weather+in+ajmer+rajasthan+10+days&sa=X&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8Q1QJ6BAgcEAE
+                - generic [ref=e793]:
+                  - generic [ref=e798]: Weather in ajmer rajasthan 10 days
+                  - img [ref=e802]
+              - link "Weather in ajmer rajasthan tomorrow" [ref=e807] [cursor=pointer]:
+                - /url: /search?sca_esv=e5a82f36d3850ce9&q=Weather+in+ajmer+rajasthan+tomorrow&sa=X&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8Q1QJ6BAg4EAE
+                - generic [ref=e808]:
+                  - generic [ref=e813]: Weather in ajmer rajasthan tomorrow
+                  - img [ref=e817]
+              - link "Ajmer weather next 14 days" [ref=e822] [cursor=pointer]:
+                - /url: /search?sca_esv=e5a82f36d3850ce9&q=Ajmer+weather+next+14+days&sa=X&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8Q1QJ6BAg3EAE
+                - generic [ref=e823]:
+                  - generic [ref=e828]: Ajmer weather next 14 days
+                  - img [ref=e832]
+              - link "Weather in ajmer next 15 days" [ref=e837] [cursor=pointer]:
+                - /url: /search?sca_esv=e5a82f36d3850ce9&q=Weather+in+ajmer+next+15+days&sa=X&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8Q1QJ6BAgyEAE
+                - generic [ref=e838]:
+                  - generic [ref=e843]: Weather in ajmer next 15 days
+                  - img [ref=e847]
+            - generic [ref=e849]:
+              - link "Weather in ajmer rajasthan today" [ref=e853] [cursor=pointer]:
+                - /url: /search?sca_esv=e5a82f36d3850ce9&q=Weather+in+ajmer+rajasthan+today&sa=X&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8Q1QJ6BAgqEAE
+                - generic [ref=e854]:
+                  - generic [ref=e859]: Weather in ajmer rajasthan today
+                  - img [ref=e863]
+              - link "Weather in ajmer rajasthan for next 15 days" [ref=e868] [cursor=pointer]:
+                - /url: /search?sca_esv=e5a82f36d3850ce9&q=Weather+in+ajmer+rajasthan+for+next+15+days&sa=X&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8Q1QJ6BAgmEAE
+                - generic [ref=e869]:
+                  - generic [ref=e874]: Weather in ajmer rajasthan for next 15 days
+                  - img [ref=e878]
+              - link "Ajmer weather next 30 days" [ref=e883] [cursor=pointer]:
+                - /url: /search?sca_esv=e5a82f36d3850ce9&q=Ajmer+weather+next+30+days&sa=X&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8Q1QJ6BAglEAE
+                - generic [ref=e884]:
+                  - generic [ref=e889]: Ajmer weather next 30 days
+                  - img [ref=e893]
+              - link "Ajmer weather next 60 days" [ref=e898] [cursor=pointer]:
+                - /url: /search?sca_esv=e5a82f36d3850ce9&q=Ajmer+weather+next+60+days&sa=X&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8Q1QJ6BAgkEAE
+                - generic [ref=e899]:
+                  - generic [ref=e904]: Ajmer weather next 60 days
+                  - img [ref=e908]
+        - navigation [ref=e910]:
+          - heading "Page navigation" [level=1] [ref=e911]
+          - text: "1"
+          - link "Page 2" [ref=e914] [cursor=pointer]:
+            - /url: /search?q=weather+in+ajmer+rajasthan&sca_esv=e5a82f36d3850ce9&ei=W-jWacS0BYTZseMPm9XB-QI&start=10&sa=N&sstk=Af77f_cn0dmvyKSLOXpOtxo12tgkmzP3--RnfT6oeNDwdScFCv6ObdhsaWFQeLDgZHnyj9LVTem5_2fQX3btjsNKB50u0M-3YpJekg&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8Q8tMDegQICBAE
+            - text: "2"
+          - link "Page 3" [ref=e916] [cursor=pointer]:
+            - /url: /search?q=weather+in+ajmer+rajasthan&sca_esv=e5a82f36d3850ce9&ei=W-jWacS0BYTZseMPm9XB-QI&start=20&sa=N&sstk=Af77f_cn0dmvyKSLOXpOtxo12tgkmzP3--RnfT6oeNDwdScFCv6ObdhsaWFQeLDgZHnyj9LVTem5_2fQX3btjsNKB50u0M-3YpJekg&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8Q8tMDegQICBAG
+            - text: "3"
+          - link "Page 4" [ref=e918] [cursor=pointer]:
+            - /url: /search?q=weather+in+ajmer+rajasthan&sca_esv=e5a82f36d3850ce9&ei=W-jWacS0BYTZseMPm9XB-QI&start=30&sa=N&sstk=Af77f_cn0dmvyKSLOXpOtxo12tgkmzP3--RnfT6oeNDwdScFCv6ObdhsaWFQeLDgZHnyj9LVTem5_2fQX3btjsNKB50u0M-3YpJekg&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8Q8tMDegQICBAI
+            - text: "4"
+          - link "Page 5" [ref=e920] [cursor=pointer]:
+            - /url: /search?q=weather+in+ajmer+rajasthan&sca_esv=e5a82f36d3850ce9&ei=W-jWacS0BYTZseMPm9XB-QI&start=40&sa=N&sstk=Af77f_cn0dmvyKSLOXpOtxo12tgkmzP3--RnfT6oeNDwdScFCv6ObdhsaWFQeLDgZHnyj9LVTem5_2fQX3btjsNKB50u0M-3YpJekg&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8Q8tMDegQICBAK
+            - text: "5"
+          - link "Page 6" [ref=e922] [cursor=pointer]:
+            - /url: /search?q=weather+in+ajmer+rajasthan&sca_esv=e5a82f36d3850ce9&ei=W-jWacS0BYTZseMPm9XB-QI&start=50&sa=N&sstk=Af77f_cn0dmvyKSLOXpOtxo12tgkmzP3--RnfT6oeNDwdScFCv6ObdhsaWFQeLDgZHnyj9LVTem5_2fQX3btjsNKB50u0M-3YpJekg&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8Q8tMDegQICBAM
+            - text: "6"
+          - link "Page 7" [ref=e924] [cursor=pointer]:
+            - /url: /search?q=weather+in+ajmer+rajasthan&sca_esv=e5a82f36d3850ce9&ei=W-jWacS0BYTZseMPm9XB-QI&start=60&sa=N&sstk=Af77f_cn0dmvyKSLOXpOtxo12tgkmzP3--RnfT6oeNDwdScFCv6ObdhsaWFQeLDgZHnyj9LVTem5_2fQX3btjsNKB50u0M-3YpJekg&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8Q8tMDegQICBAO
+            - text: "7"
+          - link "Page 8" [ref=e926] [cursor=pointer]:
+            - /url: /search?q=weather+in+ajmer+rajasthan&sca_esv=e5a82f36d3850ce9&ei=W-jWacS0BYTZseMPm9XB-QI&start=70&sa=N&sstk=Af77f_cn0dmvyKSLOXpOtxo12tgkmzP3--RnfT6oeNDwdScFCv6ObdhsaWFQeLDgZHnyj9LVTem5_2fQX3btjsNKB50u0M-3YpJekg&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8Q8tMDegQICBAQ
+            - text: "8"
+          - link "Page 9" [ref=e928] [cursor=pointer]:
+            - /url: /search?q=weather+in+ajmer+rajasthan&sca_esv=e5a82f36d3850ce9&ei=W-jWacS0BYTZseMPm9XB-QI&start=80&sa=N&sstk=Af77f_cn0dmvyKSLOXpOtxo12tgkmzP3--RnfT6oeNDwdScFCv6ObdhsaWFQeLDgZHnyj9LVTem5_2fQX3btjsNKB50u0M-3YpJekg&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8Q8tMDegQICBAS
+            - text: "9"
+          - link "Page 10" [ref=e930] [cursor=pointer]:
+            - /url: /search?q=weather+in+ajmer+rajasthan&sca_esv=e5a82f36d3850ce9&ei=W-jWacS0BYTZseMPm9XB-QI&start=90&sa=N&sstk=Af77f_cn0dmvyKSLOXpOtxo12tgkmzP3--RnfT6oeNDwdScFCv6ObdhsaWFQeLDgZHnyj9LVTem5_2fQX3btjsNKB50u0M-3YpJekg&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8Q8tMDegQICBAU
+            - text: "10"
+          - heading "Next" [level=2] [ref=e932]:
+            - link "Next" [ref=e933] [cursor=pointer]:
+              - /url: /search?q=weather+in+ajmer+rajasthan&sca_esv=e5a82f36d3850ce9&ei=W-jWacS0BYTZseMPm9XB-QI&start=10&sa=N&sstk=Af77f_cn0dmvyKSLOXpOtxo12tgkmzP3--RnfT6oeNDwdScFCv6ObdhsaWFQeLDgZHnyj9LVTem5_2fQX3btjsNKB50u0M-3YpJekg&ved=2ahUKEwiEzt_Xt9-TAxWEbGwGHZtqMC8Q8NMDegQICBAW
+              - generic [ref=e935]: Next
+      - navigation
+    - contentinfo [ref=e936]:
+      - heading "Footer links" [level=1] [ref=e937]
+      - generic [ref=e941]:
+        - generic [ref=e943]:
+          - text: India
+          - generic [ref=e945]:
+            - button "305005, Ajmer, Rajasthan - From your IP address" [ref=e947] [cursor=pointer]:
+              - generic [ref=e948]: 305005, Ajmer, Rajasthan
+              - generic [ref=e950]:
+                - text: "-"
+                - generic [ref=e951]: From your IP address
+            - text: "-"
+            - button "Update location" [ref=e953] [cursor=pointer]: Update location
+        - generic [ref=e956]:
+          - link "Help" [ref=e957] [cursor=pointer]:
+            - /url: https://support.google.com/websearch/?p=ws_results_help&hl=en-IN&fg=1
+          - link "Send feedback" [ref=e958] [cursor=pointer]:
+            - /url: "#"
+          - link "Privacy" [ref=e959] [cursor=pointer]:
+            - /url: https://policies.google.com/privacy?hl=en-IN&fg=1
+          - link "Terms" [ref=e960] [cursor=pointer]:
+            - /url: https://policies.google.com/terms?hl=en-IN&fg=1

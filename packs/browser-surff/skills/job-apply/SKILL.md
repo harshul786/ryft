@@ -6,7 +6,7 @@ context: inline
 effort: High
 when-to-use: Use when applying to a job on a company's own website (not LinkedIn/Naukri). Handles multi-step ATS forms including personal info, work history, custom questions, EEO disclosures, and final submission.
 tags: [browser, apply, jobs, ats, workday, greenhouse, lever, ashby, bamboohr]
-allowed-tools: browser_navigate, browser_click, browser_type, browser_fill, browser_scroll, browser_screenshot, browser_evaluate, browser_select_option, browser_upload_file
+allowed-tools: browser_navigate, browser_click, browser_type, browser_fill_form, browser_mouse_wheel, browser_take_screenshot, browser_evaluate, browser_select_option, browser_file_upload
 ---
 
 # Job Apply (Generic ATS)
@@ -34,7 +34,7 @@ Take a screenshot of the current page as baseline.
 
 ## Step 1 — Personal Information
 
-Fill standard fields using `browser_fill` (target by `name`, `id`, or `aria-label`):
+Fill standard fields using `browser_fill_form` (target by `name`, `id`, or `aria-label`):
 
 | Field               | Common selectors                                           |
 | ------------------- | ---------------------------------------------------------- |

@@ -218,7 +218,7 @@ async function main(): Promise<void> {
       session.appendAssistantWithTools(response.text, response.toolCalls);
 
       // ── Multi-turn tool-call loop (non-interactive / --prompt mode) ──────
-      const MAX_TOOL_TURNS = 5;
+      const MAX_TOOL_TURNS = 15;
       let turnResult = response;
 
       for (

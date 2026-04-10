@@ -35,6 +35,12 @@ export interface ToolResultContentPart {
   content: string;
   /** True when the tool execution threw an error */
   is_error?: boolean;
+  /**
+   * Base64 data URL (e.g. "data:image/png;base64,...") when the tool returned
+   * an image (e.g. a browser screenshot). Stored separately so it can be
+   * forwarded as a vision-capable HumanMessage rather than embedded as raw text.
+   */
+  imageData?: string;
 }
 
 /** Union of all structured content parts that can appear in a message */

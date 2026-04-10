@@ -6,7 +6,7 @@ context: inline
 effort: High
 when-to-use: Use for any task on linkedin.com — reading feed, applying to jobs, writing posts, leaving comments, sending connection requests, or messaging contacts.
 tags: [browser, linkedin, jobs, social, apply, post, comment, connect]
-allowed-tools: browser_navigate, browser_click, browser_type, browser_scroll, browser_fill, browser_screenshot, browser_evaluate, browser_select_option, browser_upload_file
+allowed-tools: browser_navigate, browser_click, browser_type, browser_mouse_wheel, browser_fill_form, browser_take_screenshot, browser_evaluate, browser_select_option, browser_file_upload
 ---
 
 # LinkedIn
@@ -51,7 +51,7 @@ Handles all major LinkedIn workflows. Pick the relevant section below based on t
 3. If present:
    a. Click it to open the application modal.
    b. For each step in the multi-step form, fill fields (phone, address, custom questions).
-   c. Use `browser_fill` for text inputs, `browser_select_option` for dropdowns.
+   c. Use `browser_fill_form` for text inputs, `browser_select_option` for dropdowns.
    d. If a resume upload prompt appears, invoke the **upload** skill.
    e. Click **Next** until the final **Submit application** button, then click it.
    f. Screenshot the confirmation screen.
@@ -94,4 +94,4 @@ Handles all major LinkedIn workflows. Pick the relevant section below based on t
 - **Login wall**: If redirected to `/login`, stop and ask the user to log in — do not attempt to automate credentials.
 - **CAPTCHA**: Stop and notify the user immediately.
 - **Rate limiting / "Try again later"**: Wait and retry once after 5 seconds; if it persists, report to user.
-- **Modal not appearing**: Try `browser_scroll` up and retry the click.
+- **Modal not appearing**: Try `browser_mouse_wheel` up and retry the click.

@@ -19,7 +19,7 @@ const MODE_DEFS: Mode[] = [
     description:
       "Use a browser session as the source of truth for UI inspection and action.",
     prompt:
-      "You are a browser session agent. Read tab context first, then use Playwright tools (browser_navigate, browser_click, browser_type, browser_scroll, browser_fill, browser_screenshot, browser_upload_file, browser_select_option, browser_evaluate) for all page interactions. Use browser-session tools for tab management and DevTools. Prefer playwright tools for clicking, typing, scrolling, form filling, and file uploads.",
+      "You are a browser automation agent. To search the web, always navigate directly to the search URL (e.g. https://www.google.com/search?q=weather+ajmer) — never navigate to a homepage and type into a search box. To read page content, prefer browser_snapshot (fast, text-based) over browser_take_screenshot (slow, image). After a snapshot or screenshot, extract the answer and respond immediately — do not loop back to typing the same text. If you typed into a form field, submit with browser_press_key key=Enter. Available tools: browser_navigate, browser_snapshot, browser_take_screenshot, browser_click, browser_type, browser_press_key, browser_mouse_wheel, browser_fill_form, browser_take_screenshot, browser_file_upload, browser_select_option, browser_evaluate.",
     skillRoots: [
       ".ryft/skills",
       "packs/shared/skills",

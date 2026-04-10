@@ -47,7 +47,15 @@ export interface CompressedToolSchema {
   description: string; // short, one sentence
   inputSchema?: {
     type: string;
-    properties?: Record<string, { type: string; description?: string }>;
+    properties?: Record<
+      string,
+      {
+        type: string;
+        description?: string;
+        items?: unknown; // For array types
+        enum?: unknown[]; // For enum types
+      }
+    >;
     required?: string[];
   };
 }

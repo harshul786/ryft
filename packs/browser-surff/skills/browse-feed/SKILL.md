@@ -6,7 +6,7 @@ context: inline
 effort: Medium
 when-to-use: Use when the user wants to browse, read, or collect posts/jobs/listings from a feed that loads more content as you scroll.
 tags: [browser, feed, scroll, linkedin, naukri]
-allowed-tools: browser_scroll, browser_screenshot, browser_evaluate, browser_navigate
+allowed-tools: browser_mouse_wheel, browser_take_screenshot, browser_evaluate, browser_navigate
 ---
 
 # Browse Feed
@@ -15,9 +15,9 @@ Use this skill to scroll through infinite-scroll feeds and extract items (posts,
 
 ## Procedure
 
-1. **Take an initial screenshot** with `browser_screenshot` to establish the current scroll position and visible items.
+1. **Take an initial screenshot** with `browser_take_screenshot` to establish the current scroll position and visible items.
 2. **Extract visible items** using `browser_evaluate` to query the DOM for feed item selectors (post cards, job cards, article tiles, etc.).
-3. **Scroll down** one viewport height using `browser_scroll` with `direction: "down"` and `amount: 800`.
+3. **Scroll down** one viewport height using `browser_mouse_wheel` with `direction: "down"` and `amount: 800`.
 4. **Wait for new content** — call `browser_evaluate` to check if the item count increased or a loading spinner disappeared.
 5. **Repeat steps 2–4** until a stop condition is met.
 
