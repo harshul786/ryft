@@ -105,6 +105,14 @@ export interface Skill {
   /** File path to the skill definition (markdown file) */
   file?: string;
 
+  // ============ VERSIONING & DEPENDENCIES ============
+
+  /** Semantic version of the skill (e.g., "1.0.0", "2.1.5") */
+  version?: string;
+
+  /** Skill dependencies: { skillName: versionRange } (e.g., { "formatter": "^1.0", "linter": "~2.1" }) */
+  dependencies?: { [skillName: string]: string };
+
   // ============ EXECUTION CONTEXT ============
 
   /** How the skill should be executed: 'inline' or 'fork' (sub-agent) */

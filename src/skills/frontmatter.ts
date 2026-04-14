@@ -350,6 +350,78 @@ export function extractAgent(content: string): string | undefined {
 }
 
 /**
+ * Extract semantic version from skill content
+ *
+ * Looks for `version:` field in frontmatter.
+ * Format: Major.Minor.Patch (e.g., "1.0.0", "2.1.5")
+ *
+ * @param content - Markdown content
+ * @returns Semantic version string, or undefined if not specified
+ * @example
+ * const version = extractVersion(skillContent);
+ * // version = "1.2.3"
+ */
+export function extractVersion(content: string): string | undefined {
+  const fm = getFrontmatterData(content);
+
+  if (typeof fm.version === "string") {
+    return fm.version;
+  }
+
+  return undefined;
+}
+
+/**
+ * Extract dependencies from skill content
+ *
+ * Looks for `dependencies:` field in frontmatter.
+ * Format: JSON object mapping skill names to version ranges
+ *
+ * **Supported range formats:**
+ * - `^1.0.0` - Caret: compatible with version
+ * - `~1.0.0` - Tilde: approximately equivalent version
+ * - `1.0.0` - Exact version match
+ * - `>=1.0.0`, `>1.0.0`, etc. - Comparison operators
+ *
+ * **Examples:**
+ * ```yaml
+ * dependencies:
+ *   - formatter: "^2.0"
+ *     linter: "~1.5"
+ *     utilities: "1.0.0"
+ * ```
+ * or YAML map syntax:
+ * ```yaml
+ * dependencies: { formatter: "^2.0", linter: "~1.5" }
+ * ```
+ *
+ * @param content - Markdown content
+ * @returns Object mapping skill names to version ranges, or undefined if not specified
+ * @example
+ * const deps = extractDependencies(skillContent);
+ * // { "formatter": "^1.0", "linter": "~2.1" }
+ */
+export function extractDependencies(
+  content: string,
+): { [skillName: string]: string } | undefined {
+  const fm = getFrontmatterData(content);
+
+  if (fm.dependencies && typeof fm.dependencies === "object") {
+    const deps: { [skillName: string]: string } = {};
+
+    for (const [key, value] of Object.entries(fm.dependencies)) {
+      if (typeof value === "string") {
+        deps[key] = value;
+      }
+    }
+
+    return Object.keys(deps).length > 0 ? deps : undefined;
+  }
+
+  return undefined;
+}
+
+/**
  * Enrich a skill by reading its file and parsing all metadata
  *
  * **This is the main entry point** for skill enrichment - reads the actual
@@ -392,6 +464,8 @@ export async function enrichSkillFromFile(
     const userInvocable = extractUserInvocable(content);
     const model = extractModel(content);
     const agent = extractAgent(content);
+    const version = extractVersion(content);
+    const dependencies = extractDependencies(content);
     const frontmatterRaw = getFrontmatterData(content);
 
     // Return enriched skill
@@ -406,6 +480,8 @@ export async function enrichSkillFromFile(
       userInvocable,
       model,
       agent,
+      version,
+      dependencies,
       frontmatterRaw,
     };
   } catch (error) {

@@ -8,6 +8,11 @@ import { enrichSkillFromFile } from "./frontmatter.ts";
 import { fetchMcpSkillsForClient } from "./mcpSkills.ts";
 import { filterSkillsForSecurity } from "./mcpSkillFilters.ts";
 import { FileWatcher } from "../utils/skillChangeDetector.ts";
+import {
+  resolveDependencies,
+  detectVersionConflicts,
+} from "./versionResolver.ts";
+import { getGlobalAnalyticsStore } from "./analytics.ts";
 
 const projectRoot = fileURLToPath(new URL("../..", import.meta.url));
 
@@ -289,6 +294,72 @@ export async function discoverAllSkillsForModes(
     console.log(`[Skills]   ${stat.sourceName}: ${stat.count}${dedupMsg}`);
   }
 
+  // FEATURE 8: Version and dependency tracking
+  const skillRegistry = new Map<string, Skill>(
+    dedupedSkills.map((s) => [s.name, s]),
+  );
+
+  // Count versioned skills and show version info
+  const versionedSkills = dedupedSkills.filter((s) => s.version);
+  if (versionedSkills.length > 0) {
+    console.log(
+      `[Skills] Version info: ${versionedSkills.length} skills with versions`,
+    );
+    versionedSkills.slice(0, 5).forEach((s) => {
+      console.log(`[Skills]   ${s.name}: v${s.version}`);
+    });
+    if (versionedSkills.length > 5) {
+      console.log(
+        `[Skills]   ...and ${versionedSkills.length - 5} more versioned skills`,
+      );
+    }
+  }
+
+  // Validate dependencies and detect conflicts
+  const allConflicts: Array<{ skill: string; message: string }> = [];
+  for (const skill of dedupedSkills) {
+    if (skill.dependencies && Object.keys(skill.dependencies).length > 0) {
+      const resolved = resolveDependencies(skill, skillRegistry);
+      for (const dep of resolved) {
+        if (!dep.isSatisfied) {
+          allConflicts.push({
+            skill: skill.name,
+            message: `⚠️  skill '${skill.name}' requires '${dep.skillName}@${dep.requiredVersion}' (have ${dep.actualVersion || "unavailable"})`,
+          });
+        }
+      }
+    }
+  }
+
+  // Detect version conflicts
+  const conflicts = detectVersionConflicts(skillRegistry);
+  for (const conflict of conflicts) {
+    if (conflict.conflictingDependents.length > 0) {
+      const dependents = conflict.conflictingDependents
+        .map((d) => `${d.skillName}@${d.requiredVersion}`)
+        .join(", ");
+      allConflicts.push({
+        skill: conflict.skillName,
+        message: `⚠️  version conflict: '${conflict.skillName}@${conflict.version}' required by: ${dependents}`,
+      });
+    }
+  }
+
+  // Log conflicts
+  if (allConflicts.length > 0) {
+    console.warn(
+      `[Skills] Found ${allConflicts.length} dependency/version conflicts:`,
+    );
+    allConflicts.slice(0, 10).forEach((c) => {
+      console.warn(`[Skills] ${c.message}`);
+    });
+    if (allConflicts.length > 10) {
+      console.warn(
+        `[Skills] ...and ${allConflicts.length - 10} more conflicts`,
+      );
+    }
+  }
+
   // Log load statistics if there were errors
   if (lastLoadStats.failed > 0 || lastLoadStats.errors.length > 0) {
     console.warn(
@@ -342,6 +413,58 @@ export function clearDiscoveryCache(): void {
  */
 export function getLoadStats(): LoadStats {
   return { ...lastLoadStats };
+}
+
+/**
+ * Log startup analytics about skills and tools
+ *
+ * Displays:
+ * - Total skills count (unconditional + conditional)
+ * - Active skills count
+ * - Tool permission summary
+ * - Recently used skills (from analytics)
+ *
+ * Called during startup to give users visibility into skill composition
+ * and tool permissions. Uses registry and analytics data.
+ *
+ * Example output:
+ * ```
+ * [Skills] Analytics: 50 total (30 unconditional, 20 conditional) | 32 currently active
+ * [Skills] Tool permissions: read(15), write(8), execute(22)
+ * [Skills] Top 3 skills: format, test, build
+ * ```
+ */
+export function logStartupAnalytics(): void {
+  const registry = getGlobalSkillRegistry();
+  const analytics = getGlobalAnalyticsStore();
+
+  // Get skill statistics
+  const stats = registry.getSkillStats();
+  const skillsMsg = `Skills: ${stats.total} total (${stats.unconditional} unconditional, ${stats.conditional} conditional) | ${stats.active} currently active`;
+  console.log(`[Skills] ${skillsMsg}`);
+
+  // Get tool permission summary from analytics
+  const toolPerms = registry.getToolPermissionSummary();
+  const toolEntries = Object.entries(toolPerms)
+    .sort((a, b) => b[1] - a[1])
+    .map(([type, count]) => `${type}(${count})`)
+    .join(", ");
+
+  if (toolEntries.length > 0) {
+    console.log(`[Skills] Tool permissions: ${toolEntries}`);
+  }
+
+  // Get top skills from analytics
+  const analyticsData = analytics.getAnalytics();
+  if (analyticsData.topSkills.length > 0) {
+    const topSkillsNames = analyticsData.topSkills.slice(0, 3).map((s) => s.name);
+    console.log(`[Skills] Recently used: ${topSkillsNames.join(", ")}`);
+  }
+
+  DEBUG &&
+    console.debug(
+      `[Analytics] Enabled: ${analytics.isEnabled()}, Skills tracked: ${analytics.getSkillCount()}, Tools tracked: ${analytics.getToolCount()}`,
+    );
 }
 
 /**
