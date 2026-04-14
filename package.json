@@ -29,6 +29,7 @@
     "auto-bind": "^5.0.1",
     "bidi-js": "^1.0.3",
     "chalk": "^5.4.1",
+    "chokidar": "^5.0.0",
     "cli-boxes": "^3.0.0",
     "cli-highlight": "^2.1.11",
     "commander": "^13.1.0",

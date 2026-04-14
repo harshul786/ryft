@@ -564,6 +564,70 @@ export class SkillRegistry {
 
     return byServer;
   }
+
+  /**
+   * Get comprehensive deduplication statistics
+   *
+   * **Purpose:**
+   * Provides detailed metrics about skill deduplication for reporting and testing.
+   * Shows how many skills were deduplicated overall, per source, and file paths resolved.
+   *
+   * **Output Example:**
+   * ```typescript
+   * const stats = registry.getDedupStats();
+   * // {
+   * //   totalPaths: 87,
+   * //   uniqueSkills: 82,
+   * //   totalDuplicates: 5,
+   * //   realPathCacheSize: 82,
+   * //   bySource: [
+   * //     { source: 'bundled', registered: 45, duplicates: 2 },
+   * //     { source: 'user', registered: 25, duplicates: 1 },
+   * //     { source: 'mcp', registered: 12, duplicates: 2 },
+   * //   ]
+   * // }
+   * ```
+   *
+   * **Usage:**
+   * - Verify deduplication is working correctly in tests
+   * - Monitor startup performance
+   * - Debug duplicate resolution
+   *
+   * @returns Object with detailed dedup statistics
+   */
+  getDedupStats(): {
+    totalPaths: number;
+    uniqueSkills: number;
+    totalDuplicates: number;
+    realPathCacheSize: number;
+    bySource: Array<{ source: string; registered: number; duplicates: number }>;
+  } {
+    const totalDuplicates = Array.from(this.sourceCounts.values()).reduce(
+      (sum, stat) => sum + stat.duplicates,
+      0,
+    );
+    
+    const totalPaths = Array.from(this.sourceCounts.values()).reduce(
+      (sum, stat) => sum + stat.count,
+      0,
+    );
+
+    const bySource = Array.from(this.sourceCounts.entries())
+      .map(([source, stats]) => ({
+        source,
+        registered: stats.count,
+        duplicates: stats.duplicates,
+      }))
+      .sort((a, b) => b.registered - a.registered);
+
+    return {
+      totalPaths,
+      uniqueSkills: this.entries.size,
+      totalDuplicates,
+      realPathCacheSize: this.realPathCache.size,
+      bySource,
+    };
+  }
 }
 
 /**

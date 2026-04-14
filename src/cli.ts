@@ -34,9 +34,12 @@ import {
   DEFAULT_SKILL_SOURCES,
   discoverProjectSkillDirs,
 } from "./config/skillSources.ts";
+import { initializeSkillWatcher } from "./skills/loader.ts";
 
 // Setup centralized error handling
 setupErrorHandlers();
+
+const DEBUG = process.env.DEBUG_SKILLS === "true";
 
 const program = new Command();
 
@@ -217,6 +220,15 @@ async function main(): Promise<void> {
   // Initialize MCP servers to register tools (needed for tool execution)
   await session.initializeMcpServers();
 
+  // Initialize skill watcher for hot reload
+  let skillWatcher = null;
+  try {
+    skillWatcher = await initializeSkillWatcher(skillSources);
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : String(error);
+    console.warn(`[CLI] Failed to initialize skill watcher: ${reason}`);
+  }
+
   if (opts.prompt) {
     const prompt = await promptWithSession(session, opts.prompt);
     const response = await streamChatCompletion({
@@ -303,8 +315,18 @@ async function main(): Promise<void> {
   });
 
   // Handle graceful exit
-  process.on("SIGINT", () => {
+  process.on("SIGINT", async () => {
     unmount();
+    // Clean up skill watcher to prevent memory leaks
+    if (skillWatcher) {
+      try {
+        await skillWatcher.close();
+        DEBUG && console.debug("[CLI] Skill watcher closed");
+      } catch (error) {
+        const reason = error instanceof Error ? error.message : String(error);
+        DEBUG && console.debug(`[CLI] Error closing watcher: ${reason}`);
+      }
+    }
     process.exit(0);
   });
 }

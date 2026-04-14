@@ -208,3 +208,182 @@ test("SkillRegistry - resetGlobalRegistry clears everything", async () => {
   const newRegistry = getGlobalSkillRegistry();
   assert.equal(newRegistry.size(), 0);
 });
+
+// ============================================================================
+// FEATURE 4: Deduplication Tests
+// ============================================================================
+
+test("SkillRegistry - deduplication: same file from different sources", async () => {
+  const registry = new SkillRegistry();
+
+  const skill1: Skill = {
+    name: "edit",
+    description: "Edit skill v1",
+    file: "/tmp/bundled/edit.md",
+  };
+
+  const skill2: Skill = {
+    name: "edit",
+    description: "Edit skill v2 (user override)",
+    file: "/tmp/bundled/edit.md", // Same file path
+  };
+
+  // Register from bundled first
+  await registry.register(skill1, "bundled");
+  assert.equal(registry.size(), 1);
+
+  // Register same file from user - should deduplicate
+  await registry.register(skill2, "user");
+  assert.equal(registry.size(), 1); // Still 1 unique skill
+
+  // Later registration should win
+  const retrieved = registry.get("edit");
+  assert.equal(retrieved?.description, "Edit skill v2 (user override)");
+});
+
+test("SkillRegistry - deduplication stats track duplicates correctly", async () => {
+  const registry = new SkillRegistry();
+
+  // Register 3 bundled skills
+  await registry.register(
+    { name: "skill1", description: "S1", file: "/tmp/s1.md" },
+    "bundled",
+  );
+  await registry.register(
+    { name: "skill2", description: "S2", file: "/tmp/s2.md" },
+    "bundled",
+  );
+  await registry.register(
+    { name: "skill3", description: "S3", file: "/tmp/s3.md" },
+    "bundled",
+  );
+
+  // Register duplicates (same files from different source)
+  await registry.register(
+    { name: "skill1", description: "S1-override", file: "/tmp/s1.md" },
+    "user",
+  );
+  await registry.register(
+    { name: "skill2", description: "S2-override", file: "/tmp/s2.md" },
+    "user",
+  );
+
+  // Get stats
+  const stats = registry.getDedupStats();
+
+  assert.equal(stats.uniqueSkills, 3);
+  assert.equal(stats.totalPaths, 5); // 3 from bundled + 2 from user
+  assert.equal(stats.totalDuplicates, 2);
+
+  // Check per-source stats
+  const bundledStat = stats.bySource.find((s) => s.source === "bundled");
+  assert(bundledStat);
+  assert.equal(bundledStat.registered, 3);
+  assert.equal(bundledStat.duplicates, 0);
+
+  const userStat = stats.bySource.find((s) => s.source === "user");
+  assert(userStat);
+  assert.equal(userStat.registered, 2);
+  assert.equal(userStat.duplicates, 2);
+});
+
+test("SkillRegistry - discovery stats show dedup summary", async () => {
+  const registry = new SkillRegistry();
+
+  // Register skills from multiple sources
+  await registry.register(
+    { name: "a", description: "A", file: "/tmp/a.md" },
+    "project",
+  );
+  await registry.register(
+    { name: "b", description: "B", file: "/tmp/b.md" },
+    "user",
+  );
+  await registry.register(
+    { name: "c", description: "C", file: "/tmp/c.md" },
+    "bundled",
+  );
+
+  // Register duplicate (same as 'a')
+  await registry.register(
+    { name: "a-override", description: "A2", file: "/tmp/a.md" },
+    "user",
+  );
+
+  const stats = registry.getDiscoveryStats();
+
+  // Should have 3 sources with entries
+  assert.equal(stats.length, 3);
+
+  const projectStat = stats.find((s) => s.sourceName === "project");
+  assert(projectStat);
+  assert.equal(projectStat.count, 1);
+  assert.equal(projectStat.duplicates, 0);
+
+  const userStat = stats.find((s) => s.sourceName === "user");
+  assert(userStat);
+  assert.equal(userStat.count, 2);
+  assert.equal(userStat.duplicates, 1);
+});
+
+test("SkillRegistry - dedup respects name-based keys for files without path", async () => {
+  const registry = new SkillRegistry();
+
+  const skill1: Skill = {
+    name: "dynamic",
+    description: "Dynamic skill",
+    // No file path
+  };
+
+  const skill2: Skill = {
+    name: "dynamic",
+    description: "Different source",
+    // No file path
+  };
+
+  await registry.register(skill1, "bundled");
+  assert.equal(registry.size(), 1);
+
+  // Register same name-source combination should not create duplicate
+  await registry.register(skill2, "bundled");
+  assert.equal(registry.size(), 1);
+
+  // But different sources should create different entries
+  await registry.register(skill2, "user");
+  assert.equal(registry.size(), 2);
+});
+
+test("SkillRegistry - getDedupStats returns accurate metrics", async () => {
+  const registry = new SkillRegistry();
+
+  // Simulate a realistic scenario
+  await registry.register(
+    { name: "compact", description: "Compact", file: "/bundled/compact.md" },
+    "bundled",
+  );
+  await registry.register(
+    { name: "edit", description: "Edit", file: "/bundled/edit.md" },
+    "bundled",
+  );
+  await registry.register(
+    { name: "custom", description: "Custom", file: "/project/custom.md" },
+    "project",
+  );
+
+  // Duplicates (same files from different sources)
+  await registry.register(
+    { name: "compact", description: "Compact (override)", file: "/bundled/compact.md" },
+    "project",
+  );
+  await registry.register(
+    { name: "edit", description: "Edit (override)", file: "/bundled/edit.md" },
+    "mcp",
+  );
+
+  const stats = registry.getDedupStats();
+
+  assert.equal(stats.uniqueSkills, 3);
+  assert.equal(stats.totalPaths, 5); // 2 bundled + 1 project + 2 from duplicates
+  assert.equal(stats.totalDuplicates, 2);
+  assert(stats.realPathCacheSize > 0);
+});

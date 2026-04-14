@@ -9,6 +9,7 @@ import { memory } from "./memory.ts";
 import { clear } from "./clear.ts";
 import { skills } from "./skills.ts";
 import { mcp } from "./mcp.ts";
+import { createSkill } from "./createSkill.ts";
 
 // Register all commands
 const allCommands: Command[] = [
@@ -19,6 +20,7 @@ const allCommands: Command[] = [
   memory,
   clear,
   skills,
+  createSkill,
   mcp,
   exit,
 ];
@@ -35,4 +37,4 @@ export function initializeCommands(): void {
 }
 
 // Auto-export for convenience
-export { help, mode, model, config, memory, clear, skills, mcp, exit };
+export { help, mode, model, config, memory, clear, skills, createSkill, mcp, exit };
