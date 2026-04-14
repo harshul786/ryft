@@ -7,6 +7,7 @@
 
 import { realpath } from "node:fs/promises";
 import type { Skill } from "../types.ts";
+import { matchesPattern } from "./pathActivator.ts";
 
 /**
  * Tracks a skill and its source for deduplication
@@ -14,7 +15,7 @@ import type { Skill } from "../types.ts";
 interface RegistryEntry {
   skill: Skill;
   realPath: string;
-  source: "bundled" | "user" | "project" | "mode";
+  source: "bundled" | "user" | "project" | "mode" | "mcp";
   timestamp: number;
 }
 
@@ -26,6 +27,11 @@ export class SkillRegistry {
   private realPathCache: Map<string, string> = new Map();
   private nameIndex: Map<string, string> = new Map(); // name -> realPath mapping
   private loadSignal: ((skills: Skill[]) => void) | null = null;
+  private activatedConditionalSkills: Set<string> = new Set(); // Activated conditional skill names
+  private sourceCounts: Map<
+    string,
+    { count: number; duplicates: number }
+  > = new Map(); // Track counts per source
 
   /**
    * Register a skill in the registry with deduplication by realpath
@@ -51,6 +57,13 @@ export class SkillRegistry {
    * @param source - Source of skill (bundled/user/project/mode) for filtering
    */
   async register(skill: Skill, source: RegistryEntry["source"]): Promise<void> {
+    // Track this registration for stats
+    if (!this.sourceCounts.has(source)) {
+      this.sourceCounts.set(source, { count: 0, duplicates: 0 });
+    }
+    const stats = this.sourceCounts.get(source)!;
+    stats.count++;
+
     if (!skill.file) {
       // For skills without file path, use name + source as unique key
       const key = `${source}:${skill.name}`;
@@ -67,8 +80,9 @@ export class SkillRegistry {
     // Resolve to realpath for deduplication
     const realPath = await this.resolveRealPath(skill.file);
 
-    // If file already registered, remove old name index entry
+    // If file already registered, count as duplicate
     if (this.entries.has(realPath)) {
+      stats.duplicates++;
       const oldEntry = this.entries.get(realPath)!;
       // Remove old name from index if it's different
       if (oldEntry.skill.name !== skill.name) {
@@ -159,6 +173,8 @@ export class SkillRegistry {
    * - All registered skills
    * - Name index
    * - Realpath cache
+   * - Source tracking counts
+   * - Activated conditional skills
    *
    * Call this when:
    * - Skill files have been added/removed
@@ -169,6 +185,196 @@ export class SkillRegistry {
     this.entries.clear();
     this.nameIndex.clear();
     this.realPathCache.clear();
+    this.activatedConditionalSkills.clear();
+    this.sourceCounts.clear();
+  }
+
+  /**
+   * Get all skills with conditional activation paths
+   *
+   * Returns only skills that have a `paths?` field defined.
+   * These skills are only available when file paths match.
+   *
+   * @returns Array of conditional skills
+   */
+  getConditionalSkills(): Skill[] {
+    return this.getAll().filter((skill) => skill.paths && skill.paths.length > 0);
+  }
+
+  /**
+   * Get all skills without conditional activation paths
+   *
+   * Returns only skills that don't have a `paths?` field defined.
+   * These skills are always available.
+   *
+   * @returns Array of unconditional skills
+   */
+  getUnconditionalSkills(): Skill[] {
+    return this.getAll().filter((skill) => !skill.paths || skill.paths.length === 0);
+  }
+
+  /**
+   * Activate skills based on file path
+   *
+   * Checks all conditional skills to see if any match the given file path.
+   * Once a skill is activated, it remains activated for the entire session.
+   *
+   * **Algorithm:**
+   * 1. Get all conditional skills
+   * 2. For each conditional skill, check if file matches its patterns
+   * 3. If matches, add skill name to activated set (never removed)
+   * 4. Activated skills are included in context window alongside unconditional skills
+   *
+   * **Performance:** O(n*m) where n=conditional skills, m=avg patterns per skill
+   * Typically <1ms for 100 conditional skills with 2-3 patterns each.
+   *
+   * @param filePath - File path to check (e.g., "src/Makefile")
+   * @example
+   * ```typescript
+   * registry.activateSkillsForFile("Makefile");
+   * // Any conditional skill with paths: ["Makefile"] is now activated
+   * ```
+   */
+  activateSkillsForFile(filePath: string): void {
+    const conditionalSkills = this.getConditionalSkills();
+
+    for (const skill of conditionalSkills) {
+      if (skill.paths && matchesPattern(filePath, skill.paths)) {
+        this.activatedConditionalSkills.add(skill.name);
+      }
+    }
+  }
+
+  /**
+   * Get all currently active skills
+   *
+   * Combines:
+   * - All unconditional skills
+   * - All conditional skills that have been activated
+   *
+   * This is the set of skills that should be included in the context window.
+   *
+   * @returns Array of active skills
+   */
+  getActiveSkills(): Skill[] {
+    const active: Skill[] = [];
+
+    for (const skill of this.getAll()) {
+      // Include unconditional skills
+      if (!skill.paths || skill.paths.length === 0) {
+        active.push(skill);
+        continue;
+      }
+
+      // Include activated conditional skills
+      if (this.activatedConditionalSkills.has(skill.name)) {
+        active.push(skill);
+      }
+    }
+
+    return active;
+  }
+
+  /**
+   * Get statistics about skill categorization and activation
+   *
+   * Useful for understanding skill composition and context window impact.
+   *
+   * @returns Object with detailed stats
+   * @example
+   * ```typescript
+   * const stats = registry.getSkillStats();
+   * console.log(`${stats.total} total (${stats.unconditional} unconditional, ${stats.conditional} conditional) | ${stats.active} currently active`);
+   * // Output: "150 total (100 unconditional, 50 conditional) | 105 currently active"
+   * ```
+   */
+  getSkillStats(): {
+    total: number;
+    unconditional: number;
+    conditional: number;
+    active: number;
+    activeConditional: number;
+  } {
+    const allSkills = this.getAll();
+    const conditionalSkills = allSkills.filter((s) => s.paths && s.paths.length > 0);
+    const unconditionalSkills = allSkills.filter((s) => !s.paths || s.paths.length === 0);
+
+    return {
+      total: allSkills.length,
+      unconditional: unconditionalSkills.length,
+      conditional: conditionalSkills.length,
+      active: unconditionalSkills.length + this.activatedConditionalSkills.size,
+      activeConditional: this.activatedConditionalSkills.size,
+    };
+  }
+
+  /**
+   * Get discovery statistics showing skills loaded from each source
+   *
+   * Useful for startup reporting and debugging:
+   * ```
+   * const stats = registry.getDiscoveryStats();
+   * console.log(`Loaded ${stats.reduce((sum, s) => sum + s.count, 0)} unique skills from ${stats.length} sources`);
+   * console.log(`Duplicates filtered: ${stats.reduce((sum, s) => sum + s.duplicates, 0)}`);
+   * ```
+   *
+   * **Output Example:**
+   * ```typescript
+   * [
+   *   { sourceName: 'project', count: 5, duplicates: 0 },
+   *   { sourceName: 'user', count: 12, duplicates: 1 },
+   *   { sourceName: 'bundled', count: 45, duplicates: 3 },
+   *   { sourceName: 'additional', count: 2, duplicates: 0 },
+   * ]
+   * ```
+   *
+   * @returns Array of discovery stats per source, ordered by discovery priority
+   */
+  getDiscoveryStats(): Array<{
+    sourceName: string;
+    count: number;
+    duplicates: number;
+  }> {
+    // Return stats in priority order
+    const sources = ["project", "user", "bundled", "additional", "mode"];
+    return sources
+      .map((source) => ({
+        sourceName: source,
+        count: this.sourceCounts.get(source)?.count ?? 0,
+        duplicates: this.sourceCounts.get(source)?.duplicates ?? 0,
+      }))
+      .filter((stat) => stat.count > 0);
+  }
+
+  /**
+   * Get the set of currently activated conditional skill names
+   *
+   * Useful for debugging and testing.
+   *
+   * @returns Set of skill names that are currently activated
+   * @internal For debugging/testing purposes
+   */
+  getActivatedConditionalSkillNames(): Set<string> {
+    return new Set(this.activatedConditionalSkills);
+  }
+
+  /**
+   * Check if a skill is currently active
+   *
+   * @param skillName - Name of skill to check
+   * @returns true if skill is active (unconditional or activated conditional)
+   */
+  isSkillActive(skillName: string): boolean {
+    const skill = this.get(skillName);
+    if (!skill) return false;
+
+    // Unconditional skills are always active
+    if (!skill.paths || skill.paths.length === 0) {
+      return true;
+    }
+
+    // Conditional skills are active only if activated
+    return this.activatedConditionalSkills.has(skillName);
   }
 
   /**
@@ -254,6 +460,109 @@ export class SkillRegistry {
       this.realPathCache.set(filePath, filePath);
       return filePath;
     }
+  }
+
+  /**
+   * Get all MCP skills in the registry
+   *
+   * **Features:**
+   * - Filters skills by isMCPSkill: true
+   * - Includes trust level information
+   * - Shows which server each skill came from
+   *
+   * @returns Array of MCP skills, sorted by name
+   * @example
+   * ```typescript
+   * const mcpSkills = registry.getMcpSkills();
+   * console.log(`${mcpSkills.length} MCP skills loaded`);
+   * ```
+   */
+  getMcpSkills(): Skill[] {
+    return this.getAll().filter((skill) => skill.isMCPSkill);
+  }
+
+  /**
+   * Get MCP-specific load statistics
+   *
+   * **Output Format:**
+   * ```
+   * "Loaded 12 MCP skills from 3 servers (5 blocked for security)"
+   * ```
+   *
+   * Includes:
+   * - Total MCP skills loaded
+   * - Unique MCP servers
+   * - Security filtering statistics
+   * - Trust level breakdown
+   *
+   * @returns Object with MCP loading statistics
+   * @example
+   * ```typescript
+   * const stats = registry.getMcpLoadStats();
+   * console.log(stats.summary); // "Loaded 12 MCP skills from 3 servers..."
+   * console.log(stats.trusted); // 2 skills
+   * console.log(stats.untrusted); // 10 skills
+   * ```
+   */
+  getMcpLoadStats(): {
+    totalMcpSkills: number;
+    uniqueServers: number;
+    trusted: number;
+    untrusted: number;
+    summary: string;
+  } {
+    const mcpSkills = this.getMcpSkills();
+    const servers = new Set(
+      mcpSkills.map((skill) => skill.mcpServer).filter(Boolean),
+    );
+    const trusted = mcpSkills.filter(
+      (skill) => skill.trustLevel === "trusted",
+    ).length;
+    const untrusted = mcpSkills.filter(
+      (skill) => skill.trustLevel === "untrusted",
+    ).length;
+
+    const summary =
+      mcpSkills.length === 0
+        ? "No MCP skills loaded"
+        : `Loaded ${mcpSkills.length} MCP skills from ${servers.size} server${servers.size === 1 ? "" : "s"} (${untrusted} untrusted)`;
+
+    return {
+      totalMcpSkills: mcpSkills.length,
+      uniqueServers: servers.size,
+      trusted,
+      untrusted,
+      summary,
+    };
+  }
+
+  /**
+   * Get MCP skills by server
+   *
+   * Groups skills by their source MCP server for analysis.
+   *
+   * @returns Map of server name -> skills
+   * @example
+   * ```typescript
+   * const byServer = registry.getMcpSkillsByServer();
+   * for (const [serverName, skills] of byServer) {
+   *   console.log(`${serverName}: ${skills.length} skills`);
+   * }
+   * ```
+   */
+  getMcpSkillsByServer(): Map<string, Skill[]> {
+    const mcpSkills = this.getMcpSkills();
+    const byServer = new Map<string, Skill[]>();
+
+    for (const skill of mcpSkills) {
+      const server = skill.mcpServer || "unknown";
+      if (!byServer.has(server)) {
+        byServer.set(server, []);
+      }
+      byServer.get(server)!.push(skill);
+    }
+
+    return byServer;
   }
 }
 

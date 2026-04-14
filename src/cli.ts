@@ -29,6 +29,11 @@ import { Root } from "./components/Root.tsx";
 import { setupErrorHandlers, cliError } from "./cli/exit.ts";
 import { handleLogsCommand } from "./commands/logs.ts";
 import { logger, getFeatureLogger } from "./logging/index.ts";
+import {
+  type SkillSourcesConfig,
+  DEFAULT_SKILL_SOURCES,
+  discoverProjectSkillDirs,
+} from "./config/skillSources.ts";
 
 // Setup centralized error handling
 setupErrorHandlers();
@@ -52,7 +57,8 @@ program
   .option("--api-key <key>", "override the upstream API key")
   .option("--browser", "initialize browser automation support")
   .option("--serve-proxy", "run only the local proxy server")
-  .option("--prompt <text>", "send a single prompt and exit");
+  .option("--prompt <text>", "send a single prompt and exit")
+  .option("--add-dir <paths...>", "add additional skill directories");
 
 program
   .command("logs [subcommand...]")
@@ -92,6 +98,7 @@ async function main(): Promise<void> {
     browser?: boolean;
     serveProxy?: boolean;
     prompt?: string;
+    addDir?: string[];
   }>();
 
   // Initialize logger based on environment
@@ -134,6 +141,17 @@ async function main(): Promise<void> {
 
   // Resolve memory mode from config or CLI
   const memoryMode = opts.memory ?? config.defaultMemoryMode ?? "claude-like";
+
+  // Initialize skill sources with multi-source discovery
+  const skillSources: SkillSourcesConfig = {
+    ...DEFAULT_SKILL_SOURCES,
+    project: discoverProjectSkillDirs(process.cwd()),
+    additional: opts.addDir ?? [],
+  };
+
+  if (process.env.DEBUG_SKILLS === "true") {
+    console.debug("[CLI] Skill sources initialized:", skillSources);
+  }
 
   const session = createSession({
     modes: resolveModes(modes),

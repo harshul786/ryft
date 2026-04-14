@@ -106,6 +106,17 @@ export interface Skill {
   /** Whether this skill can be invoked via CLI commands (e.g., /skill-name) */
   userInvocable?: boolean;
 
+  // ============ MCP SKILLS INTEGRATION ============
+
+  /** Whether this skill comes from an MCP server */
+  isMCPSkill?: boolean;
+
+  /** Name of the MCP server this skill came from */
+  mcpServer?: string;
+
+  /** Trust level for this skill (MCP skills default to 'untrusted') */
+  trustLevel?: "trusted" | "untrusted";
+
   // ============ HOOKS & LIFECYCLE ============
 
   /** Hooks registered on skill invocation */

@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 import type { Mode, Skill } from "../types.ts";
 import { getGlobalSkillRegistry } from "./registry.ts";
 import { enrichSkillFromFile } from "./frontmatter.ts";
+import { fetchMcpSkillsForClient } from "./mcpSkills.ts";
+import { filterSkillsForSecurity } from "./mcpSkillFilters.ts";
 
 const projectRoot = fileURLToPath(new URL("../..", import.meta.url));
 
@@ -166,16 +168,19 @@ async function loadSkillsFromDirs(dirPaths: string[]): Promise<Skill[]> {
  * 2. Parallel scan all directories for SKILL.md files
  * 3. Parse frontmatter and enrich metadata for each skill
  * 4. Register in global SkillRegistry (auto-deduplicates by realpath)
- * 5. Sort by name
- * 6. Cache by mode set
+ * 5. Fetch MCP skills from configured servers
+ * 6. Filter MCP skills for security boundaries
+ * 7. Register MCP skills in registry
+ * 8. Sort by name
+ * 9. Cache by mode set
  *
  * **Performance:**
- * - First call: ~2ms (parallel filesystem I/O + parsing)
+ * - First call: ~2ms (parallel filesystem I/O + parsing) + ~5ms (MCP fetch with cache hits)
  * - Cached call: <1ms (map lookup)
- * - Gracefully handles missing directories
+ * - Gracefully handles missing directories or offline MCP servers
  *
  * @param modes - Array of Mode objects to discover skills for
- * @returns Promise<Skill[]> - Deduped skills available in these modes, sorted by name
+ * @returns Promise<Skill[]> - Deduped skills (bundled + MCP) available in these modes, sorted by name
  * @throws Never - gracefully handles errors, logs warnings
  */
 export async function discoverAllSkillsForModes(
@@ -220,11 +225,48 @@ export async function discoverAllSkillsForModes(
     await registry.register(skill, "mode");
   }
 
+  // FEATURE 3: Fetch and integrate MCP skills
+  const mcpServers = [
+    ...new Set(modes.flatMap((mode) => mode.mcpServers ?? [])),
+  ];
+
+  let mcpSkills: Skill[] = [];
+  if (mcpServers.length > 0) {
+    DEBUG &&
+      console.debug(
+        `[Skills] Fetching MCP skills from ${mcpServers.length} servers...`,
+      );
+    try {
+      mcpSkills = await fetchMcpSkillsForClient(mcpServers);
+      DEBUG &&
+        console.debug(
+          `[Skills] Fetched ${mcpSkills.length} MCP skills (before filtering)`,
+        );
+
+      // Apply security filtering to MCP skills
+      const filteredMcpSkills = filterSkillsForSecurity(mcpSkills);
+      DEBUG &&
+        console.debug(
+          `[Skills] Filtered to ${filteredMcpSkills.length} safe MCP skills`,
+        );
+
+      mcpSkills = filteredMcpSkills;
+
+      // Register MCP skills in registry
+      for (const skill of mcpSkills) {
+        await registry.register(skill, "mcp");
+      }
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      console.warn(`[Skills] Failed to load MCP skills: ${reason}`);
+    }
+  }
+
   // Get deduplicated skills from registry
   const dedupedSkills = registry.getAll();
   DEBUG &&
     console.debug(
-      `[Skills] After dedup: ${dedupedSkills.length} unique skills`,
+      `[Skills] After dedup: ${dedupedSkills.length} unique skills (${loadedSkills.length} bundled + ${mcpSkills.length} MCP)`,
     );
 
   // Log load statistics if there were errors

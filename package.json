@@ -34,6 +34,7 @@
     "commander": "^13.1.0",
     "emoji-regex": "^10.6.0",
     "figures": "^6.1.0",
+    "ignore": "^7.0.5",
     "indent-string": "^5.0.0",
     "ink": "^6.8.0",
     "js-tiktoken": "^1.0.21",
