@@ -27,6 +27,8 @@ import { streamChatCompletion } from "../runtime/llmClient.ts";
 import { createAbortController } from "../runtime/util.ts";
 import { invokeSkill } from "../tools/skill-tool.ts";
 import { COLORS, SPINNER_FRAMES, SPINNER_INTERVAL_MS } from "../ui/theme.ts";
+import { FileEditPreview } from "../components/FileEditPreview.tsx";
+import { useTurnDiffs } from "../hooks/useTurnDiffs.ts";
 import type { Session } from "../runtime/session.ts";
 import type { ProviderType } from "../types.ts";
 
@@ -70,13 +72,17 @@ export const REPL: React.FC = () => {
 
   const [spinnerFrame, setSpinnerFrame] = useState(0);
   const [termRows, setTermRows] = useState<number>(process.stdout.rows ?? 24);
+  const [termCols, setTermCols] = useState<number>(process.stdout.columns ?? 80);
 
   // Keep appStateRef in sync on every render
   appStateRef.current = appState;
 
   // ── Terminal resize ───────────────────────────────────────────────────────
   useEffect(() => {
-    const onResize = () => setTermRows(process.stdout.rows ?? 24);
+    const onResize = () => {
+      setTermRows(process.stdout.rows ?? 24);
+      setTermCols(process.stdout.columns ?? 80);
+    };
     process.stdout.on("resize", onResize);
     return () => {
       process.stdout.off("resize", onResize);
@@ -594,6 +600,9 @@ export const REPL: React.FC = () => {
     responding &&
     appState.messages[appState.messages.length - 1]?.role === "user";
 
+  // ── Extract file changes from recent messages for diff preview ────────────
+  const fileChanges = useTurnDiffs(appState.messages);
+
   // ── Selector overlay ──────────────────────────────────────────────────────
   if (appState.selector) {
     return (
@@ -790,6 +799,17 @@ export const REPL: React.FC = () => {
               </Box>
             );
           })
+        )}
+
+        {/* File edit preview — shows diffs for recent file operations */}
+        {fileChanges && fileChanges.length > 0 && (
+          <Box flexDirection="column" marginBottom={1} marginTop={1}>
+            <FileEditPreview
+              changes={fileChanges}
+              terminalWidth={termCols}
+              showOnlyFirst={true}
+            />
+          </Box>
         )}
 
         {/* Inline spinner — shows when waiting for first delta */}

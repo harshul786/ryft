@@ -4,6 +4,8 @@
  * Uses named terminal colors for broad compatibility.
  */
 
+import chalk from "chalk";
+
 export const COLORS = {
   /** Primary brand color — blue */
   primary: "blue" as const,
@@ -45,6 +47,12 @@ export const COLORS = {
   scrollHint: "yellow" as const,
   /** Muted helper text */
   hint: "gray" as const,
+  /** Diff: added lines */
+  diffAdded: "green" as const,
+  /** Diff: removed lines */
+  diffRemoved: "red" as const,
+  /** Diff: context lines */
+  diffContext: "gray" as const,
 } as const;
 
 export type ThemeColor = (typeof COLORS)[keyof typeof COLORS];
@@ -63,3 +71,26 @@ export const SPINNER_FRAMES = [
   "⠏",
 ] as const;
 export const SPINNER_INTERVAL_MS = 80;
+
+// ─── Diff Styling Helpers ──────────────────────────────────────────────────
+
+/**
+ * Format text as an added diff line (green).
+ */
+export function formatDiffAdded(text: string): string {
+  return chalk.green(text);
+}
+
+/**
+ * Format text as a removed diff line (red).
+ */
+export function formatDiffRemoved(text: string): string {
+  return chalk.red(text);
+}
+
+/**
+ * Format text as diff context (dimmed).
+ */
+export function formatDiffContext(text: string): string {
+  return chalk.dim(text);
+}
