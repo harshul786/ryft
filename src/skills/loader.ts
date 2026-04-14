@@ -444,7 +444,7 @@ export function logStartupAnalytics(): void {
   console.log(`[Skills] ${skillsMsg}`);
 
   // Get tool permission summary from analytics
-  const toolPerms = registry.getToolPermissionSummary();
+  const toolPerms = analytics.getToolPermissionSummary();
   const toolEntries = Object.entries(toolPerms)
     .sort((a, b) => b[1] - a[1])
     .map(([type, count]) => `${type}(${count})`)
@@ -463,7 +463,7 @@ export function logStartupAnalytics(): void {
 
   DEBUG &&
     console.debug(
-      `[Analytics] Enabled: ${analytics.isEnabled()}, Skills tracked: ${analytics.getSkillCount()}, Tools tracked: ${analytics.getToolCount()}`,
+      `[Analytics] Skills tracked: ${analyticsData.totalSkillsTracked}, Total invocations: ${analyticsData.totalInvocations}, Success rate: ${analyticsData.successRate}%`,
     );
 }
 
