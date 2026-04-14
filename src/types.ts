@@ -186,6 +186,17 @@ export type ProviderType =
   | "ollama"
   | "openai-compatible";
 
+// ─── Thinking mode configuration ──────────────────────────────────────────────
+
+/**
+ * Thinking configuration for extended reasoning (Claude 4+).
+ * Supports three modes: adaptive (auto-budget), fixed-budget, or disabled.
+ */
+export type ThinkingConfig =
+  | { type: "adaptive" }
+  | { type: "enabled"; budgetTokens: number }
+  | { type: "disabled" };
+
 export interface ModelOption {
   id: string;
   label: string;
@@ -199,6 +210,10 @@ export interface ModelOption {
   /** Which LangChain provider adapter to use. Detected automatically from baseUrl/model prefix
    * when not set explicitly. Defaults to "openai-compatible" for unknown models. */
   providerType?: ProviderType;
+  /** Whether this model supports extended thinking (Claude 4+) */
+  supportsThinking?: boolean;
+  /** Whether this model supports adaptive thinking without budget (Claude 4.6+) */
+  supportsAdaptiveThinking?: boolean;
 }
 
 export type MemoryModeName = "claude-like" | "hierarchy" | "session";
@@ -236,6 +251,8 @@ export interface SessionConfig {
   geminiApiKey?: string;
   /** Ollama base URL (defaults to http://localhost:11434) */
   ollamaBaseUrl?: string;
+  /** Thinking mode configuration (used for extended reasoning in Claude 4+) */
+  thinkingConfig?: ThinkingConfig;
 }
 
 export interface MemoryState {

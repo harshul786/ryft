@@ -25,6 +25,7 @@ import type {
   ToolUseContentPart,
   Usage,
   ProviderType,
+  ThinkingConfig,
 } from "../types.ts";
 import { getFeatureLogger } from "../logging/index.ts";
 
@@ -62,6 +63,7 @@ function buildChatModel(params: {
   ollamaBaseUrl?: string;
   temperature: number;
   maxTokens: number;
+  thinkingConfig?: ThinkingConfig;
 }): any {
   const {
     modelId,
@@ -73,16 +75,39 @@ function buildChatModel(params: {
     ollamaBaseUrl,
     temperature,
     maxTokens,
+    thinkingConfig,
   } = params;
 
   switch (provider) {
-    case "anthropic":
-      return new ChatAnthropic({
+    case "anthropic": {
+      // Build Anthropic client with optional thinking configuration
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const anthropicOptions: any = {
         model: modelId,
         anthropicApiKey: anthropicApiKey || apiKey || undefined,
         temperature,
         maxTokens,
-      });
+      };
+
+      // Add thinking configuration if provided and model supports it
+      if (thinkingConfig && thinkingConfig.type !== "disabled") {
+        if (thinkingConfig.type === "adaptive") {
+          // Adaptive thinking uses auto-budget
+          anthropicOptions.thinking = {
+            type: "enabled",
+            budgetTokens: undefined,
+          };
+        } else if (thinkingConfig.type === "enabled") {
+          // Fixed-budget thinking
+          anthropicOptions.thinking = {
+            type: "enabled",
+            budgetTokens: thinkingConfig.budgetTokens,
+          };
+        }
+      }
+
+      return new ChatAnthropic(anthropicOptions);
+    }
 
     case "google":
       return new ChatGoogleGenerativeAI({
@@ -218,6 +243,8 @@ export interface StreamChatCompletionInput {
   anthropicApiKey?: string;
   geminiApiKey?: string;
   ollamaBaseUrl?: string;
+  /** Thinking mode configuration (only for Claude 4+) */
+  thinkingConfig?: ThinkingConfig;
 }
 
 export interface StreamChatCompletionResult {
@@ -293,6 +320,7 @@ export async function streamChatCompletion({
   anthropicApiKey,
   geminiApiKey,
   ollamaBaseUrl,
+  thinkingConfig,
 }: StreamChatCompletionInput): Promise<
   StreamChatCompletionResult & { toolsProvided: boolean }
 > {
@@ -315,6 +343,7 @@ export async function streamChatCompletion({
     ollamaBaseUrl,
     temperature,
     maxTokens,
+    thinkingConfig,
   });
 
   // Bind tools when provided — LangChain normalises the format per provider

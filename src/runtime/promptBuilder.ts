@@ -85,12 +85,33 @@ ${
 - Return the final results to the user once all skill steps are executed.`
       : "";
 
+  // Thinking mode guidance — only for models that support extended thinking
+  const supportsThinking =
+    session.config.model?.supportsThinking === true &&
+    session.config.thinkingConfig?.type !== "disabled";
+  const thinkingInstructions = supportsThinking
+    ? `## Extended Thinking
+
+This model supports extended thinking for complex reasoning. When working on challenging problems:
+- Use your thinking space to reason through problems step-by-step
+- Break down complex tasks into manageable parts
+- Consider multiple approaches before deciding on the best one
+- Verify your reasoning for correctness
+
+${
+  session.config.thinkingConfig?.type === "enabled"
+    ? `Available thinking budget: ${(session.config.thinkingConfig as { type: string; budgetTokens: number }).budgetTokens} tokens`
+    : "You have access to adaptive thinking with automatic budget adjustment."
+}`
+    : "";
+
   const systemPrompt = applyTokenCap(
     [
       buildModePrompt(session.modes),
       memoryPrompt,
       skillsInstructions,
       toolsInstructions,
+      thinkingInstructions,
       ...(browserModeActive
         ? [BROWSER_SURFF_PROMPT, BROWSER_SURFF_SKILL_HINT]
         : []),

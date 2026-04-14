@@ -117,6 +117,8 @@ const MODEL_GROUPS: ModelProviderGroup[] = [
           "Most capable Claude — complex reasoning and long context.",
         providerType: "anthropic",
         nativeToolSupport: true,
+        supportsThinking: true,
+        supportsAdaptiveThinking: true,
         aliases: ["opus", "claude-opus", "anthropic/claude-opus-4-6"],
       },
       {
@@ -126,6 +128,8 @@ const MODEL_GROUPS: ModelProviderGroup[] = [
         description: "Balanced Claude — everyday coding and analysis.",
         providerType: "anthropic",
         nativeToolSupport: true,
+        supportsThinking: true,
+        supportsAdaptiveThinking: true,
         aliases: ["sonnet", "claude-sonnet", "anthropic/claude-sonnet-4-6"],
       },
       {
@@ -135,6 +139,8 @@ const MODEL_GROUPS: ModelProviderGroup[] = [
         description: "Fastest, most compact Claude for lightweight tasks.",
         providerType: "anthropic",
         nativeToolSupport: true,
+        supportsThinking: true,
+        supportsAdaptiveThinking: false,
         aliases: ["haiku", "claude-haiku", "anthropic/claude-haiku-4-6"],
       },
       // Previous generation — kept for compatibility
@@ -145,6 +151,8 @@ const MODEL_GROUPS: ModelProviderGroup[] = [
         description: "Previous-gen Opus — strong at complex multi-step tasks.",
         providerType: "anthropic",
         nativeToolSupport: true,
+        supportsThinking: true,
+        supportsAdaptiveThinking: false,
         aliases: ["opus-4-5", "anthropic/claude-opus-4-5"],
       },
       {
@@ -154,6 +162,8 @@ const MODEL_GROUPS: ModelProviderGroup[] = [
         description: "Previous-gen Sonnet.",
         providerType: "anthropic",
         nativeToolSupport: true,
+        supportsThinking: true,
+        supportsAdaptiveThinking: false,
         aliases: ["sonnet-4-5", "anthropic/claude-sonnet-4-5"],
       },
       {
@@ -163,6 +173,8 @@ const MODEL_GROUPS: ModelProviderGroup[] = [
         description: "Previous-gen Haiku.",
         providerType: "anthropic",
         nativeToolSupport: true,
+        supportsThinking: true,
+        supportsAdaptiveThinking: false,
         aliases: ["haiku-3-5", "anthropic/claude-haiku-3-5"],
       },
     ],
