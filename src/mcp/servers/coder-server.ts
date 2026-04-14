@@ -9,6 +9,12 @@
  * - list_directory   list entries in a directory
  * - delete_file      delete a file
  * - bash             run a shell command and capture output
+ *
+ * Features:
+ * - File state tracking (mtime/hash detection)
+ * - Permission rules enforcement  
+ * - Syntax validation before writes
+ * - Structured error responses
  */
 
 import {
@@ -22,9 +28,45 @@ import {
 import { resolve, join } from "node:path";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
+import { fileState } from "../utils/fileState";
+import {
+  loadPermissionRules,
+  canRead,
+  canWrite,
+  canDelete,
+  canBash,
+  type PermissionRules,
+} from "../config/permissions";
+import { validateFile } from "../tools/syntaxValidator";
 
 const execAsync = promisify(exec);
 const CWD = process.cwd();
+
+// Initialize permission rules (can be overridden via environment or config)
+let permissionRules = loadPermissionRules({
+  strictMode: process.env.RYFT_STRICT_MODE === "true",
+});
+
+// Load permission config from environment if available
+function initializePermissionsFromEnv(): void {
+  try {
+    // Check for RYFT_PERMISSIONS_JSON which contains stringified config
+    if (process.env.RYFT_PERMISSIONS_JSON) {
+      const config = JSON.parse(process.env.RYFT_PERMISSIONS_JSON);
+      permissionRules = loadPermissionRules(config);
+    } else {
+      // Use defaults but check for strict mode flag
+      permissionRules = loadPermissionRules({
+        strictMode: process.env.RYFT_STRICT_MODE === "true",
+      });
+    }
+  } catch (error) {
+    // Fall back to defaults if parsing fails
+    console.error(
+      `Failed to load permissions from environment: ${error instanceof Error ? error.message : String(error)}`
+    );
+  }
+}
 
 // ── Tool definitions ──────────────────────────────────────────────────────────
 
@@ -153,22 +195,101 @@ function resolvePath(p: string): string {
   return resolve(CWD, p);
 }
 
+/**
+ * Set new permission rules (for runtime configuration)
+ */
+export function setCoderPermissions(rules: PermissionRules): void {
+  permissionRules = rules;
+}
+
+/**
+ * Get current permission rules
+ */
+export function getCoderPermissions(): PermissionRules {
+  return permissionRules;
+}
+
+/**
+ * Clear the file state cache
+ */
+export function clearCoderFileState(): void {
+  fileState.clear();
+}
+
 // ── Tool handlers ─────────────────────────────────────────────────────────────
 
 async function handleReadFile(args: Record<string, unknown>): Promise<string> {
   const filePath = resolvePath(args.path as string);
+  
+  // Check read permissions
+  const readPerm = canRead(filePath, permissionRules);
+  if (!readPerm.allowed) {
+    throw new Error(
+      `Read denied: ${readPerm.reason}. Path: ${filePath}`
+    );
+  }
+
   const content = await readFile(filePath, "utf-8");
+  
+  // Record file state after read for conflict detection
+  await fileState.recordRead(filePath);
+  
   return content;
 }
 
 async function handleWriteFile(args: Record<string, unknown>): Promise<string> {
   const filePath = resolvePath(args.path as string);
   const content = args.content as string;
+
+  // Check write permissions
+  const writePerm = canWrite(filePath, permissionRules);
+  if (!writePerm.allowed) {
+    throw new Error(
+      `Write denied: ${writePerm.reason}. Path: ${filePath}`
+    );
+  }
+
+  // Check if file was modified since last read
+  const isModified = await fileState.checkModified(filePath);
+  if (isModified) {
+    throw new Error(
+      `Write rejected: ${filePath} has been modified since last read. ` +
+      `Run read_file again to get the latest version before writing.`
+    );
+  }
+
+  // Validate syntax if applicable
+  const validation = await validateFile(filePath, content);
+  if (!validation.isValid && validation.errors.length > 0) {
+    const errorList = validation.errors
+      .map(
+        (e) =>
+          `Line ${e.line}: ${e.message}`
+      )
+      .join("\n");
+    throw new Error(
+      `Syntax validation failed for ${filePath} (${validation.language}):\n${errorList}`
+    );
+  }
+
   // Ensure parent directory exists
   const dir = filePath.substring(0, filePath.lastIndexOf("/"));
   if (dir) await mkdir(dir, { recursive: true });
   await writeFile(filePath, content, "utf-8");
-  return `Written ${content.length} characters to ${filePath}`;
+
+  // Record successful write
+  await fileState.recordWrite(filePath);
+
+  // Warn about any validation warnings
+  let message = `Written ${content.length} characters to ${filePath}`;
+  if (validation.warnings && validation.warnings.length > 0) {
+    const warnings = validation.warnings
+      .map((w) => `Line ${w.line}: ${w.message}`)
+      .join("\n");
+    message += `\n⚠️  Validation warnings (${validation.language}):\n${warnings}`;
+  }
+
+  return message;
 }
 
 async function handleStrReplaceInFile(
@@ -177,6 +298,23 @@ async function handleStrReplaceInFile(
   const filePath = resolvePath(args.path as string);
   const oldStr = args.old_str as string;
   const newStr = args.new_str as string;
+
+  // Check write permissions
+  const writePerm = canWrite(filePath, permissionRules);
+  if (!writePerm.allowed) {
+    throw new Error(
+      `Write denied: ${writePerm.reason}. Path: ${filePath}`
+    );
+  }
+
+  // Check if file was modified since last read
+  const isModified = await fileState.checkModified(filePath);
+  if (isModified) {
+    throw new Error(
+      `Write rejected: ${filePath} has been modified since last read. ` +
+      `Run read_file again to get the latest version before writing.`
+    );
+  }
 
   const original = await readFile(filePath, "utf-8");
 
@@ -191,14 +329,50 @@ async function handleStrReplaceInFile(
   }
 
   const updated = original.replace(oldStr, newStr);
+
+  // Validate syntax of updated content
+  const validation = await validateFile(filePath, updated);
+  if (!validation.isValid && validation.errors.length > 0) {
+    const errorList = validation.errors
+      .map(
+        (e) =>
+          `Line ${e.line}: ${e.message}`
+      )
+      .join("\n");
+    throw new Error(
+      `Syntax validation failed for ${filePath} (${validation.language}):\n${errorList}`
+    );
+  }
+
   await writeFile(filePath, updated, "utf-8");
-  return `Replaced 1 occurrence in ${filePath}`;
+
+  // Record successful write
+  await fileState.recordWrite(filePath);
+
+  let message = `Replaced 1 occurrence in ${filePath}`;
+  if (validation.warnings && validation.warnings.length > 0) {
+    const warnings = validation.warnings
+      .map((w) => `Line ${w.line}: ${w.message}`)
+      .join("\n");
+    message += `\n⚠️  Validation warnings (${validation.language}):\n${warnings}`;
+  }
+
+  return message;
 }
 
 async function handleCreateDirectory(
   args: Record<string, unknown>,
 ): Promise<string> {
   const dirPath = resolvePath(args.path as string);
+
+  // Check write permissions
+  const writePerm = canWrite(dirPath, permissionRules);
+  if (!writePerm.allowed) {
+    throw new Error(
+      `Write denied: ${writePerm.reason}. Path: ${dirPath}`
+    );
+  }
+
   await mkdir(dirPath, { recursive: true });
   return `Directory created: ${dirPath}`;
 }
@@ -207,6 +381,15 @@ async function handleListDirectory(
   args: Record<string, unknown>,
 ): Promise<string> {
   const dirPath = resolvePath(args.path as string);
+
+  // Check read permissions
+  const readPerm = canRead(dirPath, permissionRules);
+  if (!readPerm.allowed) {
+    throw new Error(
+      `Read denied: ${readPerm.reason}. Path: ${dirPath}`
+    );
+  }
+
   const entries = await readdir(dirPath, { withFileTypes: true });
   const lines = entries.map((e) => (e.isDirectory() ? `${e.name}/` : e.name));
   return lines.join("\n") || "(empty directory)";
@@ -216,6 +399,15 @@ async function handleDeleteFile(
   args: Record<string, unknown>,
 ): Promise<string> {
   const filePath = resolvePath(args.path as string);
+
+  // Check delete permissions
+  const deletePerm = canDelete(filePath, permissionRules);
+  if (!deletePerm.allowed) {
+    throw new Error(
+      `Delete denied: ${deletePerm.reason}. Path: ${filePath}`
+    );
+  }
+
   await unlink(filePath);
   return `Deleted ${filePath}`;
 }
@@ -224,6 +416,14 @@ async function handleBash(args: Record<string, unknown>): Promise<string> {
   const command = args.command as string;
   const timeoutMs =
     typeof args.timeout_ms === "number" ? args.timeout_ms : 30_000;
+
+  // Check bash permissions
+  const bashPerm = canBash(command, permissionRules);
+  if (!bashPerm.allowed) {
+    throw new Error(
+      `Bash command denied: ${bashPerm.reason}. Command: ${command}`
+    );
+  }
 
   try {
     const { stdout, stderr } = await execAsync(command, {
@@ -319,6 +519,9 @@ async function handleRequest(
 
 export async function runCoderMcpServerProcess(): Promise<void> {
   const readline = await import("readline");
+
+  // Initialize permissions from environment at startup
+  initializePermissionsFromEnv();
 
   // Signal ready to the parent process
   process.stdout.write(JSON.stringify({ type: "ready" }) + "\n");

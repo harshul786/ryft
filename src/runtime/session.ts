@@ -24,6 +24,7 @@ import { ToolDispatcher } from "../mcp/tool-dispatcher.ts";
 import { BrowserLifecycleManager } from "../browser/lifecycle.ts";
 import { getModePacks } from "../modes/pack-loader.ts";
 import { McpServerRegistry } from "../mcp/registry.ts";
+import { initializeCoderMode, clearCoderState } from "./coderInit.ts";
 
 export interface Session {
   config: SessionConfig;
@@ -110,6 +111,10 @@ export function createSession(config: SessionConfig): Session {
     abortController: createAbortController(),
     setModes(nextModes: Mode[]) {
       activeModes = nextModes;
+      // Clear coder state if switching away from coder mode
+      if (!nextModes.some((m) => m.name === "coder")) {
+        clearCoderState();
+      }
       // Re-spawn MCP servers for the new modes, then rebuild system prompt.
       const log = getFeatureLogger("MCP");
       return session.mcpClients
@@ -302,6 +307,12 @@ export function createSession(config: SessionConfig): Session {
         process.env.RYFT_ACTIVE_MODES = activeModes
           .map((m) => m.name)
           .join(",");
+
+        // Initialize coder mode if active
+        if (activeModes.some((m) => m.name === "coder")) {
+          const coderEnv = initializeCoderMode(session.config);
+          Object.assign(process.env, coderEnv);
+        }
 
         // Spawn all configured servers
         const spawnedServers =
