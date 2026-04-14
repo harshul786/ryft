@@ -2,7 +2,7 @@
  * MCP client — spawns and communicates with MCP server subprocesses over JSON-RPC.
  *
  * ⚠️  CRITICAL: DO NOT change stdio back to ["pipe", "pipe", "inherit"]
- * ═══════════════════════════════════════════════════════════════════════
+ * ════════════════════════════════════════════════════════════════════════
  * Using "inherit" for child stderr caused a very hard-to-diagnose bug:
  *
  *   After a /mode switch, users could not type — keystrokes appeared BELOW
@@ -10,14 +10,14 @@
  *
  * Cause (three bugs together):
  *   1. stdio: ["pipe", "pipe", "inherit"] — child processes share the parent's
- *      terminal file descriptor for stderr.  Any bytes they write bypass Ink's
+ *      terminal file descriptor for stderr. Any bytes they write bypass Ink's
  *      patchStderr() intercept and hit the terminal directly.
  *
  *   2. Timed-out children not killed — when spawnServers() hits the 10 s timeout,
- *      Promise.race() throws but the child process keeps running.  The browser-surff
+ *      Promise.race() throws but the child process keeps running. The browser-surff
  *      server (which needs a running Chrome) often fails its connection *after* the
- *      timeout, writing its error output to the raw terminal fd well after the mode-
- *      switch UI says "ready".
+ *      timeout, writing its error output to the raw terminal fd well after the
+ *      mode-switch UI says "ready".
  *
  *   3. The combined effect: inherited stderr + delayed child output = raw terminal
  *      bytes landing inside Ink's alt-screen buffer at the wrong cursor position,
