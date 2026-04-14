@@ -77,7 +77,12 @@ ${
 
 - Call **list_skills** (no args) to see what playbooks are available.
 - Call **skill_fetcher_by_name** with \`name\` set to a skill name to load its step-by-step instructions.
-- These tools do NOT perform any browser actions — after a skill loads, execute its steps using the Direct Action Tools above.`
+- **CRITICAL: After loading a skill, immediately execute EVERY step** using the Direct Action Tools (browser_* tools) shown above.
+- Do NOT wait for user confirmation. Do NOT summarize the steps. Execute them in sequence:
+  - If the skill says "Call browser_navigate with URL X", call that tool immediately with URL X
+  - If the skill says "Call browser_evaluate with JavaScript code", call that tool with that code
+  - Continue through all steps sequentially until complete
+- Return the final results to the user once all skill steps are executed.`
       : "";
 
   const systemPrompt = applyTokenCap(

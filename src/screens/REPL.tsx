@@ -24,6 +24,7 @@ import { Select } from "../ui/Select.tsx";
 import { TextInput } from "../ui/TextInput.tsx";
 import { buildSystemPrompt } from "../runtime/promptBuilder.ts";
 import { streamChatCompletion } from "../runtime/llmClient.ts";
+import { createAbortController } from "../runtime/util.ts";
 import { invokeSkill } from "../tools/skill-tool.ts";
 import { COLORS, SPINNER_FRAMES, SPINNER_INTERVAL_MS } from "../ui/theme.ts";
 import type { Session } from "../runtime/session.ts";
@@ -165,9 +166,25 @@ export const REPL: React.FC = () => {
       };
 
       // Helper: replace or append the last assistant message while streaming
+      // But preserve tool invocation messages (those starting with ⚙️)
       const patchLastAssistant = (text: string) => {
         setAppState((prev) => {
           const last = prev.messages[prev.messages.length - 1];
+          // If last message is a tool invocation, append as new message instead of replacing
+          if (
+            last?.role === "assistant" &&
+            typeof last.content === "string" &&
+            last.content.startsWith("⚙️")
+          ) {
+            return {
+              ...prev,
+              messages: [
+                ...prev.messages,
+                { role: "assistant" as const, content: text },
+              ],
+            };
+          }
+          // Otherwise replace the last assistant message if it exists
           const base =
             last?.role === "assistant"
               ? prev.messages.slice(0, -1)
@@ -299,17 +316,35 @@ export const REPL: React.FC = () => {
 
         setAppState((prev) => ({ ...prev, isAssistantResponding: false }));
       } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : String(error);
-        log.error(`LLM stream error: ${errorMsg}`);
-        setAppState((prev) => ({
-          ...prev,
-          isAssistantResponding: false,
-          messages: [
-            ...prev.messages,
-            { role: "assistant", content: `❌ Error: ${errorMsg}` },
-          ],
-        }));
-        if (process.env.DEBUG) cliWarn("Debug: Model request failed", errorMsg);
+        const isAbortError =
+          error instanceof Error && error.name === "AbortError";
+
+        if (!isAbortError) {
+          // Only show error message for non-abort errors
+          const errorMsg =
+            error instanceof Error ? error.message : String(error);
+          log.error(`LLM stream error: ${errorMsg}`);
+          setAppState((prev) => ({
+            ...prev,
+            isAssistantResponding: false,
+            messages: [
+              ...prev.messages,
+              { role: "assistant", content: `❌ Error: ${errorMsg}` },
+            ],
+          }));
+          if (process.env.DEBUG)
+            cliWarn("Debug: Model request failed", errorMsg);
+        } else {
+          // For abort errors, just ensure response state is cleared
+          setAppState((prev) => ({
+            ...prev,
+            isAssistantResponding: false,
+          }));
+        }
+
+        // Reset AbortController for the next request
+        const session = appStateRef.current.session;
+        session.abortController = createAbortController();
       }
     },
     [setAppState],
@@ -372,6 +407,24 @@ export const REPL: React.FC = () => {
           inputValue: prev.promptSuggestion.text!,
           promptSuggestion: { text: null, shownAt: 0 },
         }));
+      }
+      return;
+    }
+
+    // ESC — cancel response generation
+    if (key.escape) {
+      if (state.isAssistantResponding) {
+        setAppState((prev) => ({
+          ...prev,
+          messages: [
+            ...prev.messages,
+            {
+              role: "assistant" as const,
+              content: "⏹️ Response generation cancelled.",
+            },
+          ],
+        }));
+        state.session.abortController.abort();
       }
       return;
     }

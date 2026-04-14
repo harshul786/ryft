@@ -199,6 +199,29 @@ export async function handleSkillsMcpRequest(
 ): Promise<unknown> {
   log.debug("JSON-RPC request received", { method });
 
+  // Handle MCP lifecycle
+  if (method === "initialize") {
+    log.info("MCP server initializing", {
+      protocolVersion: params.protocolVersion,
+      clientName: (params.clientInfo as Record<string, string>)?.name,
+    });
+    return {
+      protocolVersion: "2024-11-05",
+      capabilities: {
+        tools: {},
+      },
+      serverInfo: {
+        name: "ryft-skills",
+        version: "1.0.0",
+      },
+    };
+  }
+
+  if (method === "notifications/initialized") {
+    log.debug("MCP client initialized");
+    return null;
+  }
+
   // Handle standard MCP methods
   if (method === "tools/list") {
     const skills = await server.listSkills();

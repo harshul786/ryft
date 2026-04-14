@@ -284,6 +284,23 @@ async function handleRequest(
   method: string,
   params: Record<string, unknown>,
 ): Promise<unknown> {
+  if (method === "initialize") {
+    return {
+      protocolVersion: "2024-11-05",
+      capabilities: {
+        tools: {},
+      },
+      serverInfo: {
+        name: "ryft-coder",
+        version: "1.0.0",
+      },
+    };
+  }
+
+  if (method === "notifications/initialized") {
+    return null;
+  }
+
   if (method === "tools/list") {
     return { tools: TOOLS };
   }
