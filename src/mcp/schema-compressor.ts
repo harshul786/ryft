@@ -148,7 +148,9 @@ function compressToolSchemaForOllama(tool: ToolSchema): CompressedToolSchema {
  * Anthropic (Claude) — Standard JSON Schema support.
  * Balance between Gemini strictness and Ollama laxness.
  */
-function compressToolSchemaForAnthropic(tool: ToolSchema): CompressedToolSchema {
+function compressToolSchemaForAnthropic(
+  tool: ToolSchema,
+): CompressedToolSchema {
   const description = tool.description
     .split(/[.!?]/)[0]
     .trim()
