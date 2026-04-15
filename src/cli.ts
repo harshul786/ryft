@@ -106,9 +106,15 @@ async function main(): Promise<void> {
     addDir?: string[];
   }>();
 
-  // Set working directory context if provided (for file tools to use)
+  // Auto-detect and set working directory context for file tools
+  // Priority: explicit --cwd flag > env var from wrapper > current process directory
   if (opts.cwd) {
+    // Explicit --cwd flag provided
     process.env.RYFT_ORIGINAL_CWD = opts.cwd;
+  } else if (!process.env.RYFT_ORIGINAL_CWD) {
+    // No --cwd and no env var wrapper (npm start with no flags)
+    // Use current working directory as-is (user started Ryft from this directory)
+    process.env.RYFT_ORIGINAL_CWD = process.cwd();
   }
   if (process.env.RYFT_LOG_LEVEL) {
     const level = process.env.RYFT_LOG_LEVEL as
