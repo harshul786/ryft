@@ -23,6 +23,7 @@ import { cliWarn } from "../cli/exit.ts";
 import { Select } from "../ui/Select.tsx";
 import { TextInput } from "../ui/TextInput.tsx";
 import { buildSystemPrompt } from "../runtime/promptBuilder.ts";
+import { buildFormattedTools } from "../runtime/toolFormatter.ts";
 import { streamChatCompletion } from "../runtime/llmClient.ts";
 import { createAbortController } from "../runtime/util.ts";
 import { invokeSkill } from "../tools/skill-tool.ts";
@@ -42,21 +43,6 @@ const MAX_TOOL_TURNS = 100;
 
 const TOOL_ATTEMPT_PATTERN =
   /INVOKE_SKILL:|INVOKE_TOOL:|\bI (?:have |will |am )?(?:edited|wrote|created|inserted|deleted|updated|written|saved|modified)\b/i;
-
-/** Build the OpenAI function-calling tool list for a session, or undefined for non-native models. */
-function buildFormattedTools(session: Session, provider?: ProviderType) {
-  if (session.config.model?.nativeToolSupport !== true) return undefined;
-  const tools = session.toolRegistry.getCompressedTools();
-  if (!tools?.length) return undefined;
-  return tools.map((tool) => ({
-    type: "function" as const,
-    function: {
-      name: tool.name,
-      description: tool.description,
-      parameters: tool.inputSchema,
-    },
-  }));
-}
 
 export const REPL: React.FC = () => {
   const appState = useAppState();
@@ -154,10 +140,7 @@ export const REPL: React.FC = () => {
   const runAiTurn = useCallback(
     async (inputText: string) => {
       const session = appStateRef.current.session;
-      const formattedTools = buildFormattedTools(
-        session,
-        session.config.model?.providerType,
-      );
+      const formattedTools = buildFormattedTools(session);
       const supportsNativeTools =
         session.config.model?.nativeToolSupport === true;
 

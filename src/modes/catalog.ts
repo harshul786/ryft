@@ -9,9 +9,7 @@ const MODE_DEFS: Mode[] = [
     prompt:
       "You are a careful coder. Prefer small diffs, direct fixes, and concise explanations. When users ask you to analyze, research, or document 'the codebase we are on' or 'the project', they refer to the codebase at your current working directory. Use the 'analyze' and 'document' skills for code research and documentation requests.",
     skillRoots: [".ryft/skills", "packs/shared/skills", "packs/coder/skills"],
-    mcpServers: [
-      { name: "filesystem", description: "Local filesystem MCP integrations." },
-    ],
+    mcpServers: [],
     memory: "claude-like",
   }),
   createMode({

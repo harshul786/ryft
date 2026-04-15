@@ -17,6 +17,7 @@ import { promptWithSession } from "./runtime/promptBuilder.ts";
 import { createSession } from "./runtime/session.ts";
 import { openProxyServer } from "./runtime/proxyServer.ts";
 import { streamChatCompletion } from "./runtime/llmClient.ts";
+import { buildFormattedTools } from "./runtime/toolFormatter.ts";
 import { renderBanner, renderStatusLine } from "./ui/chalkDraw.ts";
 import {
   loadConfig,
@@ -61,7 +62,10 @@ program
   .option("--browser", "initialize browser automation support")
   .option("--serve-proxy", "run only the local proxy server")
   .option("--prompt <text>", "send a single prompt and exit")
-  .option("--cwd <path>", "set working directory for file tools (overrides auto-detection)")
+  .option(
+    "--cwd <path>",
+    "set working directory for file tools (overrides auto-detection)",
+  )
   .option("--add-dir <paths...>", "add additional skill directories");
 
 program
@@ -261,6 +265,7 @@ async function main(): Promise<void> {
 
   if (opts.prompt) {
     const prompt = await promptWithSession(session, opts.prompt);
+    const formattedTools = buildFormattedTools(session);
     const response = await streamChatCompletion({
       baseUrl: session.config.baseUrl,
       apiKey: session.config.apiKey,
@@ -272,6 +277,7 @@ async function main(): Promise<void> {
       messages: prompt,
       signal: session.abortController.signal,
       onDelta: (chunk) => process.stdout.write(chunk),
+      tools: formattedTools,
     });
     if (response.text || response.toolCalls.length > 0) {
       // Persist first assistant turn (may include tool calls)
@@ -310,6 +316,7 @@ async function main(): Promise<void> {
             followUpText += chunk;
             process.stdout.write(chunk);
           },
+          tools: formattedTools,
         });
 
         session.appendAssistantWithTools(followUpText, turnResult.toolCalls);

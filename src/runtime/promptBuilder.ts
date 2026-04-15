@@ -51,7 +51,21 @@ export async function buildSystemPrompt(session: Session): Promise<string> {
     ? session.toolRegistry.getCompressedTools()
     : [];
   const playwrightTools = allTools.filter((t) => t.name.startsWith("browser_"));
-  const skillTools = allTools.filter((t) => !t.name.startsWith("browser_"));
+  const fileOperationTools = allTools.filter(
+    (t) =>
+      t.name === "read_text" ||
+      t.name === "list_dir" ||
+      t.name === "read_multiple" ||
+      t.name === "get_file_info",
+  );
+  const skillTools = allTools.filter(
+    (t) =>
+      !t.name.startsWith("browser_") &&
+      t.name !== "read_text" &&
+      t.name !== "list_dir" &&
+      t.name !== "read_multiple" &&
+      t.name !== "get_file_info",
+  );
 
   const toolsInstructions =
     supportsNativeTools && allTools && allTools.length > 0
@@ -59,7 +73,18 @@ export async function buildSystemPrompt(session: Session): Promise<string> {
 
 Call tools via the function-calling API — never output XML or JSON tool representations.
 
-### Direct Action Tools (call immediately — no skill needed)
+### File Operations (for reading and exploring code)
+${
+  fileOperationTools.length > 0
+    ? fileOperationTools
+        .map((t) => `- **${t.name}**: ${t.description}`)
+        .join("\n")
+    : "(none)"
+}
+
+Use these tools to read source code, list directories, and explore the project structure.
+
+### Browser Control (for web automation)
 ${
   playwrightTools.length > 0
     ? playwrightTools.map((t) => `- **${t.name}**`).join("\n")
@@ -69,7 +94,7 @@ ${
 For ANY web task (browsing, searching, clicking, typing, uploading), call these tools directly.
 Do NOT say you "cannot" access a URL or find an element — instead, call \`browser_snapshot\` or \`browser_take_screenshot\` to inspect the page first.
 
-### Skill Tools (for discovering and loading task playbooks — NOT browser control)
+### Skill Tools (for discovering and loading task playbooks)
 ${
   skillTools.length > 0
     ? skillTools.map((t) => `- **${t.name}**`).join("\n")
@@ -78,11 +103,8 @@ ${
 
 - Call **list_skills** (no args) to see what playbooks are available.
 - Call **skill_fetcher_by_name** with \`name\` set to a skill name to load its step-by-step instructions.
-- **CRITICAL: After loading a skill, immediately execute EVERY step** using the Direct Action Tools (browser_* tools) shown above.
-- Do NOT wait for user confirmation. Do NOT summarize the steps. Execute them in sequence:
-  - If the skill says "Call browser_navigate with URL X", call that tool immediately with URL X
-  - If the skill says "Call browser_evaluate with JavaScript code", call that tool with that code
-  - Continue through all steps sequentially until complete
+- **CRITICAL: After loading a skill, immediately execute EVERY step** using the other available tools.
+- Do NOT wait for user confirmation. Do NOT summarize the steps. Execute them in sequence.
 - Return the final results to the user once all skill steps are executed.`
       : "";
 
