@@ -35,7 +35,7 @@ const BUILTIN_TOOLS: Array<{
       inputSchema: {
         type: "object" as const,
         properties: {
-          filePath: {
+          path: {
             type: "string",
             description: "Path to file (relative or absolute)",
           },
@@ -44,7 +44,7 @@ const BUILTIN_TOOLS: Array<{
             description: "Maximum bytes to read (default 102400)",
           },
         },
-        required: ["filePath"],
+        required: ["path"],
       },
     },
     compressed: {
@@ -89,7 +89,7 @@ const BUILTIN_TOOLS: Array<{
       inputSchema: {
         type: "object" as const,
         properties: {
-          filePaths: {
+          paths: {
             type: "array",
             items: { type: "string" },
             description: "Array of file paths to read",
@@ -99,7 +99,7 @@ const BUILTIN_TOOLS: Array<{
             description: "Maximum bytes per file (default 51200)",
           },
         },
-        required: ["filePaths"],
+        required: ["paths"],
       },
     },
     compressed: {
@@ -116,12 +116,12 @@ const BUILTIN_TOOLS: Array<{
       inputSchema: {
         type: "object" as const,
         properties: {
-          filePath: {
+          path: {
             type: "string",
             description: "Path to file or directory (relative or absolute)",
           },
         },
-        required: ["filePath"],
+        required: ["path"],
       },
     },
     compressed: {
@@ -164,11 +164,11 @@ export async function executeBuiltinTool(
   try {
     switch (toolName) {
       case "read_text": {
-        const { filePath, maxBytes } = params as {
-          filePath: string;
+        const { path, maxBytes } = params as {
+          path: string;
           maxBytes?: number;
         };
-        const result = await readText(filePath, maxBytes);
+        const result = await readText(path, maxBytes);
         return JSON.stringify(result, null, 2);
       }
 
@@ -182,17 +182,17 @@ export async function executeBuiltinTool(
       }
 
       case "read_multiple": {
-        const { filePaths, maxBytesPerFile } = params as {
-          filePaths: string[];
+        const { paths, maxBytesPerFile } = params as {
+          paths: string[];
           maxBytesPerFile?: number;
         };
-        const result = await readMultiple(filePaths, maxBytesPerFile);
+        const result = await readMultiple(paths, maxBytesPerFile);
         return JSON.stringify(result, null, 2);
       }
 
       case "get_file_info": {
-        const { filePath } = params as { filePath: string };
-        const result = await getFileInfo(filePath);
+        const { path } = params as { path: string };
+        const result = await getFileInfo(path);
         return JSON.stringify(result, null, 2);
       }
 
