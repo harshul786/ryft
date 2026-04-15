@@ -20,6 +20,60 @@
     },
     "3": {
       "id": 3,
+      "name": "analyze",
+      "path": "packs/coder/skills/analyze/SKILL.md",
+      "description": "Research and understand project structure, modules, and functionality",
+      "modes": ["coder"],
+      "requiredTools": [],
+      "requiresPermission": false
+    },
+    "4": {
+      "id": 4,
+      "name": "document",
+      "path": "packs/coder/skills/document/SKILL.md",
+      "description": "Generate comprehensive documentation from code analysis",
+      "modes": ["coder"],
+      "requiredTools": [],
+      "requiresPermission": false
+    },
+    "5": {
+      "id": 5,
+      "name": "understand",
+      "path": "packs/coder/skills/understand/SKILL.md",
+      "description": "Explain how code works, trace execution flow, and identify key patterns",
+      "modes": ["coder"],
+      "requiredTools": [],
+      "requiresPermission": false
+    },
+    "6": {
+      "id": 6,
+      "name": "refactor",
+      "path": "packs/coder/skills/refactor/SKILL.md",
+      "description": "Improve code quality, readability, and performance",
+      "modes": ["coder"],
+      "requiredTools": ["editor"],
+      "requiresPermission": false
+    },
+    "7": {
+      "id": 7,
+      "name": "test",
+      "path": "packs/coder/skills/test/SKILL.md",
+      "description": "Write tests, verify functionality, and ensure code quality",
+      "modes": ["coder"],
+      "requiredTools": ["editor"],
+      "requiresPermission": false
+    },
+    "8": {
+      "id": 8,
+      "name": "create-skill",
+      "path": "packs/shared/skills/create-skill/SKILL.md",
+      "description": "Create a new skill interactively using LLM-guided interview",
+      "modes": ["coder"],
+      "requiredTools": ["editor"],
+      "requiresPermission": false
+    },
+    "9": {
+      "id": 9,
       "name": "browser",
       "path": "packs/browser-surff/skills/browser/SKILL.md",
       "description": "Use browser automation and devtools for UI inspection",
@@ -27,8 +81,8 @@
       "requiredTools": ["browser"],
       "requiresPermission": false
     },
-    "4": {
-      "id": 4,
+    "10": {
+      "id": 10,
       "name": "troubleshoot",
       "path": "packs/debugger/skills/troubleshoot/SKILL.md",
       "description": "Find root causes from logs, tests, and reproduction steps",
@@ -36,8 +90,8 @@
       "requiredTools": ["logs", "bash"],
       "requiresPermission": false
     },
-    "5": {
-      "id": 5,
+    "11": {
+      "id": 11,
       "name": "browse-feed",
       "path": "packs/browser-surff/skills/browse-feed/SKILL.md",
       "description": "Scroll through and extract items from infinite-scroll feeds on any website",
@@ -49,8 +103,8 @@
       ],
       "requiresPermission": false
     },
-    "6": {
-      "id": 6,
+    "12": {
+      "id": 12,
       "name": "linkedin",
       "path": "packs/browser-surff/skills/linkedin/SKILL.md",
       "description": "Automate LinkedIn — browse feed, search jobs, Easy Apply, post, comment, connect, and message",
@@ -65,8 +119,8 @@
       ],
       "requiresPermission": false
     },
-    "7": {
-      "id": 7,
+    "13": {
+      "id": 13,
       "name": "naukri",
       "path": "packs/browser-surff/skills/naukri/SKILL.md",
       "description": "Search jobs on Naukri.com, apply filters, read JDs, and submit applications",
@@ -81,8 +135,8 @@
       ],
       "requiresPermission": false
     },
-    "8": {
-      "id": 8,
+    "14": {
+      "id": 14,
       "name": "job-apply",
       "path": "packs/browser-surff/skills/job-apply/SKILL.md",
       "description": "Fill and submit job applications on company ATS portals — Workday, Greenhouse, Lever, Ashby, BambooHR",
@@ -98,8 +152,8 @@
       ],
       "requiresPermission": false
     },
-    "9": {
-      "id": 9,
+    "15": {
+      "id": 15,
       "name": "upload",
       "path": "packs/browser-surff/skills/upload/SKILL.md",
       "description": "Upload a file to any browser file input or drag-and-drop zone",
@@ -113,6 +167,6 @@
       "requiresPermission": false
     }
   },
-  "idCounter": 10,
+  "idCounter": 15,
   "version": "2.0.0"
 }
