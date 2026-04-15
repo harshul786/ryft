@@ -372,7 +372,11 @@ test("SkillRegistry - getDedupStats returns accurate metrics", async () => {
 
   // Duplicates (same files from different sources)
   await registry.register(
-    { name: "compact", description: "Compact (override)", file: "/bundled/compact.md" },
+    {
+      name: "compact",
+      description: "Compact (override)",
+      file: "/bundled/compact.md",
+    },
     "project",
   );
   await registry.register(

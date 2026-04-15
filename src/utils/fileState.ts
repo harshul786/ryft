@@ -53,9 +53,7 @@ export class FileStateCache {
     try {
       const stats = await stat(filePath);
       const content = await readFile(filePath, "utf-8");
-      const currentHash = createHash("sha256")
-        .update(content)
-        .digest("hex");
+      const currentHash = createHash("sha256").update(content).digest("hex");
 
       // Check both mtime and content hash
       const modified =

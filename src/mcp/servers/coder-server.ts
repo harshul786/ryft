@@ -12,7 +12,7 @@
  *
  * Features:
  * - File state tracking (mtime/hash detection)
- * - Permission rules enforcement  
+ * - Permission rules enforcement
  * - Syntax validation before writes
  * - Structured error responses
  */
@@ -63,7 +63,7 @@ function initializePermissionsFromEnv(): void {
   } catch (error) {
     // Fall back to defaults if parsing fails
     console.error(
-      `Failed to load permissions from environment: ${error instanceof Error ? error.message : String(error)}`
+      `Failed to load permissions from environment: ${error instanceof Error ? error.message : String(error)}`,
     );
   }
 }
@@ -220,20 +220,18 @@ export function clearCoderFileState(): void {
 
 async function handleReadFile(args: Record<string, unknown>): Promise<string> {
   const filePath = resolvePath(args.path as string);
-  
+
   // Check read permissions
   const readPerm = canRead(filePath, permissionRules);
   if (!readPerm.allowed) {
-    throw new Error(
-      `Read denied: ${readPerm.reason}. Path: ${filePath}`
-    );
+    throw new Error(`Read denied: ${readPerm.reason}. Path: ${filePath}`);
   }
 
   const content = await readFile(filePath, "utf-8");
-  
+
   // Record file state after read for conflict detection
   await fileState.recordRead(filePath);
-  
+
   return content;
 }
 
@@ -244,9 +242,7 @@ async function handleWriteFile(args: Record<string, unknown>): Promise<string> {
   // Check write permissions
   const writePerm = canWrite(filePath, permissionRules);
   if (!writePerm.allowed) {
-    throw new Error(
-      `Write denied: ${writePerm.reason}. Path: ${filePath}`
-    );
+    throw new Error(`Write denied: ${writePerm.reason}. Path: ${filePath}`);
   }
 
   // Check if file was modified since last read
@@ -254,7 +250,7 @@ async function handleWriteFile(args: Record<string, unknown>): Promise<string> {
   if (isModified) {
     throw new Error(
       `Write rejected: ${filePath} has been modified since last read. ` +
-      `Run read_file again to get the latest version before writing.`
+        `Run read_file again to get the latest version before writing.`,
     );
   }
 
@@ -262,13 +258,10 @@ async function handleWriteFile(args: Record<string, unknown>): Promise<string> {
   const validation = await validateFile(filePath, content);
   if (!validation.isValid && validation.errors.length > 0) {
     const errorList = validation.errors
-      .map(
-        (e) =>
-          `Line ${e.line}: ${e.message}`
-      )
+      .map((e) => `Line ${e.line}: ${e.message}`)
       .join("\n");
     throw new Error(
-      `Syntax validation failed for ${filePath} (${validation.language}):\n${errorList}`
+      `Syntax validation failed for ${filePath} (${validation.language}):\n${errorList}`,
     );
   }
 
@@ -302,9 +295,7 @@ async function handleStrReplaceInFile(
   // Check write permissions
   const writePerm = canWrite(filePath, permissionRules);
   if (!writePerm.allowed) {
-    throw new Error(
-      `Write denied: ${writePerm.reason}. Path: ${filePath}`
-    );
+    throw new Error(`Write denied: ${writePerm.reason}. Path: ${filePath}`);
   }
 
   // Check if file was modified since last read
@@ -312,7 +303,7 @@ async function handleStrReplaceInFile(
   if (isModified) {
     throw new Error(
       `Write rejected: ${filePath} has been modified since last read. ` +
-      `Run read_file again to get the latest version before writing.`
+        `Run read_file again to get the latest version before writing.`,
     );
   }
 
@@ -334,13 +325,10 @@ async function handleStrReplaceInFile(
   const validation = await validateFile(filePath, updated);
   if (!validation.isValid && validation.errors.length > 0) {
     const errorList = validation.errors
-      .map(
-        (e) =>
-          `Line ${e.line}: ${e.message}`
-      )
+      .map((e) => `Line ${e.line}: ${e.message}`)
       .join("\n");
     throw new Error(
-      `Syntax validation failed for ${filePath} (${validation.language}):\n${errorList}`
+      `Syntax validation failed for ${filePath} (${validation.language}):\n${errorList}`,
     );
   }
 
@@ -368,9 +356,7 @@ async function handleCreateDirectory(
   // Check write permissions
   const writePerm = canWrite(dirPath, permissionRules);
   if (!writePerm.allowed) {
-    throw new Error(
-      `Write denied: ${writePerm.reason}. Path: ${dirPath}`
-    );
+    throw new Error(`Write denied: ${writePerm.reason}. Path: ${dirPath}`);
   }
 
   await mkdir(dirPath, { recursive: true });
@@ -385,9 +371,7 @@ async function handleListDirectory(
   // Check read permissions
   const readPerm = canRead(dirPath, permissionRules);
   if (!readPerm.allowed) {
-    throw new Error(
-      `Read denied: ${readPerm.reason}. Path: ${dirPath}`
-    );
+    throw new Error(`Read denied: ${readPerm.reason}. Path: ${dirPath}`);
   }
 
   const entries = await readdir(dirPath, { withFileTypes: true });
@@ -403,9 +387,7 @@ async function handleDeleteFile(
   // Check delete permissions
   const deletePerm = canDelete(filePath, permissionRules);
   if (!deletePerm.allowed) {
-    throw new Error(
-      `Delete denied: ${deletePerm.reason}. Path: ${filePath}`
-    );
+    throw new Error(`Delete denied: ${deletePerm.reason}. Path: ${filePath}`);
   }
 
   await unlink(filePath);
@@ -421,7 +403,7 @@ async function handleBash(args: Record<string, unknown>): Promise<string> {
   const bashPerm = canBash(command, permissionRules);
   if (!bashPerm.allowed) {
     throw new Error(
-      `Bash command denied: ${bashPerm.reason}. Command: ${command}`
+      `Bash command denied: ${bashPerm.reason}. Command: ${command}`,
     );
   }
 

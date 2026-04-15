@@ -79,8 +79,7 @@ export class FileWatcher {
       const content = await readFile(gitignorePath, "utf8");
       const ignoreInstance = ignore().add(content);
       this.ignorePatterns.set(dir, ignoreInstance);
-      DEBUG &&
-        console.debug(`[Skills] Loaded .gitignore patterns from ${dir}`);
+      DEBUG && console.debug(`[Skills] Loaded .gitignore patterns from ${dir}`);
       return ignoreInstance;
     } catch (error) {
       // .gitignore doesn't exist or isn't readable, continue without patterns
@@ -128,8 +127,7 @@ export class FileWatcher {
       const changed = Array.from(this.changedFiles);
 
       if (DEBUG) {
-        const summary =
-          fileCount === 1 ? changed[0] : `${fileCount} files`;
+        const summary = fileCount === 1 ? changed[0] : `${fileCount} files`;
         console.debug(
           `[Skills] Change detected: ${summary}, triggering reload...`,
         );
@@ -144,9 +142,7 @@ export class FileWatcher {
           this.onFilesChanged();
         } catch (error) {
           const reason = error instanceof Error ? error.message : String(error);
-          console.warn(
-            `[Skills] Error in onFilesChanged callback: ${reason}`,
-          );
+          console.warn(`[Skills] Error in onFilesChanged callback: ${reason}`);
         }
       }
     }, this.debounceMs);
@@ -180,7 +176,8 @@ export class FileWatcher {
         // (will be validated by chokidar)
         return true;
       } catch {
-        DEBUG && console.debug(`[Skills] Skipping non-existent directory: ${dir}`);
+        DEBUG &&
+          console.debug(`[Skills] Skipping non-existent directory: ${dir}`);
         return false;
       }
     });

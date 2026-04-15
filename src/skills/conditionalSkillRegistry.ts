@@ -76,7 +76,9 @@ export class ConditionalSkillRegistry {
    * @param skill - Skill to register
    */
   register(skill: Skill): void {
-    const skillMap = skill.paths ? this.conditionalSkills : this.unconditionalSkills;
+    const skillMap = skill.paths
+      ? this.conditionalSkills
+      : this.unconditionalSkills;
     skillMap.set(skill.name, skill);
   }
 
@@ -185,14 +187,10 @@ export class ConditionalSkillRegistry {
     active: number;
   } {
     return {
-      total:
-        this.unconditionalSkills.size +
-        this.conditionalSkills.size,
+      total: this.unconditionalSkills.size + this.conditionalSkills.size,
       unconditional: this.unconditionalSkills.size,
       conditional: this.conditionalSkills.size,
-      active:
-        this.unconditionalSkills.size +
-        this.activation.activeSkills.size,
+      active: this.unconditionalSkills.size + this.activation.activeSkills.size,
     };
   }
 

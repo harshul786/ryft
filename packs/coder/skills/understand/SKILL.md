@@ -13,6 +13,7 @@ Understand and explain code functionality, execution flow, and component interac
 ## When to Use
 
 Use this skill when you need to:
+
 - Understand how a function or module works
 - Trace execution flow through code
 - Identify key components and their roles
@@ -44,6 +45,7 @@ Use this skill when you need to:
 ## Output
 
 The skill provides:
+
 - Clear, step-by-step explanation
 - Code references and line numbers
 - Execution flow diagrams (in text)

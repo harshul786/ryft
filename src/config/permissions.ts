@@ -33,7 +33,14 @@ const DEFAULT_RULES: PermissionRules = {
     // Allow write to src/, test/, config/ dirs
     {
       action: "write",
-      patterns: ["src/**/*", "test/**/*", "config/**/*", "**.ts", "**.js", "**.json"],
+      patterns: [
+        "src/**/*",
+        "test/**/*",
+        "config/**/*",
+        "**.ts",
+        "**.js",
+        "**.json",
+      ],
       allowed: true,
       reason: "Write allowed in project directories",
     },
@@ -70,7 +77,16 @@ const DEFAULT_RULES: PermissionRules = {
     // Allow safe read commands
     {
       action: "bash",
-      patterns: ["npm*", "node*", "grep*", "find*", "ls*", "cat*", "pwd*", "echo*"],
+      patterns: [
+        "npm*",
+        "node*",
+        "grep*",
+        "find*",
+        "ls*",
+        "cat*",
+        "pwd*",
+        "echo*",
+      ],
       allowed: true,
       reason: "Safe read/query commands allowed",
     },
@@ -84,7 +100,16 @@ const DEFAULT_RULES: PermissionRules = {
     // Deny destructive commands
     {
       action: "bash",
-      patterns: ["rm *", "rmdir *", "rm -rf*", "chmod *", "chown *", "sudo *", "dd *", "format *"],
+      patterns: [
+        "rm *",
+        "rmdir *",
+        "rm -rf*",
+        "chmod *",
+        "chown *",
+        "sudo *",
+        "dd *",
+        "format *",
+      ],
       allowed: false,
       reason: "Potentially destructive commands denied",
     },
@@ -113,8 +138,10 @@ function matchesPattern(text: string, pattern: string): boolean {
       if (prefix && !normalizedText.startsWith(prefix)) return false;
       if (!suffix) return normalizedText.startsWith(prefix || "");
       // For suffix matching, check if it appears anywhere
-      return normalizedText.includes(suffix) ||
-             normalizedText.endsWith(suffix.replace("*", ""));
+      return (
+        normalizedText.includes(suffix) ||
+        normalizedText.endsWith(suffix.replace("*", ""))
+      );
     }
   }
 
@@ -170,7 +197,8 @@ export function evaluatePermission(
       ) {
         return {
           allowed: rule.allowed,
-          reason: rule.reason || `${action} ${rule.allowed ? "allowed" : "denied"}`,
+          reason:
+            rule.reason || `${action} ${rule.allowed ? "allowed" : "denied"}`,
         };
       }
     }
@@ -227,7 +255,9 @@ export function canBash(
 /**
  * Load permission rules from a config object or use defaults
  */
-export function loadPermissionRules(config?: Partial<PermissionRules>): PermissionRules {
+export function loadPermissionRules(
+  config?: Partial<PermissionRules>,
+): PermissionRules {
   if (!config) {
     return DEFAULT_RULES;
   }

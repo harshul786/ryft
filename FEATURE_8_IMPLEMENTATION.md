@@ -67,8 +67,10 @@ Core versioning functionality with semantic versioning support:
 New extraction functions for parsing version and dependency information from SKILL.md frontmatter:
 
 ```typescript
-export function extractVersion(content: string): string | undefined
-export function extractDependencies(content: string): { [skillName: string]: string } | undefined
+export function extractVersion(content: string): string | undefined;
+export function extractDependencies(
+  content: string,
+): { [skillName: string]: string } | undefined;
 ```
 
 Updated `enrichSkillFromFile()` to populate version and dependencies fields.
@@ -85,6 +87,7 @@ Enhanced `discoverAllSkillsForModes()` to:
 - Format warning messages for CLI display
 
 **Example output:**
+
 ```
 [Skills] Version info: 3 skills with versions
 [Skills]   formatter: v2.1.0
@@ -99,13 +102,13 @@ Enhanced `discoverAllSkillsForModes()` to:
 ### Example 1: Define a Skill with Version
 
 **SKILL.md:**
+
 ```yaml
 ---
 name: my-formatter
 title: My Code Formatter
 version: 1.0.0
 ---
-
 # My Code Formatter
 ...
 ```
@@ -113,6 +116,7 @@ version: 1.0.0
 ### Example 2: Declare Dependencies
 
 **SKILL.md:**
+
 ```yaml
 ---
 name: advanced-formatter
@@ -121,7 +125,6 @@ dependencies:
   formatter: "^2.0"
   linter: "~1.5"
 ---
-
 # Advanced Formatter
 ...
 ```
@@ -134,13 +137,13 @@ In dependencies, use standard semver ranges:
 dependencies:
   # Caret: compatible version
   formatter: "^2.1.0"
-  
+
   # Tilde: patch updates only
   linter: "~1.5.0"
-  
+
   # Exact version
   utils: "1.0.0"
-  
+
   # Comparison operators
   core: ">=1.0.0"
   legacy: "<1.0.0"
@@ -215,6 +218,7 @@ See `src/skills/versionResolver.test.ts` for complete test suite.
 ## Future Enhancements
 
 Possible future work:
+
 - Version pinning (lock files)
 - Automatic dependency resolution
 - Version upgrade suggestions

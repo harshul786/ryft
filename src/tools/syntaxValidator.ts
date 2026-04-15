@@ -99,7 +99,10 @@ function validateTypeScript(content: string): Diagnostic[] {
         }
 
         // Handle strings
-        if ((char === '"' || char === "'" || char === "`") && prevChar !== "\\") {
+        if (
+          (char === '"' || char === "'" || char === "`") &&
+          prevChar !== "\\"
+        ) {
           if (!inString) {
             inString = true;
             stringChar = char;
@@ -223,7 +226,11 @@ function validateYAML(content: string): Diagnostic[] {
     }
 
     // Check for invalid YAML markers
-    if (trimmed.includes(": ") && !trimmed.includes(": \"") && !trimmed.includes(": '")) {
+    if (
+      trimmed.includes(": ") &&
+      !trimmed.includes(': "') &&
+      !trimmed.includes(": '")
+    ) {
       // This might be a key-value pair, which is valid
     }
   }
@@ -307,7 +314,10 @@ function validatePython(content: string): Diagnostic[] {
 /**
  * Validate file syntax based on language
  */
-export async function validateFile(filePath: string, content: string): Promise<ValidationResult> {
+export async function validateFile(
+  filePath: string,
+  content: string,
+): Promise<ValidationResult> {
   const language = detectLanguage(filePath);
   let diagnostics: Diagnostic[] = [];
 

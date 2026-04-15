@@ -61,6 +61,7 @@ program
   .option("--browser", "initialize browser automation support")
   .option("--serve-proxy", "run only the local proxy server")
   .option("--prompt <text>", "send a single prompt and exit")
+  .option("--cwd <path>", "set working directory for file tools (overrides auto-detection)")
   .option("--add-dir <paths...>", "add additional skill directories");
 
 program
@@ -101,10 +102,14 @@ async function main(): Promise<void> {
     browser?: boolean;
     serveProxy?: boolean;
     prompt?: string;
+    cwd?: string;
     addDir?: string[];
   }>();
 
-  // Initialize logger based on environment
+  // Set working directory context if provided (for file tools to use)
+  if (opts.cwd) {
+    process.env.RYFT_ORIGINAL_CWD = opts.cwd;
+  }
   if (process.env.RYFT_LOG_LEVEL) {
     const level = process.env.RYFT_LOG_LEVEL as
       | "debug"
@@ -161,14 +166,15 @@ async function main(): Promise<void> {
   // 2. PWD env var - shell's record of the directory (preserved through npm)
   // 3. process.cwd() - fallback to actual system cwd
   // This ensures we get the user's ACTUAL working directory, not the project install directory
-  const actualCwd = 
-    process.env.RYFT_ORIGINAL_CWD || 
-    process.env.PWD || 
-    process.cwd();
-  
+  const actualCwd =
+    process.env.RYFT_ORIGINAL_CWD || process.env.PWD || process.cwd();
+
   if (process.env.DEBUG === "true") {
     console.error("[DEBUG] CWD Detection:");
-    console.error("[DEBUG]   RYFT_ORIGINAL_CWD:", process.env.RYFT_ORIGINAL_CWD);
+    console.error(
+      "[DEBUG]   RYFT_ORIGINAL_CWD:",
+      process.env.RYFT_ORIGINAL_CWD,
+    );
     console.error("[DEBUG]   process.env.PWD:", process.env.PWD);
     console.error("[DEBUG]   process.cwd():", process.cwd());
     console.error("[DEBUG]   resolved actualCwd:", actualCwd);

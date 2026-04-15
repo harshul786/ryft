@@ -106,10 +106,8 @@ export function generateFileList(
   rootPath: string,
   options: TreeOptions = {},
 ): string {
-  const {
-    maxDepth = 3,
-    ignorePatterns = ["node_modules", ".git", "dist"],
-  } = options;
+  const { maxDepth = 3, ignorePatterns = ["node_modules", ".git", "dist"] } =
+    options;
 
   const files: Array<{ path: string; type: string; depth: number }> = [];
 

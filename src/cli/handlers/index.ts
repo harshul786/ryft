@@ -37,4 +37,15 @@ export function initializeCommands(): void {
 }
 
 // Auto-export for convenience
-export { help, mode, model, config, memory, clear, skills, createSkill, mcp, exit };
+export {
+  help,
+  mode,
+  model,
+  config,
+  memory,
+  clear,
+  skills,
+  createSkill,
+  mcp,
+  exit,
+};

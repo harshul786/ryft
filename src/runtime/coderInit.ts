@@ -24,7 +24,7 @@ export interface CoderInitOptions {
  */
 export function initializeCoderMode(
   config: SessionConfig,
-  options?: CoderInitOptions
+  options?: CoderInitOptions,
 ): Record<string, string> {
   const rules = resolvePermissionRules(options);
 

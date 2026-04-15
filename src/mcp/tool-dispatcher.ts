@@ -59,8 +59,7 @@ export class ToolDispatcher {
         );
         this.log.info(`Built-in tool '${toolUse.name}' succeeded`, {
           id: toolUse.id,
-          preview:
-            result.slice(0, 200) + (result.length > 200 ? "…" : ""),
+          preview: result.slice(0, 200) + (result.length > 200 ? "…" : ""),
         });
         return {
           type: "tool_result",

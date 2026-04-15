@@ -45,7 +45,10 @@ export function parseToolsFromText(text: string): string[] {
     { pattern: /\b(bash|shell|command|exec)\b/gi, tool: "bash" },
     { pattern: /\b(git|version control)\b/gi, tool: "git" },
     { pattern: /\b(file|files|filesystem|editor|write)\b/gi, tool: "files" },
-    { pattern: /\b(browser|screenshot|navigate|puppeteer)\b/gi, tool: "browser" },
+    {
+      pattern: /\b(browser|screenshot|navigate|puppeteer)\b/gi,
+      tool: "browser",
+    },
     { pattern: /\b(curl|http|api|fetch|request)\b/gi, tool: "http" },
     { pattern: /\b(docker|container)\b/gi, tool: "docker" },
     { pattern: /\b(database|db|sql|postgres|mysql)\b/gi, tool: "database" },
@@ -86,8 +89,10 @@ export function parseFileContexts(text: string): string[] {
 
   // Extract from keywords
   const lower = text.toLowerCase();
-  if (lower.includes("typescript") || lower.includes(".ts")) contexts.add("*.ts");
-  if (lower.includes("javascript") || lower.includes(".js")) contexts.add("*.js");
+  if (lower.includes("typescript") || lower.includes(".ts"))
+    contexts.add("*.ts");
+  if (lower.includes("javascript") || lower.includes(".js"))
+    contexts.add("*.js");
   if (lower.includes("python") || lower.includes(".py")) contexts.add("*.py");
   if (lower.includes("config")) contexts.add("config/**");
   if (lower.includes("test")) contexts.add("test/**");
@@ -255,7 +260,10 @@ export function saveSkillToFilesystem(
 
     return skillFile;
   } catch (error) {
-    log.error("Error saving skill", error instanceof Error ? error : new Error(String(error)));
+    log.error(
+      "Error saving skill",
+      error instanceof Error ? error : new Error(String(error)),
+    );
     throw new Error(
       `Failed to save skill: ${error instanceof Error ? error.message : String(error)}`,
     );
@@ -272,7 +280,9 @@ export function createSkillFromResponses(
 ): SkillCreationResult {
   const toolsFromProblem = parseToolsFromText(problem);
   const toolsFromScope = parseToolsFromText(scopeAndTools);
-  const allTools = Array.from(new Set([...toolsFromProblem, ...toolsFromScope]));
+  const allTools = Array.from(
+    new Set([...toolsFromProblem, ...toolsFromScope]),
+  );
 
   const filesContexts = parseFileContexts(scopeAndTools);
   const skillName = extractSkillName(problem);

@@ -13,6 +13,7 @@ Generate professional documentation from code, including API docs, architecture 
 ## When to Use
 
 Use this skill when you need to:
+
 - Create API documentation
 - Generate architecture guides
 - Document modules and functions
@@ -27,7 +28,6 @@ Use this skill when you need to:
    - `read_text(filePath)` - Read a single file (max 100KB)
    - `read_multiple(filePaths)` - Read multiple files at once
    - `list_dir(dirPath)` - List files to understand structure
-   
 2. Analyze the code structure and relationships
 3. Identify key components to document
 4. Extract docstrings, comments, and type information
@@ -37,6 +37,7 @@ Use this skill when you need to:
 ## Available Tools
 
 When documenting, you have access to these file reading tools:
+
 - **read_text** - Read a file's content (text files up to 100KB)
 - **read_multiple** - Read multiple files simultaneously
 - **list_dir** - List directory contents to find relevant files
@@ -58,6 +59,7 @@ These tools enable you to explore the codebase without CLI access limitations.
 ## Output
 
 The skill provides:
+
 - Well-structured markdown documentation
 - Code examples and usage patterns
 - Type definitions and interfaces

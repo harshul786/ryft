@@ -22,19 +22,25 @@ Build new reusable skills for Ryft with LLM-assisted guidance. The skill builder
 The `/create-skill` command starts an interactive 3-round interview:
 
 ### Round 1: Problem Definition
+
 **Question**: "What problem does this skill solve?"
+
 - Describe the use case and benefit
 - Explain why this skill would be useful
 - Example: "Automate cherry-picking PRs to release branches"
 
 ### Round 2: Scope & Dependencies
+
 **Question**: "What files/contexts does it operate on? What tools needed?"
-- Specify file patterns it works with (*.ts, src/*, etc.)
+
+- Specify file patterns it works with (_.ts, src/_, etc.)
 - List required tools (bash, git, files, browser, etc.)
 - Example: "Works on git repos, needs bash and git commands"
 
 ### Round 3: Effort Estimation
+
 **Question**: "What's the effort level? Choose: Low/Medium/High"
+
 - Low: < 5 steps
 - Medium: 5-15 steps
 - High: > 15 steps
@@ -45,18 +51,19 @@ Your new skill is created as a SKILL.md file with:
 
 ```yaml
 ---
-name: skill-name              # Unique kebab-case identifier
-description: What it does     # One-line description
-context: inline               # inline or fork
-allowed-tools:                # Tools this skill needs
+name: skill-name # Unique kebab-case identifier
+description: What it does # One-line description
+context: inline # inline or fork
+allowed-tools: # Tools this skill needs
   - bash
   - git
-effort: Medium                # Low, Medium, or High
-when_to_use: "Use when..."    # When Claude should invoke this
+effort: Medium # Low, Medium, or High
+when_to_use: "Use when..." # When Claude should invoke this
 ---
 ```
 
 Followed by markdown content with:
+
 - **Problem description**: What it solves
 - **Contexts**: File patterns it operates on
 - **Tools**: Required capabilities
@@ -66,6 +73,7 @@ Followed by markdown content with:
 ## Tool Tracking
 
 The skill builder automatically:
+
 - Tracks tools mentioned in your responses
 - Auto-fills the `allowed-tools` field
 - Detects: bash, git, files, browser, http, docker, database, json
@@ -73,6 +81,7 @@ The skill builder automatically:
 ## Examples
 
 ### Example 1: Git Workflow Skill
+
 ```
 Round 1: "Automate cherry-picking PRs to release branches"
 Round 2: "Works on git repos, needs bash, git, and shell commands"
@@ -82,6 +91,7 @@ Round 3: "High - involves multiple steps and conflict handling"
 ```
 
 ### Example 2: File Processing Skill
+
 ```
 Round 1: "Convert Python files from tabs to spaces"
 Round 2: "Operates on *.py files in src/, needs file editing"
@@ -102,6 +112,7 @@ Round 3: "Low - simple file transformation"
 ## Success Criteria
 
 A successful skill creation means:
+
 1. Interview completes 3 rounds without cancellation
 2. SKILL.md file is generated in `.ryft/skills/` directory
 3. File contains valid YAML frontmatter
@@ -119,6 +130,7 @@ A successful skill creation means:
 ## Cancellation
 
 Cancel skill creation anytime by responding with:
+
 - `cancel`
 - `quit`
 - `exit`
@@ -126,6 +138,7 @@ Cancel skill creation anytime by responding with:
 ## Error Handling
 
 If skill creation fails:
+
 - Check file permissions on `.ryft/` directory
 - Ensure valid YAML in responses
 - Verify model API connection
@@ -134,6 +147,7 @@ If skill creation fails:
 ## Next Steps
 
 After creating a skill:
+
 1. Use `/skills list` to see your new skill
 2. Test it: `/skill-name` in a conversation
 3. Refine: Edit `.ryft/skills/{skill-name}/SKILL.md` if needed
@@ -142,6 +156,7 @@ After creating a skill:
 ## Integration
 
 The skill builder integrates with:
+
 - **Skills Registry**: New skills auto-register
 - **Hot Reload**: Changes apply immediately (Feature 5)
 - **Mode System**: Skills available in all active modes

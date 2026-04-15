@@ -131,7 +131,9 @@ async function main() {
 
   for (const skill of analytics.getAllAnalytics().slice(0, 3)) {
     const successRate =
-      skill.invocations > 0 ? ((skill.successes / skill.invocations) * 100).toFixed(2) : "N/A";
+      skill.invocations > 0
+        ? ((skill.successes / skill.invocations) * 100).toFixed(2)
+        : "N/A";
     console.log(`\n${skill.skillName}:`);
     console.log(`  Invocations: ${skill.invocations}`);
     console.log(`  Successes: ${skill.successes}`);

@@ -158,7 +158,10 @@ export class SkillAnalyticsStore {
       (sum, a) => sum + a.invocations,
       0,
     );
-    const totalSuccesses = allAnalytics.reduce((sum, a) => sum + a.successes, 0);
+    const totalSuccesses = allAnalytics.reduce(
+      (sum, a) => sum + a.successes,
+      0,
+    );
     const totalFailures = allAnalytics.reduce((sum, a) => sum + a.failures, 0);
     const successRate =
       totalInvocations > 0 ? (totalSuccesses / totalInvocations) * 100 : 0;

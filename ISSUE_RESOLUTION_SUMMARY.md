@@ -8,6 +8,7 @@
 ## Root Cause
 
 The `document` skill was designed to analyze codebases and generate documentation, but had no way to:
+
 - Read file contents
 - List directories
 - Gather project structure information
@@ -19,6 +20,7 @@ It relied on external MCP servers or CLI access, both of which could be unavaila
 ## Solution Implemented
 
 Created **4 core file reading tools** that are:
+
 - ✅ Built-in (always available)
 - ✅ Fast (no external process spawning)
 - ✅ Safe (sandboxed to text files, size-limited)
@@ -27,14 +29,18 @@ Created **4 core file reading tools** that are:
 ### New Files Created
 
 #### 1. `src/tools/fileReader.ts` (159 lines)
+
 Core file reading operations:
+
 - `readText(path, maxBytes)` — Read single file (max 100KB)
 - `listDir(path)` — List directory contents
 - `readMultiple(paths)` — Read multiple files simultaneously
 - `getFileInfo(path)` — Get file metadata (size, type)
 
 #### 2. `src/mcp/builtin-tools.ts` (245 lines)
+
 Tool registration and execution:
+
 - `registerBuiltinTools(registry)` — Register tools on session init
 - `executeBuiltinTool(name, params)` — Execute built-in tools
 - Complete tool schemas for native function-calling support
@@ -42,17 +48,21 @@ Tool registration and execution:
 ### Files Modified
 
 #### 1. `src/runtime/session.ts`
+
 Added automatic tool registration:
+
 ```typescript
 import { registerBuiltinTools } from "../mcp/builtin-tools.ts";
 
 // On session creation:
 const toolRegistry = new ToolRegistry();
-registerBuiltinTools(toolRegistry);  // <-- ✅ NEW
+registerBuiltinTools(toolRegistry); // <-- ✅ NEW
 ```
 
 #### 2. `src/mcp/tool-dispatcher.ts`
+
 Routed built-in tools before MCP servers:
+
 ```typescript
 // Handle built-in tools first
 if (entry.serverId === "builtin") {
@@ -62,7 +72,9 @@ if (entry.serverId === "builtin") {
 ```
 
 #### 3. `packs/coder/skills/document/SKILL.md`
+
 Updated skill documentation with tool hints:
+
 - Listed available file reading tools
 - Showed example workflow for analyzing projects
 - Described how to use tools in the documentation process
@@ -70,7 +82,9 @@ Updated skill documentation with tool hints:
 ### Documentation Created
 
 #### 1. `BUILTIN_TOOLS_GUIDE.md` (400+ lines)
+
 Comprehensive reference including:
+
 - Complete tool documentation with examples
 - How document skill uses these tools step-by-step
 - Size limitations and constraints
@@ -78,6 +92,7 @@ Comprehensive reference including:
 - Developer guidance for extending
 
 #### 2. This Summary Document
+
 Quick reference for changes and resolution
 
 ---
@@ -85,13 +100,15 @@ Quick reference for changes and resolution
 ## How Document Skill Now Works
 
 ### Before (Broken)
+
 ```
 User: "document the project for me"
-Ryft: "I apologize for the previous error. It seems I need... 
+Ryft: "I apologize for the previous error. It seems I need...
       I don't have a general file reading tool"
 ```
 
 ### After (Fixed)
+
 ```
 User: "document the project for me"
 
@@ -141,6 +158,7 @@ createSession()
 ### Tool Registration
 
 Built-in tools registered with:
+
 - **serverId**: "builtin" (identifies them)
 - **serverName**: "Built-in Tools" (display name)
 - **Tool schemas**: Full OpenAI format for native tool support
@@ -151,32 +169,37 @@ Built-in tools registered with:
 ## Capabilities Now Enabled
 
 ### Document Skill
+
 ✅ Can read project files to generate documentation  
 ✅ Can explore directory structure  
 ✅ Can gather type information from source code  
-✅ Can create comprehensive project guides  
+✅ Can create comprehensive project guides
 
 ### Other Skills
+
 ✅ Analyze skill: Read code to understand patterns  
 ✅ Refactor skill: Read code before suggesting changes  
-✅ Test skill: Read test files to understand coverage  
+✅ Test skill: Read test files to understand coverage
 
 ### General Usage
+
 ✅ Models can explore files in any workflow  
 ✅ Coder mode has core file reading capability  
-✅ Works with native tool support (Claude, GPT-4, etc.)  
+✅ Works with native tool support (Claude, GPT-4, etc.)
 
 ---
 
 ## Testing
 
 ### Type Safety
+
 ```bash
 npm run typecheck
 # Result: ✅ 0 errors
 ```
 
 ### Runtime
+
 ```bash
 npm start
 # Result: ✅ Ryft starts successfully
@@ -184,8 +207,9 @@ npm start
 ```
 
 ### Tool Discovery
+
 ```typescript
-getModeSkills("coder")  // Returns 8 skills
+getModeSkills("coder"); // Returns 8 skills
 // Skills have access to:
 // - read_text
 // - list_dir
@@ -197,14 +221,14 @@ getModeSkills("coder")  // Returns 8 skills
 
 ## Files Changed Summary
 
-| File | Type | Lines | Change |
-|------|------|-------|--------|
-| `src/tools/fileReader.ts` | NEW | 159 | Core file reading ops |
-| `src/mcp/builtin-tools.ts` | NEW | 245 | Tool schemas & execution |
-| `src/runtime/session.ts` | MOD | +3 | Register tools on init |
-| `src/mcp/tool-dispatcher.ts` | MOD | +25 | Route built-in tools |
-| `packs/coder/skills/document/SKILL.md` | MOD | +15 | Document available tools |
-| `BUILTIN_TOOLS_GUIDE.md` | NEW | 348 | Complete reference |
+| File                                   | Type | Lines | Change                   |
+| -------------------------------------- | ---- | ----- | ------------------------ |
+| `src/tools/fileReader.ts`              | NEW  | 159   | Core file reading ops    |
+| `src/mcp/builtin-tools.ts`             | NEW  | 245   | Tool schemas & execution |
+| `src/runtime/session.ts`               | MOD  | +3    | Register tools on init   |
+| `src/mcp/tool-dispatcher.ts`           | MOD  | +25   | Route built-in tools     |
+| `packs/coder/skills/document/SKILL.md` | MOD  | +15   | Document available tools |
+| `BUILTIN_TOOLS_GUIDE.md`               | NEW  | 348   | Complete reference       |
 
 **Total:** 2 new files, 4 modified files, 795 lines of code/docs added
 
@@ -230,13 +254,13 @@ d815c3d - feat: add pwd context to coder and debugger modes
 ✅ **RESOLVED**: Document skill now has file reading tools available  
 ✅ **TESTED**: TypeScript compilation passes, no errors  
 ✅ **DOCUMENTED**: Comprehensive guide created  
-✅ **COMMITTED**: All changes saved to git  
+✅ **COMMITTED**: All changes saved to git
 
 ### What This Means
 
 1. **Immediate**: User can now run "document the project" and Ryft will generate documentation
 2. **General**: Any skill or model can now read files from the project
-3. **Future**: Foundation laid for more sophisticated analysis tools  
+3. **Future**: Foundation laid for more sophisticated analysis tools
 4. **Standards**: Built-in tools follow same interface as MCP tools
 
 ---

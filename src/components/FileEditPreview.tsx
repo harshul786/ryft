@@ -111,16 +111,9 @@ const HunkDisplay: React.FC<HunkDisplayProps> = ({ hunk, terminalWidth }) => {
       {hunk.lines.slice(0, 10).map((line, lineIdx) => {
         // Limit display to 10 lines per hunk to avoid massive output
         const marker =
-          line.type === "add"
-            ? "+"
-            : line.type === "remove"
-              ? "-"
-              : " ";
+          line.type === "add" ? "+" : line.type === "remove" ? "-" : " ";
 
-        const lineNum =
-          line.type === "add"
-            ? line.newLineNum
-            : line.oldLineNum;
+        const lineNum = line.type === "add" ? line.newLineNum : line.oldLineNum;
         const numStr = lineNum ? String(lineNum).padStart(4) : "    ";
 
         let styledContent: React.ReactNode;
@@ -140,9 +133,7 @@ const HunkDisplay: React.FC<HunkDisplayProps> = ({ hunk, terminalWidth }) => {
 
         return (
           <Box key={lineIdx} flexDirection="row">
-            <Text color={line.type === "add" ? "green" : "red"}>
-              {marker}
-            </Text>
+            <Text color={line.type === "add" ? "green" : "red"}>{marker}</Text>
             <Text color="gray"> {numStr} │ </Text>
             <Text>{styledContent}</Text>
           </Box>

@@ -6,10 +6,7 @@
  */
 
 import type { ToolRegistry } from "./tool-registry.ts";
-import type {
-  ToolSchema,
-  CompressedToolSchema,
-} from "./protocol.ts";
+import type { ToolSchema, CompressedToolSchema } from "./protocol.ts";
 import {
   readText,
   listDir,
@@ -58,8 +55,7 @@ const BUILTIN_TOOLS: Array<{
   },
   {
     name: "list_dir",
-    description:
-      "List files and directories in a directory",
+    description: "List files and directories in a directory",
     schema: {
       name: "list_dir",
       description: "List files and directories in a directory",
@@ -80,7 +76,8 @@ const BUILTIN_TOOLS: Array<{
     },
     compressed: {
       name: "list_dir",
-      description: "List files/dirs in a directory. Usage: listDir(path: string)",
+      description:
+        "List files/dirs in a directory. Usage: listDir(path: string)",
     },
   },
   {
@@ -107,8 +104,7 @@ const BUILTIN_TOOLS: Array<{
     },
     compressed: {
       name: "read_multiple",
-      description:
-        "Read multiple files. Usage: readMultiple(paths: string[])",
+      description: "Read multiple files. Usage: readMultiple(paths: string[])",
     },
   },
   {
@@ -122,8 +118,7 @@ const BUILTIN_TOOLS: Array<{
         properties: {
           filePath: {
             type: "string",
-            description:
-              "Path to file or directory (relative or absolute)",
+            description: "Path to file or directory (relative or absolute)",
           },
         },
         required: ["filePath"],
@@ -147,9 +142,7 @@ export function registerBuiltinTools(registry: ToolRegistry): void {
       registry.addTool("builtin", "Built-in Tools", schema, compressed);
       log.debug(`Registered built-in tool: ${name}`);
     }
-    log.info(
-      `Registered ${BUILTIN_TOOLS.length} built-in tools`,
-    );
+    log.info(`Registered ${BUILTIN_TOOLS.length} built-in tools`);
   } catch (error) {
     log.warn(
       `Failed to register built-in tools: ${error instanceof Error ? error.message : String(error)}`,

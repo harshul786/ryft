@@ -3,7 +3,8 @@ id: test
 name: test
 description: Write tests, verify functionality, and ensure code quality
 context: inline
-paths: ["**/*.test.ts", "**/*.test.js", "**/*.spec.ts", "**/*.spec.js", "test/**"]
+paths:
+  ["**/*.test.ts", "**/*.test.js", "**/*.spec.ts", "**/*.spec.js", "test/**"]
 ---
 
 # Test
@@ -13,6 +14,7 @@ Write comprehensive tests, verify functionality, and ensure code quality and rel
 ## When to Use
 
 Use this skill when you need to:
+
 - Write unit tests for functions
 - Create integration tests
 - Test edge cases and error conditions
@@ -52,6 +54,7 @@ Use this skill when you need to:
 ## Output
 
 The skill provides:
+
 - Well-structured test code
 - Multiple test scenarios
 - Edge case coverage

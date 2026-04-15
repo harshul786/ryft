@@ -45,7 +45,10 @@ I'll guide you through 3 quick questions to define your skill. You can type **ca
 
       log.info("Skill creation interview started");
     } catch (error) {
-      log.error("Error initiating skill creation", error instanceof Error ? error : new Error(String(error)));
+      log.error(
+        "Error initiating skill creation",
+        error instanceof Error ? error : new Error(String(error)),
+      );
       context.setAppState((prev) => ({
         ...prev,
         messages: [

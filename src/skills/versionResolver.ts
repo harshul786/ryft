@@ -169,10 +169,7 @@ export function compareVersions(
  * @returns true if actual version satisfies the range
  * @throws Error if version strings are invalid
  */
-export function satisfiesDependency(
-  actual: string,
-  required: string,
-): boolean {
+export function satisfiesDependency(actual: string, required: string): boolean {
   const actualVersion = parseVersion(actual);
   const trimmedRequired = required.trim();
 
@@ -194,8 +191,7 @@ export function satisfiesDependency(
       } else if (baseVersion.minor !== 0) {
         // Major is 0, minor is non-zero: allow changes in patch only
         return (
-          actualVersion.major === 0 &&
-          actualVersion.minor === baseVersion.minor
+          actualVersion.major === 0 && actualVersion.minor === baseVersion.minor
         );
       } else {
         // Major and minor are both 0: allow changes in... nothing (frozen at patch)
@@ -273,9 +269,7 @@ export function resolveDependencies(
 
   const resolved: ResolvedDependency[] = [];
 
-  for (const [depName, requiredVersion] of Object.entries(
-    skill.dependencies,
-  )) {
+  for (const [depName, requiredVersion] of Object.entries(skill.dependencies)) {
     const depSkill = registry.get(depName);
 
     if (!depSkill) {
@@ -365,9 +359,7 @@ export function detectVersionConflicts(
     const key = conflict.skillName;
     if (mergedConflicts.has(key)) {
       const existing = mergedConflicts.get(key)!;
-      existing.conflictingDependents.push(
-        ...conflict.conflictingDependents,
-      );
+      existing.conflictingDependents.push(...conflict.conflictingDependents);
     } else {
       mergedConflicts.set(key, { ...conflict });
     }

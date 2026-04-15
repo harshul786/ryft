@@ -68,11 +68,7 @@ function parseToolResultForFileEdits(resultContent: string): FileChange[] {
       for (const jsonStr of jsonMatches) {
         try {
           const obj = JSON.parse(jsonStr);
-          if (
-            obj.file &&
-            obj.before !== undefined &&
-            obj.after !== undefined
-          ) {
+          if (obj.file && obj.before !== undefined && obj.after !== undefined) {
             const hunks = diffLines(obj.before, obj.after);
             changes.push({
               path: obj.file,
@@ -91,7 +87,8 @@ function parseToolResultForFileEdits(resultContent: string): FileChange[] {
   }
 
   // Pattern 2: Look for "File: path" followed by before/after blocks
-  const filePattern = /File:\s*([^\n]+)\n(?:Added:|Created:)?[\s\S]*?```([\s\S]*?)```/gm;
+  const filePattern =
+    /File:\s*([^\n]+)\n(?:Added:|Created:)?[\s\S]*?```([\s\S]*?)```/gm;
   let match;
   while ((match = filePattern.exec(resultContent)) !== null) {
     const path = match[1]?.trim() || "unknown";
@@ -132,9 +129,11 @@ function parseToolResultForFileEdits(resultContent: string): FileChange[] {
 /**
  * Count total changes across all files.
  */
-export function countTotalChanges(
-  changes: FileChange[],
-): { added: number; removed: number; files: number } {
+export function countTotalChanges(changes: FileChange[]): {
+  added: number;
+  removed: number;
+  files: number;
+} {
   let added = 0;
   let removed = 0;
 

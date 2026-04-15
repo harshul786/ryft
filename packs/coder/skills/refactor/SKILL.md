@@ -13,6 +13,7 @@ Improve code quality by refactoring for readability, performance, maintainabilit
 ## When to Use
 
 Use this skill when you need to:
+
 - Improve code readability
 - Enhance performance
 - Reduce complexity
@@ -44,6 +45,7 @@ Use this skill when you need to:
 ## Output
 
 The skill provides:
+
 - List of recommended improvements
 - Refactored code with explanations
 - Performance impact analysis

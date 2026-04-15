@@ -74,12 +74,6 @@ export const Root: React.FC<RootProps> = ({ session, initialState }) => {
             inputValue: state.inputValue?.substring?.(0, 50),
           });
         }
-        if (state.inputValue !== undefined) {
-          log.info("Input value updated in store", {
-            inputValue: state.inputValue?.substring?.(0, 50),
-            length: state.inputValue?.length,
-          });
-        }
       });
 
       return () => {

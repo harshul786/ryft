@@ -1,7 +1,11 @@
 import { describe, it, afterEach } from "node:test";
 import * as assert from "node:assert";
-import { matchesPattern, matchesPatternsMultiple, getMatchingPatternSets } from "../src/skills/pathActivator.ts";
-import { 
+import {
+  matchesPattern,
+  matchesPatternsMultiple,
+  getMatchingPatternSets,
+} from "../src/skills/pathActivator.ts";
+import {
   ConditionalSkillRegistry,
   getGlobalConditionalSkillRegistry,
   resetGlobalConditionalRegistry,
@@ -23,8 +27,17 @@ describe("Path Activator", () => {
 
     it("should match nested patterns with wildcards", () => {
       assert.strictEqual(matchesPattern("src/main.ts", ["src/**/*.ts"]), true);
-      assert.strictEqual(matchesPattern("src/components/Button.tsx", ["src/**/*.ts", "src/**/*.tsx"]), true);
-      assert.strictEqual(matchesPattern("test/main.ts", ["src/**/*.ts"]), false);
+      assert.strictEqual(
+        matchesPattern("src/components/Button.tsx", [
+          "src/**/*.ts",
+          "src/**/*.tsx",
+        ]),
+        true,
+      );
+      assert.strictEqual(
+        matchesPattern("test/main.ts", ["src/**/*.ts"]),
+        false,
+      );
     });
 
     it("should handle multiple patterns (OR logic)", () => {
@@ -37,7 +50,7 @@ describe("Path Activator", () => {
 
     it("should return false for empty patterns", () => {
       assert.strictEqual(matchesPattern("Makefile", []), false);
-      assert.strictEqual(matchesPattern("Makefile", [""] ), false);
+      assert.strictEqual(matchesPattern("Makefile", [""]), false);
     });
 
     it("should normalize paths starting with /", () => {
@@ -51,15 +64,18 @@ describe("Path Activator", () => {
       const files = ["Makefile", "src/main.ts", "README.md", "test.py"];
       const patterns = ["Makefile", "*.py", "src/**/*.ts"];
       const results = matchesPatternsMultiple(files, patterns);
-      
+
       assert.deepStrictEqual(results, [true, true, false, true]);
     });
 
     it("should return all false for empty patterns", () => {
       const files = ["file1", "file2", "file3"];
       const results = matchesPatternsMultiple(files, []);
-      
-      assert.strictEqual(results.every((r) => !r), true);
+
+      assert.strictEqual(
+        results.every((r) => !r),
+        true,
+      );
     });
   });
 
@@ -70,21 +86,18 @@ describe("Path Activator", () => {
         ["typescript-check", ["*.ts", "*.tsx"]],
         ["makefile-help", ["Makefile"]],
       ]);
-      
-      assert.deepStrictEqual(
-        getMatchingPatternSets("src/app.ts", patterns),
-        ["typescript-check"]
-      );
-      
-      assert.deepStrictEqual(
-        getMatchingPatternSets("Makefile", patterns),
-        ["makefile-help"]
-      );
-      
-      assert.deepStrictEqual(
-        getMatchingPatternSets("script.py", patterns),
-        ["python-linter"]
-      );
+
+      assert.deepStrictEqual(getMatchingPatternSets("src/app.ts", patterns), [
+        "typescript-check",
+      ]);
+
+      assert.deepStrictEqual(getMatchingPatternSets("Makefile", patterns), [
+        "makefile-help",
+      ]);
+
+      assert.deepStrictEqual(getMatchingPatternSets("script.py", patterns), [
+        "python-linter",
+      ]);
     });
 
     it("should return multiple matches", () => {
@@ -92,7 +105,7 @@ describe("Path Activator", () => {
         ["all-files", ["*"]],
         ["config-files", ["*.json"]],
       ]);
-      
+
       const matches = getMatchingPatternSets("config.json", patterns);
       assert.strictEqual(matches.includes("all-files"), true);
       assert.strictEqual(matches.includes("config-files"), true);
@@ -154,7 +167,11 @@ describe("Conditional Skill Registry", () => {
 
       // Check initial state
       let active = registry.getActiveSkills();
-      assert.strictEqual(active.length, 0, "No skills should be active initially");
+      assert.strictEqual(
+        active.length,
+        0,
+        "No skills should be active initially",
+      );
 
       // Activate for Makefile
       registry.activateSkillsForFile("Makefile");
@@ -263,7 +280,7 @@ describe("Conditional Skill Registry", () => {
       const formatted = `${stats.total} total (${stats.unconditional} unconditional, ${stats.conditional} conditional) | ${stats.active} currently active`;
       assert.strictEqual(
         formatted,
-        "30 total (10 unconditional, 20 conditional) | 10 currently active"
+        "30 total (10 unconditional, 20 conditional) | 10 currently active",
       );
     });
   });
@@ -354,11 +371,19 @@ describe("Conditional Skill Registry", () => {
       assert.strictEqual(registry.getActiveConditionalCount(), 1);
 
       registry.resetActivation();
-      
+
       // After reset, activation is cleared
       const stats = registry.getStats();
-      assert.strictEqual(stats.conditional, 1, "Skill should still be registered");
-      assert.strictEqual(stats.active, 0, "No skills should be active after reset");
+      assert.strictEqual(
+        stats.conditional,
+        1,
+        "Skill should still be registered",
+      );
+      assert.strictEqual(
+        stats.active,
+        0,
+        "No skills should be active after reset",
+      );
       assert.strictEqual(registry.getActiveConditionalCount(), 0);
     });
   });

@@ -284,11 +284,10 @@ export function formatDiffForTerminal(
     );
 
     for (const line of hunk.lines) {
-      const marker = line.type === "add" ? "+" : line.type === "remove" ? "-" : " ";
+      const marker =
+        line.type === "add" ? "+" : line.type === "remove" ? "-" : " ";
       const lineNum =
-        line.type === "add"
-          ? `${line.newLineNum}`
-          : `${line.oldLineNum}`;
+        line.type === "add" ? `${line.newLineNum}` : `${line.oldLineNum}`;
       const prefix = `${marker} ${lineNum?.padStart(4)} │ `;
 
       // Wrap content to width, accounting for prefix
@@ -337,9 +336,10 @@ function wrapText(text: string, width: number): string[] {
 /**
  * Count added and removed lines in a set of hunks.
  */
-export function countDiffChanges(
-  hunks: DiffHunk[],
-): { added: number; removed: number } {
+export function countDiffChanges(hunks: DiffHunk[]): {
+  added: number;
+  removed: number;
+} {
   let added = 0;
   let removed = 0;
 

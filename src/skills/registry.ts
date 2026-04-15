@@ -28,10 +28,8 @@ export class SkillRegistry {
   private nameIndex: Map<string, string> = new Map(); // name -> realPath mapping
   private loadSignal: ((skills: Skill[]) => void) | null = null;
   private activatedConditionalSkills: Set<string> = new Set(); // Activated conditional skill names
-  private sourceCounts: Map<
-    string,
-    { count: number; duplicates: number }
-  > = new Map(); // Track counts per source
+  private sourceCounts: Map<string, { count: number; duplicates: number }> =
+    new Map(); // Track counts per source
 
   /**
    * Register a skill in the registry with deduplication by realpath
@@ -198,7 +196,9 @@ export class SkillRegistry {
    * @returns Array of conditional skills
    */
   getConditionalSkills(): Skill[] {
-    return this.getAll().filter((skill) => skill.paths && skill.paths.length > 0);
+    return this.getAll().filter(
+      (skill) => skill.paths && skill.paths.length > 0,
+    );
   }
 
   /**
@@ -210,7 +210,9 @@ export class SkillRegistry {
    * @returns Array of unconditional skills
    */
   getUnconditionalSkills(): Skill[] {
-    return this.getAll().filter((skill) => !skill.paths || skill.paths.length === 0);
+    return this.getAll().filter(
+      (skill) => !skill.paths || skill.paths.length === 0,
+    );
   }
 
   /**
@@ -296,8 +298,12 @@ export class SkillRegistry {
     activeConditional: number;
   } {
     const allSkills = this.getAll();
-    const conditionalSkills = allSkills.filter((s) => s.paths && s.paths.length > 0);
-    const unconditionalSkills = allSkills.filter((s) => !s.paths || s.paths.length === 0);
+    const conditionalSkills = allSkills.filter(
+      (s) => s.paths && s.paths.length > 0,
+    );
+    const unconditionalSkills = allSkills.filter(
+      (s) => !s.paths || s.paths.length === 0,
+    );
 
     return {
       total: allSkills.length,
@@ -606,7 +612,7 @@ export class SkillRegistry {
       (sum, stat) => sum + stat.duplicates,
       0,
     );
-    
+
     const totalPaths = Array.from(this.sourceCounts.values()).reduce(
       (sum, stat) => sum + stat.count,
       0,

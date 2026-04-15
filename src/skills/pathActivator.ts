@@ -115,5 +115,3 @@ export function getMatchingPatternSets(
 
   return matches;
 }
-
-

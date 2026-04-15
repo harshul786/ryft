@@ -272,12 +272,15 @@ export async function discoverAllSkillsForModes(
   // Get deduplicated skills from registry
   const dedupedSkills = registry.getAll();
   const discoveryStats = registry.getDiscoveryStats();
-  
+
   // Calculate dedup statistics
   const totalPathsLoaded = loadedSkills.length + mcpSkills.length;
   const totalUnique = dedupedSkills.length;
-  const totalDuplicates = discoveryStats.reduce((sum, stat) => sum + stat.duplicates, 0);
-  
+  const totalDuplicates = discoveryStats.reduce(
+    (sum, stat) => sum + stat.duplicates,
+    0,
+  );
+
   DEBUG &&
     console.debug(
       `[Skills] After dedup: ${dedupedSkills.length} unique skills (${loadedSkills.length} bundled + ${mcpSkills.length} MCP)`,
@@ -287,10 +290,11 @@ export async function discoverAllSkillsForModes(
   console.log(
     `[Skills] Deduplication summary: ${totalPathsLoaded} total paths → ${totalUnique} unique skills (${totalDuplicates} duplicates filtered)`,
   );
-  
+
   // Log per-source statistics
   for (const stat of discoveryStats) {
-    const dedupMsg = stat.duplicates > 0 ? ` (-${stat.duplicates} duplicates)` : "";
+    const dedupMsg =
+      stat.duplicates > 0 ? ` (-${stat.duplicates} duplicates)` : "";
     console.log(`[Skills]   ${stat.sourceName}: ${stat.count}${dedupMsg}`);
   }
 
@@ -457,7 +461,9 @@ export function logStartupAnalytics(): void {
   // Get top skills from analytics
   const analyticsData = analytics.getAnalytics();
   if (analyticsData.topSkills.length > 0) {
-    const topSkillsNames = analyticsData.topSkills.slice(0, 3).map((s) => s.name);
+    const topSkillsNames = analyticsData.topSkills
+      .slice(0, 3)
+      .map((s) => s.name);
     console.log(`[Skills] Recently used: ${topSkillsNames.join(", ")}`);
   }
 

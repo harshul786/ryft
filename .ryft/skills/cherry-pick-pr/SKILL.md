@@ -16,6 +16,7 @@ Automate the process of cherry-picking merged PRs to release branches for effici
 ## When to Use
 
 Use this skill when:
+
 - Post-release hotfixes are already merged to main
 - Need to backport features to older release branches
 - Want to selectively cherry-pick without full branch merges
@@ -24,6 +25,7 @@ Use this skill when:
 ## File Contexts
 
 Operates on:
+
 - Git repositories with branch structure
 - Release branches following v*.* or stable naming conventions
 
@@ -42,6 +44,7 @@ This skill helps with the following workflow:
 ## Success Criteria
 
 The skill succeeds when:
+
 - Commit is successfully cherry-picked to target branch
 - Conflicts are resolved or reported clearly
 - Branch is ready for push to remote
@@ -49,6 +52,7 @@ The skill succeeds when:
 ## Example Usage
 
 Use this skill by invoking:
+
 ```
 /cherry-pick-pr
 ```

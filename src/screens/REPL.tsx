@@ -72,7 +72,9 @@ export const REPL: React.FC = () => {
 
   const [spinnerFrame, setSpinnerFrame] = useState(0);
   const [termRows, setTermRows] = useState<number>(process.stdout.rows ?? 24);
-  const [termCols, setTermCols] = useState<number>(process.stdout.columns ?? 80);
+  const [termCols, setTermCols] = useState<number>(
+    process.stdout.columns ?? 80,
+  );
 
   // Keep appStateRef in sync on every render
   appStateRef.current = appState;

@@ -72,7 +72,7 @@ function loadSkillsDb(): SkillsDb {
   }
 
   try {
-    // Use RYFT_INSTALL_DIR if available (set by bin/ryft.js wrapper), 
+    // Use RYFT_INSTALL_DIR if available (set by bin/ryft.js wrapper),
     // fallback to process.cwd() for development/other scenarios
     const installDir = process.env.RYFT_INSTALL_DIR || process.cwd();
     const dbPath = join(installDir, "skills-db.json");

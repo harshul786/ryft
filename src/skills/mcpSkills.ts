@@ -136,8 +136,7 @@ async function fetchSkillsFromServer(server: McpServer): Promise<Skill[]> {
 
     const timeoutPromise = new Promise<Skill[]>((_, reject) => {
       setTimeout(
-        () =>
-          reject(new Error(`MCP server ${serverName} fetch timeout (>5s)`)),
+        () => reject(new Error(`MCP server ${serverName} fetch timeout (>5s)`)),
         FETCH_TIMEOUT_MS,
       );
     });

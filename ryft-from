@@ -1,0 +1,19 @@
+#!/bin/bash
+# ryft-from - Helper script to run Ryft from any directory with correct context
+
+# Get the directory where this script is
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+PROJECT_ROOT="$SCRIPT_DIR"
+
+# Get the original working directory
+ORIGINAL_CWD="$PWD"
+
+# Export for Ryft to use
+export RYFT_ORIGINAL_CWD="$ORIGINAL_CWD"
+export RYFT_INSTALL_DIR="$PROJECT_ROOT"
+
+# Change to project root and start Ryft
+cd "$PROJECT_ROOT"
+
+# Pass through all arguments
+npm start -- "$@"

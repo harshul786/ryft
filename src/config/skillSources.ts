@@ -34,7 +34,7 @@ export const DEFAULT_SKILL_SOURCES: SkillSourcesConfig = {
  */
 export function discoverProjectSkillDirs(
   startDir: string = process.cwd(),
-  maxDepth: number = 5
+  maxDepth: number = 5,
 ): string[] {
   const discovered: string[] = [];
   let currentDir = startDir;
