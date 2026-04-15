@@ -3,11 +3,23 @@
  *
  * Provides basic file operations for skills and models that need to analyze code.
  * These tools are always available (unlike MCP tools which require external processes).
+ *
+ * Uses RYFT_ORIGINAL_CWD environment variable for correct working directory context
+ * when invoked from non-Ryft installation directories.
  */
 
 import { readFile, readdir } from "node:fs/promises";
 import { resolve, join } from "node:path";
 import { stat } from "node:fs/promises";
+
+/**
+ * Get the working directory context for file operations
+ * Uses RYFT_ORIGINAL_CWD if available (set by bin/ryft.js wrapper)
+ * Falls back to process.cwd() if running in development
+ */
+function getWorkingDir(): string {
+  return process.env.RYFT_ORIGINAL_CWD || process.cwd();
+}
 
 /**
  * Read a file and return its contents
@@ -25,7 +37,8 @@ export async function readText(
   maxBytes: number = 102400,
 ): Promise<{ success: boolean; content?: string; error?: string }> {
   try {
-    const absolutePath = resolve(filePath);
+    const workingDir = getWorkingDir();
+    const absolutePath = resolve(workingDir, filePath);
     const fileStats = await stat(absolutePath);
 
     if (fileStats.isDirectory()) {
@@ -73,7 +86,8 @@ export async function listDir(
   error?: string;
 }> {
   try {
-    const absolutePath = resolve(dirPath);
+    const workingDir = getWorkingDir();
+    const absolutePath = resolve(workingDir, dirPath);
     const entries = await readdir(absolutePath, { withFileTypes: true });
 
     if (entries.length > maxItems) {
@@ -157,7 +171,8 @@ export async function getFileInfo(filePath: string): Promise<{
   error?: string;
 }> {
   try {
-    const absolutePath = resolve(filePath);
+    const workingDir = getWorkingDir();
+    const absolutePath = resolve(workingDir, filePath);
     const stats = await stat(absolutePath);
 
     return {
