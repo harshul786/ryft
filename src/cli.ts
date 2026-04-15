@@ -156,9 +156,23 @@ async function main(): Promise<void> {
     console.debug("[CLI] Skill sources initialized:", skillSources);
   }
 
-  // Capture the actual working directory from environment or process
-  // PWD env var is more reliable than process.cwd() in some contexts
-  const actualCwd = process.env.PWD || process.cwd();
+  // Capture the actual working directory from multiple sources (in order of priority):
+  // 1. RYFT_ORIGINAL_CWD - set by bin/ryft.js wrapper script BEFORE it changes directories
+  // 2. PWD env var - shell's record of the directory (preserved through npm)
+  // 3. process.cwd() - fallback to actual system cwd
+  // This ensures we get the user's ACTUAL working directory, not the project install directory
+  const actualCwd = 
+    process.env.RYFT_ORIGINAL_CWD || 
+    process.env.PWD || 
+    process.cwd();
+  
+  if (process.env.DEBUG === "true") {
+    console.error("[DEBUG] CWD Detection:");
+    console.error("[DEBUG]   RYFT_ORIGINAL_CWD:", process.env.RYFT_ORIGINAL_CWD);
+    console.error("[DEBUG]   process.env.PWD:", process.env.PWD);
+    console.error("[DEBUG]   process.cwd():", process.cwd());
+    console.error("[DEBUG]   resolved actualCwd:", actualCwd);
+  }
 
   const session = createSession({
     modes: resolveModes(modes),
