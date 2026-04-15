@@ -154,7 +154,7 @@ test("loader - handles missing skill root gracefully", async () => {
     prompt: "Mock prompt",
     skillRoots: ["/non/existent/path"],
     mcpServers: [],
-    memory: "claude-like",
+    memory: "normal",
   };
 
   // Should not throw, just return empty or skip non-existent

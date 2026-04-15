@@ -86,7 +86,7 @@ function createFallbackPackDefinition(
     skillDirectory: join(packPath, "skills"),
     skills: [],
     mcpServers: [],
-    memory: "claude-like",
+    memory: "normal",
     _packPath: packPath,
     _definitionPath: join(packPath, "pack.json"),
   };

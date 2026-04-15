@@ -249,7 +249,7 @@ ryft [openai/gpt-4o]> <your query here>
   "model": "openai/gpt-4o",
   "apiKey": "sk-...",
   "defaultModes": ["coder", "browser-surff"],
-  "defaultMemoryMode": "claude-like",
+  "defaultMemoryMode": "normal",
   "showTokens": true,
   "logLevel": "info"
 }
@@ -263,7 +263,7 @@ ryft [openai/gpt-4o]> <your query here>
 - `baseUrl`: Custom API endpoint (optional)
 - `proxyUrl`: HTTP proxy for requests (optional)
 - `defaultModes`: Comma-separated modes to load on startup
-- `defaultMemoryMode`: Memory mode (`claude-like`, `basic`)
+- `defaultMemoryMode`: Memory mode (`normal`, `basic`)
 - `showTokens`: Show token indicators in REPL (`true`/`false`)
 - `logLevel`: Log verbosity (`debug`, `info`, `warn`, `error`)
 

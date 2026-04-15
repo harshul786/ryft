@@ -68,7 +68,7 @@ function loadEnvConfig(): ParsedConfig {
 
   // Helper to validate memory mode
   function isValidMemoryMode(mode: string): boolean {
-    return ["claude-like", "hierarchy", "session"].includes(mode);
+    return ["normal", "hierarchy", "session"].includes(mode);
   }
 
   for (const [envKey, configKey] of Object.entries(mapping)) {
@@ -86,7 +86,7 @@ function loadEnvConfig(): ParsedConfig {
       } else if (configKey === "memoryMode") {
         if (!isValidMemoryMode(value)) {
           valid = false;
-          error = `Invalid memory mode: ${value}. Must be one of: claude-like, hierarchy, session`;
+          error = `Invalid memory mode: ${value}. Must be one of: normal, hierarchy, session`;
         }
       }
 

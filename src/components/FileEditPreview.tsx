@@ -107,9 +107,8 @@ const HunkDisplay: React.FC<HunkDisplayProps> = ({ hunk, terminalWidth }) => {
         @@ -{hunk.oldStart},{hunk.oldCount} +{hunk.newStart},{hunk.newCount} @@
       </Text>
 
-      {/* Diff lines */}
-      {hunk.lines.slice(0, 10).map((line, lineIdx) => {
-        // Limit display to 10 lines per hunk to avoid massive output
+      {/* Diff lines — all lines shown; ScrollBox in REPL handles overflow */}
+      {hunk.lines.map((line, lineIdx) => {
         const marker =
           line.type === "add" ? "+" : line.type === "remove" ? "-" : " ";
 
@@ -125,8 +124,7 @@ const HunkDisplay: React.FC<HunkDisplayProps> = ({ hunk, terminalWidth }) => {
           styledContent = formatDiffContext(line.content);
         }
 
-        // Truncate very long lines
-        const displayContent =
+        const displayLine =
           line.content.length > maxWidth
             ? line.content.substring(0, maxWidth - 3) + "…"
             : line.content;
@@ -135,17 +133,14 @@ const HunkDisplay: React.FC<HunkDisplayProps> = ({ hunk, terminalWidth }) => {
           <Box key={lineIdx} flexDirection="row">
             <Text color={line.type === "add" ? "green" : "red"}>{marker}</Text>
             <Text color="gray"> {numStr} │ </Text>
-            <Text>{styledContent}</Text>
+            <Text>
+              {displayLine.length < line.content.length
+                ? displayLine
+                : styledContent}
+            </Text>
           </Box>
         );
       })}
-
-      {/* Show count if more lines exist */}
-      {hunk.lines.length > 10 && (
-        <Text color="gray" dimColor={true}>
-          … and {hunk.lines.length - 10} more lines
-        </Text>
-      )}
     </Box>
   );
 };

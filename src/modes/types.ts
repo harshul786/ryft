@@ -1,4 +1,4 @@
-import type { McpServer, MemoryModeName, Mode, Skill } from '../types.ts';
+import type { McpServer, MemoryModeName, Mode, Skill } from "../types.ts";
 
 export function createMode({
   name,
@@ -7,7 +7,7 @@ export function createMode({
   skillRoots = [],
   skills = [],
   mcpServers = [],
-  memory = 'claude-like',
+  memory = "normal",
 }: {
   name: string;
   description: string;

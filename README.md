@@ -1,17 +1,18 @@
-# Ryft - OpenAI-Native AI Code Assistant
+# Ryft - Multi-Provider AI Code Assistant
 
-A lean, fast AI code assistant built as an OpenAI-native fork. Combines composable modes, intelligent MCP integration, real-time token budgeting, and browser automation into a unified CLI.
+A lean, fast AI code assistant that works with any LLM provider. Supports OpenAI, Anthropic Claude, Google Gemini, **Ollama open-source models**, and OpenAI-compatible APIs. Combines composable modes, intelligent MCP integration, real-time token budgeting, and browser automation into a unified CLI.
 
 **Key Features:**
 
-- 🚀 OpenAI-native with configurable providers
+- 🚀 **Multi-provider LLM support** - OpenAI, Anthropic Claude, Google Gemini, Ollama (open-source), and compatible APIs
+- 💰 **Use free open-source models** - Ollama support for local, privacy-respecting inference
 - 🎨 Composable modes (coder, browser-surff, debugger)
 - 🔗 Auto-discovered MCP servers with on-demand spawning
 - 🌐 Browser automation with session state persistence
 - 💰 Smart token budgeting with soft warnings
 - 💾 Configuration management (file + CLI precedence)
 - ⚡ Fast startup with lazy initialization
-- 🛠️ **NEW: Integrated Skills & Tools System** - Models discover, understand, and invoke tools with automatic result feedback
+- 🛠️ **Integrated Skills & Tools System** - Models discover, understand, and invoke tools with automatic result feedback
 
 ## Build & Setup
 
@@ -78,21 +79,25 @@ ryft --help
 ryft --version  # (if supported)
 ```
 
-### Step 5: Set Up API Key
+### Step 5: Set Up LLM Provider
 
-Ryft needs an OpenAI API key to function:
+Choose your LLM provider (OpenAI, Anthropic Claude, Google Gemini, **Ollama**, or compatible):
 
 ```bash
-# Option 1: Environment variable
+# For OpenAI:
 export OPENAI_API_KEY=sk-your-key-here
 
-# Option 2: Global config file
-mkdir -p ~/.config/ryft
-echo '{"apiKey": "sk-your-key-here"}' > ~/.ryftrc
+# For Anthropic Claude:
+export ANTHROPIC_API_KEY=sk-ant-...
 
-# Option 3: In REPL after starting
-ryft
-> /config set apiKey sk-your-key-here
+# For Google Gemini:
+export GOOGLE_API_KEY=...
+
+# For Ollama (local, free, open-source):
+export OLLAMA_MODEL=llama2
+
+# Or set in config file (~/.ryftrc):
+echo '{"provider": "ollama", "model": "llama2"}' > ~/.ryftrc
 ```
 
 ### Step 6: Test with a Simple Query
@@ -108,10 +113,12 @@ ryft [openai/gpt-4o]> /config view
 
 ### Quick Install (One-liner)
 
-If you already have Node.js ≥20 and an OpenAI API key:
+If you already have Node.js ≥20 and an LLM provider configured:
 
 ```bash
 git clone <repo> ryft && cd ryft && npm install && npm link && export OPENAI_API_KEY=sk-... && ryft
+# Or: export ANTHROPIC_API_KEY=sk-ant-... && ryft
+# Or: export OLLAMA_MODEL=llama2 && ryft
 ```
 
 ### Global Install (Recommended)
@@ -132,6 +139,11 @@ ryft
 ```bash
 cd /path/to/ryft
 npm install
+
+# Set your LLM provider
+export OLLAMA_MODEL=llama2  # Use free local model
+# OR: export OPENAI_API_KEY=sk-...
+
 npm start
 ```
 
@@ -208,28 +220,79 @@ Token Budget Breakdown:
 
 ### Configuration
 
-Settings saved to `~/.ryftrc` (user) or `.ryft.json` (workspace):
+Settings saved to `~/.ryftrc` (user) or `.ryft.json` (workspace). Supports all LLM providers:
 
 ```bash
-# Set permanently
-ryft> /config set model openai/gpt-4o
-✓ Config updated (saved to ~/.ryftrc)
+# OpenAI
+ryft> /config set provider openai
+ryft> /config set model gpt-4o
+
+# Anthropic Claude
+ryft> /config set provider anthropic
+ryft> /config set model claude-3-5-sonnet
+
+# Google Gemini
+ryft> /config set provider google
+ryft> /config set model gemini-pro
+
+# Ollama (local models)
+ryft> /config set provider ollama
+ryft> /config set model llama2
+
+# View all config
+ryft> /config view
 ```
 
 ## Environment Setup
 
-Set your OpenAI API key:
+Configure your LLM provider. Multiple providers supported:
 
 ```bash
-# Option 1: Environment variable
+# OpenAI
 export OPENAI_API_KEY=sk-...
 
-# Option 2: Config file
-echo '{"apiKey": "sk-..."}' > ~/.ryftrc
+# Anthropic Claude
+export ANTHROPIC_API_KEY=sk-ant-...
 
-# Option 3: In REPL
-ryft> /config set apiKey sk-...
+# Google Gemini
+export GOOGLE_API_KEY=...
+
+# Ollama (free, open-source, local)
+export OLLAMA_MODEL=llama2
+
+# Or use config file (~/.ryftrc)
+echo '{"provider": "ollama", "model": "llama2"}' > ~/.ryftrc
+
+# Or in REPL
+ryft> /config set model ollama/llama2
 ```
+
+## Using Ollama (Open-Source Models)
+
+Run local LLMs with Ollama for privacy and cost savings:
+
+```bash
+# Install Ollama: https://ollama.ai
+
+# Pull a model
+ollama pull llama2
+ollama pull mistral  # Lighter, faster
+ollama pull neural-chat  # Optimized for chat
+
+# Use with Ryft
+export OLLAMA_MODEL=llama2
+ryft
+
+# Ryft will automatically connect to local Ollama server
+ryft [ollama/llama2]> Analyze this code
+```
+
+**Benefits of Ollama:**
+
+- 🔐 **Privacy** - Models run locally, no data sent to cloud
+- 💰 **Free** - No API costs
+- ⚡ **Fast** - Local inference
+- 📚 **Many models** - Llama 2, Mistral, Neural Chat, and more
 
 ## Features
 

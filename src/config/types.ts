@@ -1,6 +1,6 @@
 import type { MemoryModeName, ModelOption } from "../types.ts";
 
-export type MemoryModeType = "claude-like" | "hierarchy" | "session";
+export type MemoryModeType = "normal" | "hierarchy" | "session";
 
 export interface ConfigFile {
   // Onboarding and setup state
@@ -58,7 +58,7 @@ export const CONFIG_DEFAULTS: Required<ConfigFile> = {
   provider: "openai",
   savedModels: [],
   defaultModes: ["coder"],
-  defaultMemoryMode: "claude-like",
+  defaultMemoryMode: "normal",
   defaultBrowser: false,
   proxyUrl: "",
   baseUrl: "https://api.openai.com/v1",
@@ -70,11 +70,7 @@ export const CONFIG_DEFAULTS: Required<ConfigFile> = {
   showTokens: true,
 };
 
-export const VALID_MEMORY_MODES = [
-  "claude-like",
-  "hierarchy",
-  "session",
-] as const;
+export const VALID_MEMORY_MODES = ["normal", "hierarchy", "session"] as const;
 export const VALID_LOG_LEVELS = ["debug", "info", "warn", "error"] as const;
 
 export function validateConfig(config: unknown): ValidationError[] {

@@ -10,7 +10,7 @@ const rl = readline.createInterface({ input, output });
 
 const session = createSession({
   modes: [],
-  memoryMode: "claude-like",
+  memoryMode: "normal",
   model: {
     id: "gpt-4.1",
     label: "GPT-4.1",

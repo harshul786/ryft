@@ -98,7 +98,7 @@ program.parse();
 async function main(): Promise<void> {
   const opts = program.opts<{
     mode?: string[];
-    memory?: "claude-like" | "hierarchy" | "session";
+    memory?: "normal" | "hierarchy" | "session";
     model?: string;
     proxy?: string;
     baseUrl?: string;
@@ -158,7 +158,7 @@ async function main(): Promise<void> {
   const model = initializeModelFromConfig(modelStr);
 
   // Resolve memory mode from config or CLI
-  const memoryMode = opts.memory ?? config.defaultMemoryMode ?? "claude-like";
+  const memoryMode = opts.memory ?? config.defaultMemoryMode ?? "normal";
 
   // Initialize skill sources with multi-source discovery
   const skillSources: SkillSourcesConfig = {
@@ -192,7 +192,7 @@ async function main(): Promise<void> {
 
   const session = createSession({
     modes: resolveModes(modes),
-    memoryMode: memoryMode as "claude-like" | "hierarchy" | "session",
+    memoryMode: memoryMode as "normal" | "hierarchy" | "session",
     model,
     cwd: actualCwd,
     homeDir: homedir(),

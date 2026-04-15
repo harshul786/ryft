@@ -20,7 +20,7 @@ const MODE_DEFS: Mode[] = [
         description: "Invoke Ryft skills for specialized tasks.",
       },
     ],
-    memory: "claude-like",
+    memory: "normal",
   }),
   createMode({
     name: "browser-surff",

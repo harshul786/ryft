@@ -235,7 +235,7 @@ export interface ModelOption {
   supportsAdaptiveThinking?: boolean;
 }
 
-export type MemoryModeName = "claude-like" | "hierarchy" | "session";
+export type MemoryModeName = "normal" | "hierarchy" | "session";
 
 export interface MemoryMode {
   name: MemoryModeName;

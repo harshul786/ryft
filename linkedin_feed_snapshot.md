@@ -1,0 +1,766 @@
+- generic [ref=e2]:
+  - heading "0 notifications" [level=2] [ref=e324]
+  - generic [ref=e325]:
+    - generic:
+      - button [ref=e326] [cursor=pointer]:
+        - generic [ref=e328]: Skip to main content
+      - button [ref=e329] [cursor=pointer]:
+        - img [ref=e331]
+    - generic [ref=e333]:
+      - banner [ref=e335]:
+        - generic [ref=e338]:
+          - button "LinkedIn" [ref=e339] [cursor=pointer]:
+            - img "LinkedIn" [ref=e340]
+          - search [ref=e343]:
+            - generic [ref=e344]:
+              - img [ref=e346]
+              - textbox "Search" [ref=e348]
+          - generic [ref=e350]:
+            - figure [ref=e355]
+            - navigation [ref=e358]:
+              - list [ref=e359]:
+                - listitem [ref=e360]:
+                  - button "Home, 1 new notification" [ref=e361] [cursor=pointer]:
+                    - img [ref=e363]
+                    - generic [ref=e366]: Home
+                - listitem [ref=e367]:
+                  - link "My Network, 0 new notifications" [ref=e368] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/mynetwork
+                    - img [ref=e370]
+                    - generic [ref=e373]: My Network
+                - listitem [ref=e374]:
+                  - link "Jobs, 0 new notifications" [ref=e375] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/jobs/
+                    - img [ref=e377]
+                    - generic [ref=e380]: Jobs
+                - listitem [ref=e381]:
+                  - link "Messaging, 0 new notifications" [ref=e382] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/messaging/
+                    - img [ref=e384]
+                    - generic [ref=e387]: Messaging
+                - listitem [ref=e388]:
+                  - link "Notifications, 1 new notification" [ref=e389] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/notifications/
+                    - generic [ref=e390]:
+                      - img [ref=e391]
+                      - generic [ref=e393]: "1"
+                    - generic [ref=e395]: Notifications
+                - listitem [ref=e396]:
+                  - button "Me" [ref=e397] [cursor=pointer]:
+                    - figure [ref=e399]
+                    - generic [ref=e401]:
+                      - text: Me
+                      - img [ref=e402]
+            - generic [ref=e405]:
+              - navigation [ref=e406]:
+                - list [ref=e407]:
+                  - listitem [ref=e408]:
+                    - button "For Business" [ref=e409] [cursor=pointer]:
+                      - img [ref=e411]
+                      - generic [ref=e414]:
+                        - text: For Business
+                        - img [ref=e415]
+              - link "Try Premium for ₹0" [ref=e418] [cursor=pointer]:
+                - /url: https://www.linkedin.com/feed/
+                - generic [ref=e419]:
+                  - img [ref=e420]
+                  - paragraph [ref=e424]: Try Premium for ₹0
+      - main [ref=e425]:
+        - main [ref=e427]:
+          - generic [ref=e429]:
+            - generic [ref=e433]:
+              - generic [ref=e437]:
+                - link [ref=e438] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/in/harshul-namdev-152794179/
+                  - generic [ref=e439]:
+                    - figure [ref=e441]
+                    - figure [ref=e443]:
+                      - img "Harshul Namdev" [ref=e444]
+                - generic [ref=e445]:
+                  - link "Harshul Namdev, SDE @Datansh, Jaipur, Rajasthan, Verified profile" [ref=e446] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/in/harshul-namdev-152794179/
+                    - generic "Harshul Namdev, SDE @Datansh, Jaipur, Rajasthan, Verified profile" [ref=e447]:
+                      - generic [ref=e448]:
+                        - paragraph [ref=e450]: Harshul Namdev
+                        - img "Verified profile" [ref=e451]
+                      - paragraph [ref=e454]: SDE @Datansh
+                      - paragraph [ref=e455]: Jaipur, Rajasthan
+                  - link "Datansh" [ref=e456] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/in/harshul-namdev-152794179/
+                    - generic [ref=e457]:
+                      - figure [ref=e458]
+                      - paragraph [ref=e459]: Datansh
+              - link "Use Premium to accelerate your career growth Try Premium for ₹0" [ref=e464] [cursor=pointer]:
+                - /url: https://www.linkedin.com/premium/products/?upsellOrderOrigin=Tracking%3Av1%3Apremium_homepage_identity_upsell%3ANav%3AIn-Product&referenceId=wot5v%2BHxRH2%2FrGPnn%2BXt3g%3D%3D&isSS=true&upsellSlotId=IDENTITY_MODULE
+                - generic [ref=e465]:
+                  - paragraph [ref=e466]: Use Premium to accelerate your career growth
+                  - generic [ref=e468]:
+                    - img [ref=e469]
+                    - paragraph [ref=e473]: Try Premium for ₹0
+              - menu [ref=e476]:
+                - link "Profile viewers 63" [ref=e478] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/me/profile-views/
+                  - generic "Profile viewers 63" [ref=e479]:
+                    - paragraph [ref=e481]: Profile viewers
+                    - paragraph [ref=e482]: "63"
+                - link "Post impressions 182" [ref=e484] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/analytics/creator/content/
+                  - generic "Post impressions 182" [ref=e485]:
+                    - paragraph [ref=e487]: Post impressions
+                    - paragraph [ref=e488]: "182"
+              - menu [ref=e492]:
+                - link "vebble" [ref=e493] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/company/107865474/admin/
+                  - generic [ref=e495]:
+                    - figure [ref=e496]:
+                      - img "vebble logo" [ref=e497]
+                    - paragraph [ref=e501]: vebble
+                - link "Activity 0" [ref=e502] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/company/107865474/admin/notifications/
+                  - generic [ref=e503]:
+                    - paragraph [ref=e504]: Activity
+                    - paragraph [ref=e505]: "0"
+                - link "Visitors 0" [ref=e506] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/company/107865474/admin/analytics/visitors/
+                  - generic [ref=e507]:
+                    - paragraph [ref=e508]: Visitors
+                    - paragraph [ref=e509]: "0"
+                - link "Premium features" [ref=e510] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/premium/my-premium/?companyUrn=urn:li:fsd_company:107865474
+                  - generic [ref=e511]:
+                    - img [ref=e512]
+                    - paragraph [ref=e515]: Premium features
+                - link "Try Campaign Manager" [ref=e517] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/campaignmanager/accounts/
+                  - generic [ref=e518]:
+                    - img [ref=e519]
+                    - paragraph [ref=e521]: Try Campaign Manager
+                - link "See visitor analytics" [ref=e523] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/company/107865474/admin/analytics/visitors/
+                  - generic [ref=e524]:
+                    - paragraph [ref=e525]: See visitor analytics
+                    - img [ref=e526]
+              - menu [ref=e530]:
+                - link "Saved items" [ref=e531] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/my-items/saved-posts/
+                  - generic [ref=e532]:
+                    - img [ref=e533]
+                    - paragraph [ref=e535]: Saved items
+                - link "Groups" [ref=e536] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/groups/
+                  - generic [ref=e537]:
+                    - img [ref=e538]
+                    - paragraph [ref=e544]: Groups
+                - link "Newsletters" [ref=e545] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/mynetwork/network-manager/newsletters/
+                  - generic [ref=e546]:
+                    - img [ref=e547]
+                    - paragraph [ref=e549]: Newsletters
+                - link "Events" [ref=e550] [cursor=pointer]:
+                  - /url: https://www.linkedin.com/events/
+                  - generic [ref=e551]:
+                    - img [ref=e552]
+                    - paragraph [ref=e554]: Events
+            - list [ref=e556]:
+              - generic [ref=e558]:
+                - generic [ref=e559]:
+                  - link [ref=e560] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/in/harshul-namdev-152794179/
+                    - figure [ref=e561]
+                  - button "Start a post" [ref=e563] [cursor=pointer]:
+                    - generic "Start a post" [ref=e564]:
+                      - generic [ref=e566]:
+                        - paragraph [ref=e567]: Start a post
+                        - generic:
+                          - paragraph
+                - generic [ref=e568]:
+                  - button "Video" [ref=e569] [cursor=pointer]:
+                    - generic [ref=e570]:
+                      - img [ref=e571]
+                      - paragraph [ref=e573]: Video
+                  - button "Photo" [ref=e574] [cursor=pointer]:
+                    - generic [ref=e575]:
+                      - img [ref=e576]
+                      - paragraph [ref=e578]: Photo
+                  - link "Write article" [ref=e579] [cursor=pointer]:
+                    - /url: /article/new/
+                    - generic [ref=e580]:
+                      - img [ref=e581]
+                      - paragraph [ref=e583]: Write article
+              - 'button "Sort by: Top" [ref=e585] [cursor=pointer]':
+                - generic [ref=e586]:
+                  - paragraph [ref=e587]:
+                    - text: "Sort by:"
+                    - strong [ref=e588]: Top
+                  - img [ref=e589]
+              - listitem [ref=e594]:
+                - generic [ref=e596]:
+                  - heading "Feed post" [level=2]:
+                    - generic [ref=e597]: Feed post
+                  - generic [ref=e598]:
+                    - generic [ref=e599]:
+                      - link [ref=e600] [cursor=pointer]:
+                        - /url: https://www.linkedin.com/in/hilkevonhoerschelmann/
+                        - figure [ref=e601]:
+                          - img "View Hilke von Hoerschelmann’s profile" [ref=e602]
+                      - paragraph [ref=e604]:
+                        - link "Hilke von Hoerschelmann" [ref=e605] [cursor=pointer]:
+                          - /url: https://www.linkedin.com/in/hilkevonhoerschelmann/
+                          - strong [ref=e606]: Hilke von Hoerschelmann
+                        - text: likes this
+                    - button "Open control menu for post by Business Norway" [ref=e607] [cursor=pointer]:
+                      - img [ref=e609]
+                    - button "Hide post by Business Norway" [ref=e611] [cursor=pointer]:
+                      - img [ref=e613]
+                  - generic [ref=e615]:
+                    - link [ref=e616] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/company/business-norway/posts/
+                      - figure [ref=e617]:
+                        - 'img "View company: Business Norway" [ref=e618]'
+                    - 'link "Business Norway 15m • Visibility: Global" [ref=e619] [cursor=pointer]':
+                      - /url: https://www.linkedin.com/company/business-norway/posts/
+                      - generic [ref=e620]:
+                        - paragraph [ref=e624]: Business Norway
+                        - paragraph [ref=e626]:
+                          - text: 15m •
+                          - 'img "Visibility: Global" [ref=e627]'
+                    - button "Follow Business Norway" [ref=e632] [cursor=pointer]:
+                      - generic [ref=e633]:
+                        - img [ref=e634]
+                        - generic [ref=e637]: Follow
+                  - paragraph [ref=e638]:
+                    - generic [ref=e639]:
+                      - text: 📈🇳🇴 Norwegian companies on Europe’s growth list
+                      - text: Norway has seven companies among Europe’s 1 000 fastest-growing businesses, according to the latest FT1000 ranking from
+                      - link "Financial Times" [ref=e640] [cursor=pointer]:
+                        - /url: https://www.linkedin.com/company/financial-times/
+                        - strong [ref=e642]: Financial Times
+                      - text: .
+                      - text: In a Nordic context, this is more than Denmark, which has three companies on the list, but fewer than Sweden and Finland, with 20 and 11 companies represented respectively.
+                      - text: The FT1000 list, compiled by Financial Times in collaboration with
+                      - link "Statista" [ref=e643] [cursor=pointer]:
+                        - /url: https://www.linkedin.com/company/statista/
+                        - strong [ref=e645]: Statista
+                      - text: ", ranks companies based on strong, verified and organic revenue growth over several years. The ranking provides insight into which companies have successfully scaled in a demanding European market."
+                      - text: "We hope to see even more Norwegian companies on the FT1000 list in the years ahead, and we congratulate those featured this year:"
+                      - text: 🚀
+                      - link "ECOnnect Energy" [ref=e646] [cursor=pointer]:
+                        - /url: https://www.linkedin.com/company/econnect-energy/
+                        - strong [ref=e648]: ECOnnect Energy
+                      - text: 🚀
+                      - link "Rebil" [ref=e649] [cursor=pointer]:
+                        - /url: https://www.linkedin.com/company/rebilnorge/
+                        - strong [ref=e651]: Rebil
+                      - text: 🚀
+                      - link "Diller® — loyalty" [ref=e652] [cursor=pointer]:
+                        - /url: https://www.linkedin.com/company/diller-as/
+                        - strong [ref=e654]: Diller® — loyalty
+                      - text: 🚀
+                      - link "Gritera" [ref=e655] [cursor=pointer]:
+                        - /url: https://www.linkedin.com/company/gritera/
+                        - strong [ref=e657]: Gritera
+                      - text: 🚀
+                      - link "Aprila Bank" [ref=e658] [cursor=pointer]:
+                        - /url: https://www.linkedin.com/company/aprilabank/
+                        - strong [ref=e660]: Aprila Bank
+                      - text: 🚀
+                      - link "Fair Group" [ref=e661] [cursor=pointer]:
+                        - /url: https://www.linkedin.com/company/fairgroupas/
+                        - strong [ref=e663]: Fair Group
+                      - text: 🚀
+                      - link "PSA Solutions AS" [ref=e664] [cursor=pointer]:
+                        - /url: https://www.linkedin.com/company/psaconsultingas/
+                        - strong [ref=e666]: PSA Solutions AS
+                      - text: We’re excited to follow your growth journey going forward! 🎉
+                      - text: Read the full story via the link in the comments.
+                      - text: "📷:"
+                      - link "Christine Baglo" [ref=e667] [cursor=pointer]:
+                        - /url: https://www.linkedin.com/in/christine-baglo-888a2920/
+                        - strong [ref=e669]: Christine Baglo
+                      - button:
+                        - generic [ref=e671] [cursor=pointer]: … more
+                  - link [ref=e673] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/feed/
+                    - figure [ref=e674]:
+                      - img "View image" [ref=e675]
+                  - generic [ref=e676]:
+                    - link "6 reactions" [ref=e677] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/feed/
+                      - generic [ref=e678]:
+                        - img [ref=e679]
+                        - img [ref=e685]
+                        - paragraph [ref=e700]:
+                          - generic [ref=e701]: 6 reactions
+                          - text: "6"
+                    - generic [ref=e702]:
+                      - button "1 comment" [ref=e703] [cursor=pointer]:
+                        - paragraph [ref=e704]:
+                          - generic [ref=e705]: 1 comment
+                          - generic [ref=e706]: 1 comment
+                      - paragraph [ref=e707]: •
+                      - link "1 repost" [ref=e708] [cursor=pointer]:
+                        - /url: https://www.linkedin.com/feed/
+                        - paragraph [ref=e709]:
+                          - generic [ref=e710]: 1 repost
+                          - generic [ref=e711]: 1 repost
+                  - generic [ref=e712]:
+                    - link "Open actor selection screen" [ref=e713] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/feed/
+                      - generic "Open actor selection screen" [ref=e714]:
+                        - figure [ref=e715]
+                        - img [ref=e716]
+                    - generic [ref=e718]:
+                      - generic [ref=e719]:
+                        - 'button "Reaction button state: no reaction" [ref=e722] [cursor=pointer]':
+                          - generic [ref=e723]:
+                            - img [ref=e724]
+                            - generic [ref=e726]: Like
+                        - button "Open reactions menu":
+                          - img [ref=e728] [cursor=pointer]
+                      - button "Comment" [ref=e730] [cursor=pointer]:
+                        - generic [ref=e731]:
+                          - img [ref=e732]
+                          - generic [ref=e734]: Comment
+                      - button "Repost" [ref=e735] [cursor=pointer]:
+                        - generic [ref=e736]:
+                          - img [ref=e737]
+                          - generic [ref=e739]: Repost
+                      - link "Send" [ref=e740] [cursor=pointer]:
+                        - /url: https://www.linkedin.com/feed/
+                        - generic [ref=e741]:
+                          - img [ref=e742]
+                          - generic [ref=e744]: Send
+              - listitem [ref=e748]:
+                - generic [ref=e750]:
+                  - heading "Feed post" [level=2]:
+                    - generic [ref=e751]: Feed post
+                  - generic [ref=e752]:
+                    - link [ref=e753] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/company/lumalabsai/posts/
+                      - figure [ref=e754]:
+                        - 'img "View company: Luma" [ref=e755]'
+                    - link "Luma 112,035 followers Promoted" [ref=e756] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/company/lumalabsai/posts/
+                      - generic [ref=e757]:
+                        - paragraph [ref=e761]: Luma
+                        - paragraph [ref=e763]: 112,035 followers
+                        - paragraph [ref=e765]: Promoted
+                    - button "Open control menu for post by Luma" [ref=e766] [cursor=pointer]:
+                      - img [ref=e768]
+                  - paragraph [ref=e770]:
+                    - generic [ref=e771]:
+                      - text: Level up your entire creative workflow. Sharper motion, richer light and lifelike performances. Only with Luma.
+                      - button:
+                        - generic [ref=e773] [cursor=pointer]: … more
+                  - generic [ref=e776]:
+                    - list [ref=e778]:
+                      - listitem [ref=e779]:
+                        - generic [ref=e782]:
+                          - link [ref=e783] [cursor=pointer]:
+                            - /url: https://lumalabs.ai/?utm_source=linkedin&utm_medium=paid_social&utm_campaign=%7B%7Bcampaign.name%7D%7D&utm_content=%7B%7Bad.name%7D%7D&utm_term=%7B%7Badset.name%7D%7D&li_fat_id=8409bf0a-5278-44c4-b19b-cd88d3c0cd87&hsa_acc=514306706&hsa_ver=4&utm_campaign=Prospecting%2B%7C%2BTrial%2B%7C%2BABO%2B%7C%2BWeb%2B%7C%2BBroad%2B%7C%2B18-65%2B%2B%7C%2BGEO3%2B%7C%2BHighestVolume%2B%7C%2BAutomatic%2B%7C%2BMarchLaunch%2B%7C%2B2603%2B%7C%2BCarousel&hsa_grp=554313206&hsa_ad=1362820076&utm_medium=paid&hsa_net=linkedin&hsa_cam=840513406&utm_source=linkedin
+                            - figure [ref=e785]
+                          - link "Create without limits." [ref=e786] [cursor=pointer]:
+                            - /url: https://lumalabs.ai/?utm_source=linkedin&utm_medium=paid_social&utm_campaign=%7B%7Bcampaign.name%7D%7D&utm_content=%7B%7Bad.name%7D%7D&utm_term=%7B%7Badset.name%7D%7D&li_fat_id=8409bf0a-5278-44c4-b19b-cd88d3c0cd87&hsa_acc=514306706&hsa_ver=4&utm_campaign=Prospecting%2B%7C%2BTrial%2B%7C%2BABO%2B%7C%2BWeb%2B%7C%2BBroad%2B%7C%2B18-65%2B%2B%7C%2BGEO3%2B%7C%2BHighestVolume%2B%7C%2BAutomatic%2B%7C%2BMarchLaunch%2B%7C%2B2603%2B%7C%2BCarousel&hsa_grp=554313206&hsa_ad=1362820076&utm_medium=paid&hsa_net=linkedin&hsa_cam=840513406&utm_source=linkedin
+                            - paragraph [ref=e789]: Create without limits.
+                      - listitem [ref=e790]:
+                        - generic [ref=e793]:
+                          - link [ref=e794] [cursor=pointer]:
+                            - /url: https://lumalabs.ai/?utm_source=linkedin&utm_medium=paid_social&utm_campaign=%7B%7Bcampaign.name%7D%7D&utm_content=%7B%7Bad.name%7D%7D&utm_term=%7B%7Badset.name%7D%7D&li_fat_id=8409bf0a-5278-44c4-b19b-cd88d3c0cd87&hsa_acc=514306706&hsa_ver=4&utm_campaign=Prospecting%2B%7C%2BTrial%2B%7C%2BABO%2B%7C%2BWeb%2B%7C%2BBroad%2B%7C%2B18-65%2B%2B%7C%2BGEO3%2B%7C%2BHighestVolume%2B%7C%2BAutomatic%2B%7C%2BMarchLaunch%2B%7C%2B2603%2B%7C%2BCarousel&hsa_grp=554313206&hsa_ad=1362820076&utm_medium=paid&hsa_net=linkedin&hsa_cam=840513406&utm_source=linkedin
+                            - figure [ref=e796]
+                          - link "Imagine without compromise." [ref=e797] [cursor=pointer]:
+                            - /url: https://lumalabs.ai/?utm_source=linkedin&utm_medium=paid_social&utm_campaign=%7B%7Bcampaign.name%7D%7D&utm_content=%7B%7Bad.name%7D%7D&utm_term=%7B%7Badset.name%7D%7D&li_fat_id=8409bf0a-5278-44c4-b19b-cd88d3c0cd87&hsa_acc=514306706&hsa_ver=4&utm_campaign=Prospecting%2B%7C%2BTrial%2B%7C%2BABO%2B%7C%2BWeb%2B%7C%2BBroad%2B%7C%2B18-65%2B%2B%7C%2BGEO3%2B%7C%2BHighestVolume%2B%7C%2BAutomatic%2B%7C%2BMarchLaunch%2B%7C%2B2603%2B%7C%2BCarousel&hsa_grp=554313206&hsa_ad=1362820076&utm_medium=paid&hsa_net=linkedin&hsa_cam=840513406&utm_source=linkedin
+                            - paragraph [ref=e800]: Imagine without compromise.
+                      - listitem [ref=e801]:
+                        - generic [ref=e804]:
+                          - link [ref=e805] [cursor=pointer]:
+                            - /url: https://lumalabs.ai/?utm_source=linkedin&utm_medium=paid_social&utm_campaign=%7B%7Bcampaign.name%7D%7D&utm_content=%7B%7Bad.name%7D%7D&utm_term=%7B%7Badset.name%7D%7D&li_fat_id=8409bf0a-5278-44c4-b19b-cd88d3c0cd87&hsa_acc=514306706&hsa_ver=4&utm_campaign=Prospecting%2B%7C%2BTrial%2B%7C%2BABO%2B%7C%2BWeb%2B%7C%2BBroad%2B%7C%2B18-65%2B%2B%7C%2BGEO3%2B%7C%2BHighestVolume%2B%7C%2BAutomatic%2B%7C%2BMarchLaunch%2B%7C%2B2603%2B%7C%2BCarousel&hsa_grp=554313206&hsa_ad=1362820076&utm_medium=paid&hsa_net=linkedin&hsa_cam=840513406&utm_source=linkedin
+                            - figure [ref=e807]
+                          - link "Upgrade your creative workflow." [ref=e808] [cursor=pointer]:
+                            - /url: https://lumalabs.ai/?utm_source=linkedin&utm_medium=paid_social&utm_campaign=%7B%7Bcampaign.name%7D%7D&utm_content=%7B%7Bad.name%7D%7D&utm_term=%7B%7Badset.name%7D%7D&li_fat_id=8409bf0a-5278-44c4-b19b-cd88d3c0cd87&hsa_acc=514306706&hsa_ver=4&utm_campaign=Prospecting%2B%7C%2BTrial%2B%7C%2BABO%2B%7C%2BWeb%2B%7C%2BBroad%2B%7C%2B18-65%2B%2B%7C%2BGEO3%2B%7C%2BHighestVolume%2B%7C%2BAutomatic%2B%7C%2BMarchLaunch%2B%7C%2B2603%2B%7C%2BCarousel&hsa_grp=554313206&hsa_ad=1362820076&utm_medium=paid&hsa_net=linkedin&hsa_cam=840513406&utm_source=linkedin
+                            - paragraph [ref=e811]: Upgrade your creative workflow.
+                      - listitem [ref=e812]:
+                        - generic [ref=e815]:
+                          - link [ref=e816] [cursor=pointer]:
+                            - /url: https://lumalabs.ai/?utm_source=linkedin&utm_medium=paid_social&utm_campaign=%7B%7Bcampaign.name%7D%7D&utm_content=%7B%7Bad.name%7D%7D&utm_term=%7B%7Badset.name%7D%7D&li_fat_id=8409bf0a-5278-44c4-b19b-cd88d3c0cd87&hsa_acc=514306706&hsa_ver=4&utm_campaign=Prospecting%2B%7C%2BTrial%2B%7C%2BABO%2B%7C%2BWeb%2B%7C%2BBroad%2B%7C%2B18-65%2B%2B%7C%2BGEO3%2B%7C%2BHighestVolume%2B%7C%2BAutomatic%2B%7C%2BMarchLaunch%2B%7C%2B2603%2B%7C%2BCarousel&hsa_grp=554313206&hsa_ad=1362820076&utm_medium=paid&hsa_net=linkedin&hsa_cam=840513406&utm_source=linkedin
+                            - figure [ref=e818]
+                          - link "Experiment endlessly." [ref=e819] [cursor=pointer]:
+                            - /url: https://lumalabs.ai/?utm_source=linkedin&utm_medium=paid_social&utm_campaign=%7B%7Bcampaign.name%7D%7D&utm_content=%7B%7Bad.name%7D%7D&utm_term=%7B%7Badset.name%7D%7D&li_fat_id=8409bf0a-5278-44c4-b19b-cd88d3c0cd87&hsa_acc=514306706&hsa_ver=4&utm_campaign=Prospecting%2B%7C%2BTrial%2B%7C%2BABO%2B%7C%2BWeb%2B%7C%2BBroad%2B%7C%2B18-65%2B%2B%7C%2BGEO3%2B%7C%2BHighestVolume%2B%7C%2BAutomatic%2B%7C%2BMarchLaunch%2B%7C%2B2603%2B%7C%2BCarousel&hsa_grp=554313206&hsa_ad=1362820076&utm_medium=paid&hsa_net=linkedin&hsa_cam=840513406&utm_source=linkedin
+                            - paragraph [ref=e822]: Experiment endlessly.
+                      - listitem [ref=e823]:
+                        - generic [ref=e826]:
+                          - link [ref=e827] [cursor=pointer]:
+                            - /url: https://lumalabs.ai/?utm_source=linkedin&utm_medium=paid_social&utm_campaign=%7B%7Bcampaign.name%7D%7D&utm_content=%7B%7Bad.name%7D%7D&utm_term=%7B%7Badset.name%7D%7D&li_fat_id=8409bf0a-5278-44c4-b19b-cd88d3c0cd87&hsa_acc=514306706&hsa_ver=4&utm_campaign=Prospecting%2B%7C%2BTrial%2B%7C%2BABO%2B%7C%2BWeb%2B%7C%2BBroad%2B%7C%2B18-65%2B%2B%7C%2BGEO3%2B%7C%2BHighestVolume%2B%7C%2BAutomatic%2B%7C%2BMarchLaunch%2B%7C%2B2603%2B%7C%2BCarousel&hsa_grp=554313206&hsa_ad=1362820076&utm_medium=paid&hsa_net=linkedin&hsa_cam=840513406&utm_source=linkedin
+                            - figure [ref=e829]
+                          - link "Legendary creatives at scale" [ref=e830] [cursor=pointer]:
+                            - /url: https://lumalabs.ai/?utm_source=linkedin&utm_medium=paid_social&utm_campaign=%7B%7Bcampaign.name%7D%7D&utm_content=%7B%7Bad.name%7D%7D&utm_term=%7B%7Badset.name%7D%7D&li_fat_id=8409bf0a-5278-44c4-b19b-cd88d3c0cd87&hsa_acc=514306706&hsa_ver=4&utm_campaign=Prospecting%2B%7C%2BTrial%2B%7C%2BABO%2B%7C%2BWeb%2B%7C%2BBroad%2B%7C%2B18-65%2B%2B%7C%2BGEO3%2B%7C%2BHighestVolume%2B%7C%2BAutomatic%2B%7C%2BMarchLaunch%2B%7C%2B2603%2B%7C%2BCarousel&hsa_grp=554313206&hsa_ad=1362820076&utm_medium=paid&hsa_net=linkedin&hsa_cam=840513406&utm_source=linkedin
+                            - paragraph [ref=e833]: Legendary creatives at scale
+                    - button "Next" [ref=e834] [cursor=pointer]:
+                      - img [ref=e836]
+                  - generic [ref=e838]:
+                    - link "1,674 reactions" [ref=e839] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/feed/
+                      - generic [ref=e840]:
+                        - img [ref=e841]
+                        - img [ref=e847]
+                        - img [ref=e853]
+                        - paragraph [ref=e868]:
+                          - generic [ref=e869]: 1,674 reactions
+                          - text: 1,674
+                    - generic [ref=e870]:
+                      - button "19 comments" [ref=e871] [cursor=pointer]:
+                        - paragraph [ref=e872]:
+                          - generic [ref=e873]: 19 comments
+                          - generic [ref=e874]: 19 comments
+                      - paragraph [ref=e875]: •
+                      - link "29 reposts" [ref=e876] [cursor=pointer]:
+                        - /url: https://www.linkedin.com/feed/
+                        - paragraph [ref=e877]:
+                          - generic [ref=e878]: 29 reposts
+                          - generic [ref=e879]: 29 reposts
+                  - generic [ref=e880]:
+                    - link "Open actor selection screen" [ref=e881] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/feed/
+                      - generic "Open actor selection screen" [ref=e882]:
+                        - figure [ref=e883]
+                        - img [ref=e884]
+                    - generic [ref=e886]:
+                      - generic [ref=e887]:
+                        - 'button "Reaction button state: no reaction" [ref=e890] [cursor=pointer]':
+                          - generic [ref=e891]:
+                            - img [ref=e892]
+                            - generic [ref=e894]: Like
+                        - button "Open reactions menu":
+                          - img [ref=e896] [cursor=pointer]
+                      - button "Comment" [ref=e898] [cursor=pointer]:
+                        - generic [ref=e899]:
+                          - img [ref=e900]
+                          - generic [ref=e902]: Comment
+                      - button "Repost" [ref=e903] [cursor=pointer]:
+                        - generic [ref=e904]:
+                          - img [ref=e905]
+                          - generic [ref=e907]: Repost
+                      - link "Send" [ref=e908] [cursor=pointer]:
+                        - /url: https://www.linkedin.com/feed/
+                        - generic [ref=e909]:
+                          - img [ref=e910]
+                          - generic [ref=e912]: Send
+              - listitem [ref=e916]:
+                - generic [ref=e918]:
+                  - heading "Feed post" [level=2]:
+                    - generic [ref=e919]: Feed post
+                  - generic [ref=e920]:
+                    - paragraph [ref=e923]: Suggested
+                    - button "Open control menu for post by Orian Roturier" [ref=e924] [cursor=pointer]:
+                      - img [ref=e926]
+                    - button "Hide post by Orian Roturier" [ref=e928] [cursor=pointer]:
+                      - img [ref=e930]
+                  - generic [ref=e932]:
+                    - link [ref=e933] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/in/orian-roturier/en/
+                      - figure [ref=e934]:
+                        - img "View Orian Roturier’s profile" [ref=e935]
+                    - 'link "Orian Roturier Verified Profile 3rd+ Marketing Director - Growth @ GitGuardian 2h • Visibility: Global" [ref=e936] [cursor=pointer]':
+                      - /url: https://www.linkedin.com/in/orian-roturier/en/
+                      - generic [ref=e937]:
+                        - generic "Orian Roturier Verified Profile 3rd+" [ref=e938]:
+                          - paragraph [ref=e941]: Orian Roturier
+                          - paragraph [ref=e943]:
+                            - img [ref=e945]
+                            - text: • 3rd+
+                        - paragraph [ref=e948]: Marketing Director - Growth @ GitGuardian
+                        - paragraph [ref=e950]:
+                          - text: 2h •
+                          - 'img "Visibility: Global" [ref=e951]'
+                    - button "Follow Orian Roturier" [ref=e956] [cursor=pointer]:
+                      - generic [ref=e957]:
+                        - img [ref=e958]
+                        - generic [ref=e961]: Follow
+                  - paragraph [ref=e962]:
+                    - generic [ref=e963]:
+                      - text: "Someone taught Claude to talk like a caveman to use 75% less tokens, according to an hilarious reddit post with 10k upvotes this week How? He stripped out \"Great question!\", \"I'd be happy to help!\", and every other pleasantry the model was trained to produce. 🧌 Claude in caveman mode after a sales call: \"Champion = IT Director. Budget confirmed. Blocker = security review, 3 weeks. Next step: send compliance doc.\" 👨‍🔬 Normal Claude: \"Based on the transcript you shared, it appears the primary champion within the organization is the IT Director, who has confirmed budget availability. However, there is a potential obstacle in the form of a pending security review process, which is estimated to take approximately three weeks. I would recommend following up with the relevant compliance documentation to keep the deal moving forward.\" Same answer. 4x the tokens. 4x the cost. We spent $10B training the world's most sophisticated AI. But part of that budget apparently went to: learning to abide by social norms. The actual savings are more modest than the headline (closer to 8-10% per session once you count all input tokens), but there's a funnier subplot: a March 2026 arXiv paper found that forcing LLMs to be brief actually improved their accuracy by 26 points on certain benchmarks. 🧌Less word. Brain work better. I feel inspired to take a new approach to my excom meetings..."
+                      - button:
+                        - generic [ref=e965] [cursor=pointer]: … more
+                  - link [ref=e967] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/feed/
+                    - figure [ref=e968]:
+                      - img "View image" [ref=e969]
+                  - generic [ref=e970]:
+                    - link "5 reactions" [ref=e971] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/feed/
+                      - generic [ref=e972]:
+                        - img [ref=e973]
+                        - paragraph [ref=e980]:
+                          - generic [ref=e981]: 5 reactions
+                          - text: "5"
+                    - button "1 comment" [ref=e983] [cursor=pointer]:
+                      - paragraph [ref=e984]:
+                        - generic [ref=e985]: 1 comment
+                        - generic [ref=e986]: 1 comment
+                  - generic [ref=e987]:
+                    - link "Open actor selection screen" [ref=e988] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/feed/
+                      - generic "Open actor selection screen" [ref=e989]:
+                        - figure [ref=e990]
+                        - img [ref=e991]
+                    - generic [ref=e993]:
+                      - generic [ref=e994]:
+                        - 'button "Reaction button state: no reaction" [ref=e997] [cursor=pointer]':
+                          - generic [ref=e998]:
+                            - img [ref=e999]
+                            - generic [ref=e1001]: Like
+                        - button "Open reactions menu":
+                          - img [ref=e1003] [cursor=pointer]
+                      - button "Comment" [ref=e1005] [cursor=pointer]:
+                        - generic [ref=e1006]:
+                          - img [ref=e1007]
+                          - generic [ref=e1009]: Comment
+                      - button "Repost" [ref=e1010] [cursor=pointer]:
+                        - generic [ref=e1011]:
+                          - img [ref=e1012]
+                          - generic [ref=e1014]: Repost
+                      - link "Send" [ref=e1015] [cursor=pointer]:
+                        - /url: https://www.linkedin.com/feed/
+                        - generic [ref=e1016]:
+                          - img [ref=e1017]
+                          - generic [ref=e1019]: Send
+              - progressbar "In progress" [ref=e1023]
+            - generic [ref=e1025]:
+              - generic [ref=e1028]:
+                - generic [ref=e1030]:
+                  - generic [ref=e1031]:
+                    - paragraph [ref=e1032]: LinkedIn News
+                    - button "Info tooltip" [ref=e1033] [cursor=pointer]:
+                      - img [ref=e1035]
+                  - paragraph [ref=e1037]: Top stories
+                  - generic [ref=e1038]:
+                    - 'link "Disney initiates layoffs: ''I know this is hard,'' CEO says 1h ago • 19,416 readers" [ref=e1040] [cursor=pointer]':
+                      - /url: https://www.linkedin.com/news/story/disney-initiates-layoffs-i-know-this-is-hard-ceo-says-7923745/
+                      - generic [ref=e1042]:
+                        - paragraph [ref=e1044]: "Disney initiates layoffs: 'I know this is hard,' CEO says"
+                        - generic [ref=e1045]:
+                          - paragraph [ref=e1046]: 1h ago
+                          - paragraph [ref=e1047]: •
+                          - paragraph [ref=e1048]: 19,416 readers
+                    - link "Where India's freshers can find opportunities 7h ago • 1,151 readers" [ref=e1050] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/news/story/where-indias-freshers-can-find-opportunities-7923049/
+                      - generic [ref=e1052]:
+                        - paragraph [ref=e1054]: Where India's freshers can find opportunities
+                        - generic [ref=e1055]:
+                          - paragraph [ref=e1056]: 7h ago
+                          - paragraph [ref=e1057]: •
+                          - paragraph [ref=e1058]: 1,151 readers
+                    - link "Hotel chains check in to surging demand 1h ago • 295 readers" [ref=e1060] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/news/story/hotel-chains-check-in-to-surging-demand-7180636/
+                      - generic [ref=e1062]:
+                        - paragraph [ref=e1064]: Hotel chains check in to surging demand
+                        - generic [ref=e1065]:
+                          - paragraph [ref=e1066]: 1h ago
+                          - paragraph [ref=e1067]: •
+                          - paragraph [ref=e1068]: 295 readers
+                    - link "Deals hit a high, but big-ticket transactions drop 1h ago • 250 readers" [ref=e1070] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/news/story/deals-hit-a-high-but-big-ticket-transactions-drop-7172956/
+                      - generic [ref=e1072]:
+                        - paragraph [ref=e1074]: Deals hit a high, but big-ticket transactions drop
+                        - generic [ref=e1075]:
+                          - paragraph [ref=e1076]: 1h ago
+                          - paragraph [ref=e1077]: •
+                          - paragraph [ref=e1078]: 250 readers
+                    - link "Spacetech firms shift focus to stellar growth 1h ago • 130 readers" [ref=e1080] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/news/story/spacetech-firms-shift-focus-to-stellar-growth-7179268/
+                      - generic [ref=e1082]:
+                        - paragraph [ref=e1084]: Spacetech firms shift focus to stellar growth
+                        - generic [ref=e1085]:
+                          - paragraph [ref=e1086]: 1h ago
+                          - paragraph [ref=e1087]: •
+                          - paragraph [ref=e1088]: 130 readers
+                    - button "Show more news" [ref=e1089] [cursor=pointer]:
+                      - generic [ref=e1090]:
+                        - img [ref=e1091]
+                        - generic [ref=e1093]: Show more news
+                - generic [ref=e1095]:
+                  - paragraph [ref=e1096]: Today’s puzzles
+                  - generic [ref=e1097]:
+                    - link "Play Patches" [ref=e1099] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/games/patches/
+                      - generic "Play Patches" [ref=e1100]:
+                        - generic [ref=e1101]:
+                          - figure [ref=e1102]
+                          - generic [ref=e1103]:
+                            - paragraph [ref=e1104]:
+                              - strong [ref=e1105]: Patches
+                              - text: "#29"
+                            - paragraph [ref=e1106]: Piece it together
+                        - img [ref=e1107]
+                    - link "Play Zip" [ref=e1110] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/games/zip/
+                      - generic "Play Zip" [ref=e1111]:
+                        - generic [ref=e1112]:
+                          - figure [ref=e1113]
+                          - generic [ref=e1114]:
+                            - paragraph [ref=e1115]:
+                              - strong [ref=e1116]: Zip
+                              - text: "#394"
+                            - paragraph [ref=e1117]: 7 connections played
+                        - img [ref=e1118]
+                    - link "Play MiniSudoku" [ref=e1121] [cursor=pointer]:
+                      - /url: /games/mini-sudoku/
+                      - generic "Play MiniSudoku" [ref=e1122]:
+                        - generic [ref=e1123]:
+                          - figure [ref=e1124]
+                          - generic [ref=e1125]:
+                            - paragraph [ref=e1126]:
+                              - strong [ref=e1127]: Mini Sudoku
+                              - text: "#247"
+                            - paragraph [ref=e1128]: The classic game, made mini
+                        - img [ref=e1129]
+                    - link "Play Tango" [ref=e1132] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/games/tango/
+                      - generic "Play Tango" [ref=e1133]:
+                        - generic [ref=e1134]:
+                          - figure [ref=e1135]
+                          - generic [ref=e1136]:
+                            - paragraph [ref=e1137]:
+                              - strong [ref=e1138]: Tango
+                              - text: "#555"
+                            - paragraph [ref=e1139]: Harmonize the grid
+                        - img [ref=e1140]
+                    - button "Show more" [ref=e1143] [cursor=pointer]:
+                      - generic [ref=e1144]:
+                        - img [ref=e1145]
+                        - generic [ref=e1147]: Show more
+              - generic [ref=e1149]:
+                - iframe [ref=e1152]:
+                  - generic [ref=f2e3]:
+                    - banner [ref=f2e4]:
+                      - img [ref=f2e6]:
+                        - img [ref=f2e7]
+                        - img [ref=f2e11]
+                      - link "aramco" [ref=f2e15] [cursor=pointer]:
+                        - /url: https://www.linkedin.com/li/tscp/sct?destinationUrl=http%3A%2F%2Fwww.linkedin.com%2Fcompany%2F5098%2Fjobs&trackingEvent=%5B%7B%22eventInfo%22%3A%7B%22appId%22%3A%22com.linkedin.ads.rendering.d_web%22%2C%22eventName%22%3A%22SponsoredRightRailContentActionEvent%22%2C%22topicName%22%3A%22SponsoredRightRailContentActionEvent%22%7D%2C%22eventBody%22%3A%7B%22sponsoredEventHeader%22%3A%7B%22encryptedTrackingData%22%3A%22CwEAAAGdkUiEpKdV381jzdvbi0XQPYNeBGslTmzSNAOhD-I-OzPkbu4ow33R5i-Hg2-PevxV-TYwgrztiBLEDd0ODfkZjqjYS85vvK6VpyRxpnQmzSCtxDtwB-3IRVJh_10tDidEv0ZvTmOBzScnZBTTFgfWsOb-hgCoNWM45437OgekzVquyZfxFGUiN-TT3nrEmQIHljy0tfTgH35-O9IppFdkWeZA9lyiV39T7o6lbxc_YTeWmeDb54HqKSnNjSTu7x67seCSy4b6LcqGvRQavh3h4lGm-KI4lt9--CxOdAtG5QWH-n5Te3agSIXtVtoDQebdTvJQYOuTF03HoXhyDryuCu_OxDY2UFVTrl1ZrcR7jDA3jMQxLhh3scr_nIaBrGGSuXceLjmm4OTaPMhjvUR28eAG76w_bO9zBuM1pOiMmeukeJMW_wkqLpgjZGRXjOl4vrXrj_gtfSx-7z52LTgymSeO1d2EBgA2VR8dt9oyx86D8YNB-8u4N5Z51vdu1eaCesZ-plMduNojjD9tJ9jMDG0TvdT-fjavw506foBGBLvkWLbJ6o92gUWwl1Be7a5EGsLjib1IPPWNWspzp1LDjzYRQzjKsrMfP9Hqh6alfH2ZfDjpoMWJ4a4q-h0DZcK6dp86cEbfYMKRPzjjbb_zjdwQcBC4QhhtwUYg3agsQwNNGQ15eY54C-c9ZGUuFpmMgMASYmpDhCGXF7qN6mtelic9cXM33oNHOFLTjFl9OMeikdtBrppjyYQ7lO6MHgLyQTT2zTEJUy9pkPp3PYxUhNbrjchoJLs5VWKa5NHi_zvws1ZdQohw6vMhTwNhUy6iCqnaOADZ6ID_Qt1R44aT7Ht4gLTAYAe-oziL8Y961kBXBMnkCASh84noClDTF8P-BO-E2TkUB0r1DnOLH6SIduXj2kgP-MX7Q2a7RGYtlHiRbFnp0fgIrQvJoFaTbjlfz_hL0KvKw3mgsfoeNh5W3HTTgI3sscfHKHjobNIiAnGGgMlUwTjoMqvzBStDgrXhGJOzh2u82jIJFk7ODoFw657S-1TEdbGNfpa2awUuB-lTe93AzqerUVoLD_IzHqqKu6GLHahDa-gTXi8meUUY733h6l_wJd8xqR2u1CFAzMGJmvcXLOU4yFDMkkbHbhsL2H1PkwA1XeCCBqynSCNWv-kS5vo%22%7D%2C%22header%22%3A%7B%22pageInstance%22%3A%7B%22pageUrn%22%3A%22urn%3Ali%3Apage%3Ad_flagship3_feed%22%2C%22trackingId%22%3A%227fc315bb-0da8-47a0-a39f-719351476e21%22%7D%2C%22time%22%3A1776258942007%2C%22version%22%3A%220.0.0%22%7D%2C%22requestHeader%22%3A%7B%22pageKey%22%3A%22d_flagship3_feed%22%2C%22interfaceLocale%22%3A%22en-US%22%7D%7D%7D%5D&csrfToken=ajax%3A8407824338560493144
+                        - img "aramco" [ref=f2e16]
+                      - generic [ref=f2e17]:
+                        - paragraph [ref=f2e18]: Promoted
+                        - button "Ad Options" [ref=f2e19] [cursor=pointer]:
+                          - img [ref=f2e20]
+                          - generic [ref=f2e24]: Ad Options
+                    - generic [ref=f2e25]:
+                      - link "aramco" [ref=f2e26] [cursor=pointer]:
+                        - /url: https://www.linkedin.com/li/tscp/sct?destinationUrl=http%3A%2F%2Fwww.linkedin.com%2Fcompany%2F5098%2Fjobs&trackingEvent=%5B%7B%22eventInfo%22%3A%7B%22appId%22%3A%22com.linkedin.ads.rendering.d_web%22%2C%22eventName%22%3A%22SponsoredRightRailContentActionEvent%22%2C%22topicName%22%3A%22SponsoredRightRailContentActionEvent%22%7D%2C%22eventBody%22%3A%7B%22sponsoredEventHeader%22%3A%7B%22encryptedTrackingData%22%3A%22CwEAAAGdkUiEpKdV381jzdvbi0XQPYNeBGslTmzSNAOhD-I-OzPkbu4ow33R5i-Hg2-PevxV-TYwgrztiBLEDd0ODfkZjqjYS85vvK6VpyRxpnQmzSCtxDtwB-3IRVJh_10tDidEv0ZvTmOBzScnZBTTFgfWsOb-hgCoNWM45437OgekzVquyZfxFGUiN-TT3nrEmQIHljy0tfTgH35-O9IppFdkWeZA9lyiV39T7o6lbxc_YTeWmeDb54HqKSnNjSTu7x67seCSy4b6LcqGvRQavh3h4lGm-KI4lt9--CxOdAtG5QWH-n5Te3agSIXtVtoDQebdTvJQYOuTF03HoXhyDryuCu_OxDY2UFVTrl1ZrcR7jDA3jMQxLhh3scr_nIaBrGGSuXceLjmm4OTaPMhjvUR28eAG76w_bO9zBuM1pOiMmeukeJMW_wkqLpgjZGRXjOl4vrXrj_gtfSx-7z52LTgymSeO1d2EBgA2VR8dt9oyx86D8YNB-8u4N5Z51vdu1eaCesZ-plMduNojjD9tJ9jMDG0TvdT-fjavw506foBGBLvkWLbJ6o92gUWwl1Be7a5EGsLjib1IPPWNWspzp1LDjzYRQzjKsrMfP9Hqh6alfH2ZfDjpoMWJ4a4q-h0DZcK6dp86cEbfYMKRPzjjbb_zjdwQcBC4QhhtwUYg3agsQwNNGQ15eY54C-c9ZGUuFpmMgMASYmpDhCGXF7qN6mtelic9cXM33oNHOFLTjFl9OMeikdtBrppjyYQ7lO6MHgLyQTT2zTEJUy9pkPp3PYxUhNbrjchoJLs5VWKa5NHi_zvws1ZdQohw6vMhTwNhUy6iCqnaOADZ6ID_Qt1R44aT7Ht4gLTAYAe-oziL8Y961kBXBMnkCASh84noClDTF8P-BO-E2TkUB0r1DnOLH6SIduXj2kgP-MX7Q2a7RGYtlHiRbFnp0fgIrQvJoFaTbjlfz_hL0KvKw3mgsfoeNh5W3HTTgI3sscfHKHjobNIiAnGGgMlUwTjoMqvzBStDgrXhGJOzh2u82jIJFk7ODoFw657S-1TEdbGNfpa2awUuB-lTe93AzqerUVoLD_IzHqqKu6GLHahDa-gTXi8meUUY733h6l_wJd8xqR2u1CFAzMGJmvcXLOU4yFDMkkbHbhsL2H1PkwA1XeCCBqynSCNWv-kS5vo%22%7D%2C%22header%22%3A%7B%22pageInstance%22%3A%7B%22pageUrn%22%3A%22urn%3Ali%3Apage%3Ad_flagship3_feed%22%2C%22trackingId%22%3A%227fc315bb-0da8-47a0-a39f-719351476e21%22%7D%2C%22time%22%3A1776258942007%2C%22version%22%3A%220.0.0%22%7D%2C%22requestHeader%22%3A%7B%22pageKey%22%3A%22d_flagship3_feed%22%2C%22interfaceLocale%22%3A%22en-US%22%7D%7D%7D%5D&csrfToken=ajax%3A8407824338560493144
+                        - heading "aramco" [level=2] [ref=f2e27]
+                      - paragraph [ref=f2e29]: Harshul, get the latest on aramco News, Jobs, and More!
+                      - paragraph [ref=f2e31]: Harshul, stay informed on aramco stories and news
+                      - generic [ref=f2e32]:
+                        - generic [ref=f2e33]:
+                          - img "Richa" [ref=f2e34]
+                          - img "Yeshwanthram" [ref=f2e35]
+                          - img "Garima" [ref=f2e36]
+                        - paragraph [ref=f2e37]: Richa & 145 other connections also follow
+                      - link "Follow" [ref=f2e38] [cursor=pointer]:
+                        - /url: https://www.linkedin.com/li/tscp/sct?destinationUrl=http%3A%2F%2Fwww.linkedin.com%2Fcompany%2F5098%2Fjobs%3FisFollowingPage%3Dtrue&trackingEvent=%5B%7B%22eventInfo%22%3A%7B%22appId%22%3A%22com.linkedin.ads.rendering.d_web%22%2C%22eventName%22%3A%22SponsoredRightRailContentActionEvent%22%2C%22topicName%22%3A%22SponsoredRightRailContentActionEvent%22%7D%2C%22eventBody%22%3A%7B%22sponsoredEventHeader%22%3A%7B%22encryptedTrackingData%22%3A%22CwEAAAGdkUiEpDE2JGxLxPrmMeqYQDm4zGPXu70DKJF2kiak59NthyNC8sK8ODb_AWQIgNmvF37OjmZomPEFSHIXIgI4ksxBGzyKsKz9ZjPJWXwJqGwBUqQ-qqGukWzDls0XpgXi1N1tlSx21Jvvu9_ttpbaGwbZ5r8xwVibK6_sbgDyID07s4X6Sf0tPhHasyEjvfA4eJTsQnp47yX97s_CimC_mw3yKdNX0DdpO-DPDmRxLvUbPiFTeCFkhrQVOFSnHEYhnW-9XaQtUS2TycfoWzpKeWLEA5fK-KFj7kjMqHTGqVmnaE5MRmEXNuMHIX0OgcKxTWKZXHng7Wo-tZsgbEHnUBC9G6vUcIoHy3BesJy0hYm4W1z0B03kg6_O4XVxkjcfFQCIcKAj6muHG4FBhZgm0gW4odWhQ8Ge8tT9ol2yJH3AuVg6ZjhtO_KEc7d2VS_GyyoTUcA93S_GeGLQMXS7MWGxZhFSh9V4L5xh_V1pzJzozE-0w2-mkdV5bAABOZFg_Bb_myxJanm08-lz3B0hSXmbPam-VyKe2nEk3DfEcCOxKrGw8WbcxvYHlb0t9I9F61v8cKLey1SATYl_l-GBGCCpCSXFmBplGsr9JceGrEJr8wzzW1QgJuIFkuMIIvv7SWX3c3oa7nhvSpmhh8XmdOQX9kTbFSkasozAs8vFBhV1dgjlwdYe01m49mGC0TCNXK7fZcfsWut217OXxBRCTGRzqm2um7D0uEHh2NsUv9rvGZB6y3AHDh1bjpSUWvxykQK4FnlazwYbs46xQJmvBveoI7bpMRKN4_NySOfe4dSjnFnsf0BckI_I8vc69mEry7V5O_pQLD6r_cQyUKTTob_U_RQSOr06iALkK7xFun14oFZfFxGGcZmLJqp7P5sqznsEWprHj3odU1Bt2cp4UndYNThE7cYV6l3XV6qs-nKZdpcLUA6s5SVVT4zC1b0gJz7TwIdBjlqITOYZ6FxcYEzxVmqPX6nBqDqoiJGe_upGA5mOIKKtNXYMUjFjgM8Lm83l8ti2VZDAbI6p79CnAAmHmD-9LWyBtgDEzrvkzVf7x8vj2syiVZYkBF4ny56aULMEStBypOJ8_-xJ2khREzBAnGmhWHIU7jGjDW4LFp6_dbjYe2zyWycw3l71DLCOewrI0tsGxeCzF60O4lv9pbfoKwZ3rC7v8kYWYKlCDxUpfLmXgzdaGN_nSjXLI44cDQ%22%7D%2C%22header%22%3A%7B%22pageInstance%22%3A%7B%22pageUrn%22%3A%22urn%3Ali%3Apage%3Ad_flagship3_feed%22%2C%22trackingId%22%3A%22766e5216-8805-4045-8da6-3cc8d097037e%22%7D%2C%22time%22%3A1776258942007%2C%22version%22%3A%220.0.0%22%7D%2C%22requestHeader%22%3A%7B%22pageKey%22%3A%22d_flagship3_feed%22%2C%22interfaceLocale%22%3A%22en-US%22%7D%7D%7D%5D&csrfToken=ajax%3A8407824338560493144
+                - generic [ref=e1153]:
+                  - generic [ref=e1154]:
+                    - link "About" [ref=e1155] [cursor=pointer]:
+                      - /url: https://about.linkedin.com/
+                      - paragraph [ref=e1156]: About
+                    - link "Accessibility" [ref=e1157] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/accessibility/
+                      - paragraph [ref=e1158]: Accessibility
+                    - link "Help Center" [ref=e1159] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/help/linkedin/
+                      - paragraph [ref=e1160]: Help Center
+                    - button "Privacy & Terms" [ref=e1161] [cursor=pointer]:
+                      - generic [ref=e1162]:
+                        - paragraph [ref=e1163]: Privacy & Terms
+                        - img [ref=e1164]
+                    - link "Ad Choices" [ref=e1166] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/help/linkedin/answer/62931/
+                      - paragraph [ref=e1167]: Ad Choices
+                    - link "Advertising" [ref=e1168] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/ad/start/?trk=n_nav_ads_rr
+                      - paragraph [ref=e1169]: Advertising
+                    - button "Business Services" [ref=e1170] [cursor=pointer]:
+                      - generic [ref=e1171]:
+                        - paragraph [ref=e1172]: Business Services
+                        - img [ref=e1173]
+                    - link "Get the LinkedIn app" [ref=e1175] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/mobile/
+                      - paragraph [ref=e1176]: Get the LinkedIn app
+                    - link "More" [ref=e1177] [cursor=pointer]:
+                      - /url: https://www.linkedin.com/feed/
+                      - paragraph [ref=e1178]: More
+                  - generic [ref=e1179]:
+                    - img [ref=e1180]
+                    - paragraph [ref=e1182]: LinkedIn Corporation © 2026
+  - iframe [ref=e1183]:
+    - generic [active] [ref=f3e1]:
+      - generic:
+        - region "Toast message":
+          - heading "0 notifications total" [level=2] [ref=f3e3]
+          - alert
+      - region [ref=f3e4]
+      - generic [ref=f3e5]:
+        - generic [ref=f3e7]:
+          - button "Skip to search" [ref=f3e8] [cursor=pointer]:
+            - generic [ref=f3e9]: Skip to search
+          - button "Skip to main content" [ref=f3e10] [cursor=pointer]:
+            - generic [ref=f3e11]: Skip to main content
+          - button "Keyboard shortcuts" [ref=f3e12] [cursor=pointer]:
+            - generic [ref=f3e13]: Keyboard shortcuts
+          - button "Close jump menu" [ref=f3e14] [cursor=pointer]:
+            - img [ref=f3e15]
+            - generic [ref=f3e17]: Close jump menu
+        - banner "Global Navigation" [ref=f3e18]:
+          - generic [ref=f3e19]:
+            - link "LinkedIn" [ref=f3e20] [cursor=pointer]:
+              - /url: https://www.linkedin.com/feed/?nis=true
+              - img "LinkedIn" [ref=f3e23]:
+                - img [ref=f3e24]
+            - generic [ref=f3e28]:
+              - combobox "Search" [ref=f3e29]
+              - generic:
+                - img
+            - navigation "Primary Navigation" [ref=f3e30]:
+              - list [ref=f3e31]:
+                - listitem [ref=f3e32]:
+                  - link "Home" [ref=f3e33] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/feed/
+                    - img [ref=f3e37]
+                    - generic "Home" [ref=f3e39]
+                - listitem [ref=f3e40]:
+                  - link "My Network" [ref=f3e41] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/mynetwork/?
+                    - img [ref=f3e45]
+                    - generic "My Network" [ref=f3e47]
+                - listitem [ref=f3e48]:
+                  - link "Jobs" [ref=f3e49] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/jobs/?
+                    - img [ref=f3e53]
+                    - generic "Jobs" [ref=f3e55]
+                - listitem [ref=f3e56]:
+                  - link "Messaging" [ref=f3e57] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/messaging/?
+                    - img [ref=f3e61]
+                    - generic "Messaging" [ref=f3e63]
+                - listitem [ref=f3e64]:
+                  - link "Notifications" [ref=f3e65] [cursor=pointer]:
+                    - /url: https://www.linkedin.com/notifications/?
+                    - img [ref=f3e69]
+                    - generic "Notifications" [ref=f3e71]
+                - listitem [ref=f3e72]:
+                  - button "Harshul Namdev Me" [ref=f3e74] [cursor=pointer]:
+                    - img "Harshul Namdev" [ref=f3e75]
+                    - generic [ref=f3e76]:
+                      - text: Me
+                      - img [ref=f3e77]
+                - listitem [ref=f3e79]:
+                  - button "For Business" [ref=f3e81] [cursor=pointer]:
+                    - img [ref=f3e85]
+                    - generic "For Business" [ref=f3e87]:
+                      - text: For Business
+                      - img [ref=f3e88]
+                - listitem [ref=f3e90]:
+                  - link "Try Premium for ₹0" [ref=f3e92] [cursor=pointer]:
+                    - /url: javascript:void(0)
+                    - generic [ref=f3e93]:
+                      - img [ref=f3e94]
+                      - generic [ref=f3e96]: Try Premium for ₹0

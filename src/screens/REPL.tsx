@@ -27,16 +27,16 @@ import { buildFormattedTools } from "../runtime/toolFormatter.ts";
 import { streamChatCompletion } from "../runtime/llmClient.ts";
 import { createAbortController } from "../runtime/util.ts";
 import { invokeSkill } from "../tools/skill-tool.ts";
+import { promises as fs } from "node:fs";
+import { resolve as resolvePath } from "node:path";
 import { COLORS, SPINNER_FRAMES, SPINNER_INTERVAL_MS } from "../ui/theme.ts";
-import { FileEditPreview } from "../components/FileEditPreview.tsx";
 import {
   ToolCallPreview,
   type ToolCallEntry,
   type ToolCallStatus,
 } from "../components/ToolCallPreview.tsx";
-import { useTurnDiffs } from "../hooks/useTurnDiffs.ts";
-import type { Session } from "../runtime/session.ts";
-import type { ProviderType } from "../types.ts";
+import { diffLines } from "../ui/diff.ts";
+import type { FileChange } from "../hooks/useTurnDiffs.ts";
 
 const log = getFeatureLogger("REPL");
 
@@ -44,10 +44,100 @@ initializeCommands();
 
 // ── Module-level constants ────────────────────────────────────────────────────
 
-const MAX_TOOL_TURNS = 100;
+const MAX_TOOL_TURNS = 1000;
+// Max retries when model returns empty (no text + no tool calls) mid-loop
+const MAX_EMPTY_RETRIES = 3;
 
 const TOOL_ATTEMPT_PATTERN =
   /INVOKE_SKILL:|INVOKE_TOOL:|\bI (?:have |will |am )?(?:edited|wrote|created|inserted|deleted|updated|written|saved|modified)\b/i;
+
+// ── File-diff helpers ─────────────────────────────────────────────────────────
+
+/** Returns the absolute path for a file-tool input, or null if not found. */
+function getFilePath(input: Record<string, unknown>): string | null {
+  const v =
+    input["path"] ??
+    input["file"] ??
+    input["filePath"] ??
+    input["file_path"] ??
+    null;
+  if (typeof v !== "string" || v.length === 0) return null;
+  const cwd = process.env["RYFT_ORIGINAL_CWD"] || process.cwd();
+  return resolvePath(cwd, v);
+}
+
+/** Returns the display (relative) path from tool input, or null. */
+function getRawPath(input: Record<string, unknown>): string | null {
+  const v =
+    input["path"] ??
+    input["file"] ??
+    input["filePath"] ??
+    input["file_path"] ??
+    null;
+  return typeof v === "string" && v.length > 0 ? v : null;
+}
+
+async function safeReadFile(absPath: string): Promise<string> {
+  try {
+    return await fs.readFile(absPath, "utf8");
+  } catch {
+    return "";
+  }
+}
+
+type FileEditCapture = {
+  displayPath: string;
+  absPath: string;
+  before: string;
+  after: string | null; // null = read from disk after dispatch
+};
+
+/** Pre-compute what a file-write tool will change, using input directly where possible. */
+async function captureFileEdit(
+  tcName: string,
+  tcInput: Record<string, unknown>,
+): Promise<FileEditCapture | null> {
+  const absPath = getFilePath(tcInput);
+  if (!absPath) return null;
+  const displayPath = getRawPath(tcInput) ?? absPath;
+  const n = tcName.toLowerCase();
+
+  const before = await safeReadFile(absPath);
+
+  // write_file / create_file: after content = input.content
+  if (n.includes("write") || n.includes("create")) {
+    const content = tcInput["content"];
+    if (typeof content === "string") {
+      return { displayPath, absPath, before, after: content };
+    }
+  }
+
+  // str_replace_in_file / str_replace: apply old→new in memory
+  if (
+    n.includes("str_replace") ||
+    n.includes("replace") ||
+    n.includes("edit")
+  ) {
+    const oldStr =
+      tcInput["old_str"] ?? tcInput["old_string"] ?? tcInput["old"];
+    const newStr =
+      tcInput["new_str"] ??
+      tcInput["new_string"] ??
+      tcInput["new"] ??
+      tcInput["replacement"] ??
+      "";
+    if (typeof oldStr === "string") {
+      const after = before.replace(
+        oldStr,
+        typeof newStr === "string" ? newStr : "",
+      );
+      return { displayPath, absPath, before, after };
+    }
+  }
+
+  // Generic write tool: read file from disk after dispatch
+  return { displayPath, absPath, before, after: null };
+}
 
 export const REPL: React.FC = () => {
   const appState = useAppState();
@@ -161,17 +251,13 @@ export const REPL: React.FC = () => {
         signal: session.abortController.signal,
       };
 
-      // Helper: replace or append the last assistant message while streaming
-      // But preserve tool invocation messages (those starting with ⚙️)
+      // Helper: replace or append the last assistant message while streaming.
+      // If the last message is a tool-calls entry, always append a new one.
       const patchLastAssistant = (text: string) => {
         setAppState((prev) => {
           const last = prev.messages[prev.messages.length - 1];
-          // If last message is a tool invocation, append as new message instead of replacing
-          if (
-            last?.role === "assistant" &&
-            typeof last.content === "string" &&
-            last.content.startsWith("⚙️")
-          ) {
+          // If last message is a tool-calls block, append new assistant message
+          if (last?.role === "tool-calls") {
             return {
               ...prev,
               messages: [
@@ -282,7 +368,9 @@ export const REPL: React.FC = () => {
 
           // Build structured tool call entries for the preview
           const toolEntries: ToolCallEntry[] = pendingCalls.map((tc) => {
-            const registryMatches = session.toolRegistry.getToolsByName(tc.name);
+            const registryMatches = session.toolRegistry.getToolsByName(
+              tc.name,
+            );
             const source =
               registryMatches.length > 0
                 ? registryMatches[0]!.serverId
@@ -296,38 +384,94 @@ export const REPL: React.FC = () => {
             };
           });
 
-          // Show pending previews
+          // Push tool-calls message into chat
           setAppState((prev) => ({
             ...prev,
-            activeToolCalls: toolEntries,
+            messages: [
+              ...prev.messages,
+              {
+                role: "tool-calls" as const,
+                content: "" as const,
+                entries: toolEntries,
+              },
+            ],
           }));
+
+          // Capture file content BEFORE tool execution for diff computation
+          const fileEditMap = new Map<string, FileEditCapture>();
+          await Promise.all(
+            pendingCalls.map(async (tc) => {
+              const capture = await captureFileEdit(
+                tc.name,
+                tc.input as Record<string, unknown>,
+              );
+              if (capture) fileEditMap.set(tc.id, capture);
+            }),
+          );
 
           const toolResults =
             await session.toolDispatcher.dispatchToolCalls(pendingCalls);
           session.appendToolResults(toolResults);
 
-          // Update entries with results
-          const completedEntries: ToolCallEntry[] = toolEntries.map((entry) => {
-            const result = toolResults.find(
-              (r) => r.tool_use_id === entry.id,
-            );
-            if (!result) return { ...entry, status: "success" as const };
-            // Preserve newlines so the preview can render multi-line output
-            const preview = typeof result.content === "string"
-              ? result.content.trim()
-              : "";
-            return {
-              ...entry,
-              status: (result.is_error ? "error" : "success") as ToolCallStatus,
-              resultPreview: preview || undefined,
-              isError: result.is_error ?? false,
-            };
-          });
+          // Update entries with results in-place (last tool-calls message)
+          const completedEntries: ToolCallEntry[] = await Promise.all(
+            toolEntries.map(async (entry) => {
+              const result = toolResults.find(
+                (r) => r.tool_use_id === entry.id,
+              );
+              if (!result) return { ...entry, status: "success" as const };
+              // Preserve newlines so the preview can render multi-line output
+              const preview =
+                typeof result.content === "string" ? result.content.trim() : "";
 
-          setAppState((prev) => ({
-            ...prev,
-            activeToolCalls: completedEntries,
-          }));
+              // Compute diff for file-write tools
+              let fileChanges: FileChange[] | undefined;
+              const capture = fileEditMap.get(entry.id);
+              if (capture && !result.is_error) {
+                // If after is pre-computed from input, use it; otherwise read from disk
+                const after =
+                  capture.after !== null
+                    ? capture.after
+                    : await safeReadFile(capture.absPath);
+                const hunks = diffLines(capture.before, after);
+                if (hunks.length > 0) {
+                  fileChanges = [
+                    {
+                      path: capture.displayPath,
+                      before: capture.before,
+                      after,
+                      hunks,
+                    },
+                  ];
+                }
+              }
+
+              return {
+                ...entry,
+                status: (result.is_error
+                  ? "error"
+                  : "success") as ToolCallStatus,
+                resultPreview: preview || undefined,
+                isError: result.is_error ?? false,
+                fileChanges,
+              };
+            }),
+          );
+
+          // Update the last tool-calls message with completed entries
+          setAppState((prev) => {
+            const msgs = [...prev.messages];
+            const lastIdx = msgs.length - 1;
+            const last = msgs[lastIdx];
+            if (last && last.role === "tool-calls") {
+              msgs[lastIdx] = {
+                role: "tool-calls" as const,
+                content: "" as const,
+                entries: completedEntries,
+              };
+            }
+            return { ...prev, messages: msgs };
+          });
 
           let followUpText = "";
           turnResult = await streamChatCompletion({
@@ -340,15 +484,62 @@ export const REPL: React.FC = () => {
             },
           });
 
+          // User cancelled during this stream — bail out of the tool loop cleanly
+          if (session.abortController.signal.aborted) {
+            session.appendAssistantWithTools(followUpText, []);
+            break;
+          }
+
+          // Retry when model returns completely empty (no text AND no tool calls)
+          let emptyRetries = 0;
+          while (
+            followUpText.trim() === "" &&
+            turnResult.toolCalls.length === 0 &&
+            emptyRetries < MAX_EMPTY_RETRIES &&
+            !session.abortController.signal.aborted
+          ) {
+            emptyRetries++;
+            log.warn(
+              `Model returned empty response in tool loop, retrying (${emptyRetries}/${MAX_EMPTY_RETRIES})`,
+            );
+            session.appendUser("Continue.");
+            followUpText = "";
+            turnResult = await streamChatCompletion({
+              ...baseStreamConfig,
+              messages: session.history,
+              tools: formattedTools,
+              onDelta: (chunk) => {
+                followUpText += chunk;
+                patchLastAssistant(followUpText);
+              },
+            });
+          }
+
+          if (
+            followUpText.trim() === "" &&
+            turnResult.toolCalls.length === 0 &&
+            !session.abortController.signal.aborted
+          ) {
+            setAppState((prev) => ({
+              ...prev,
+              messages: [
+                ...prev.messages,
+                {
+                  role: "assistant" as const,
+                  content:
+                    "⚠️ The model stopped responding mid-task (empty response after tool calls). " +
+                    'Try typing "continue" to resume, or rephrase your request.',
+                },
+              ],
+            }));
+          }
+
           session.appendAssistantWithTools(followUpText, turnResult.toolCalls);
         }
 
-        // Clear tool call previews when the turn ends
-        setAppState((prev) => ({
-          ...prev,
-          isAssistantResponding: false,
-          activeToolCalls: [],
-        }));
+        setAppState((prev) => ({ ...prev, isAssistantResponding: false }));
+        // Always reset AbortController after a completed (or aborted) turn
+        session.abortController = createAbortController();
       } catch (error) {
         const isAbortError =
           error instanceof Error && error.name === "AbortError";
@@ -361,7 +552,6 @@ export const REPL: React.FC = () => {
           setAppState((prev) => ({
             ...prev,
             isAssistantResponding: false,
-            activeToolCalls: [],
             messages: [
               ...prev.messages,
               { role: "assistant", content: `❌ Error: ${errorMsg}` },
@@ -374,7 +564,6 @@ export const REPL: React.FC = () => {
           setAppState((prev) => ({
             ...prev,
             isAssistantResponding: false,
-            activeToolCalls: [],
           }));
         }
 
@@ -630,9 +819,6 @@ export const REPL: React.FC = () => {
     responding &&
     appState.messages[appState.messages.length - 1]?.role === "user";
 
-  // ── Extract file changes from recent messages for diff preview ────────────
-  const fileChanges = useTurnDiffs(appState.messages);
-
   // ── Selector overlay ──────────────────────────────────────────────────────
   if (appState.selector) {
     return (
@@ -773,31 +959,43 @@ export const REPL: React.FC = () => {
           </Box>
         ) : (
           appState.messages.map((msg, idx) => {
+            // ── tool-calls message — rendered inline, no bar ──
+            if (msg.role === "tool-calls") {
+              return (
+                <Box
+                  key={idx}
+                  flexDirection="column"
+                  marginBottom={1}
+                  paddingLeft={2}
+                >
+                  <ToolCallPreview
+                    entries={msg.entries}
+                    spinnerFrame={spinnerFrame}
+                    terminalWidth={termCols}
+                  />
+                </Box>
+              );
+            }
+
             const isUser = msg.role === "user";
             const isError = msg.content.startsWith("❌");
-            const isToolCall =
-              msg.content.startsWith("⚙️") || msg.content.startsWith("⚙");
             const isSkill = msg.content.startsWith("📚");
 
             const barColor = isError
               ? COLORS.errorBright
-              : isToolCall
-                ? COLORS.warningBright
-                : isSkill
-                  ? COLORS.success
-                  : isUser
-                    ? COLORS.user
-                    : COLORS.assistant;
+              : isSkill
+                ? COLORS.success
+                : isUser
+                  ? COLORS.user
+                  : COLORS.assistant;
 
             const contentColor = isError
               ? COLORS.error
-              : isToolCall
-                ? COLORS.warning
-                : isSkill
-                  ? COLORS.success
-                  : isUser
-                    ? COLORS.user // user text: green
-                    : COLORS.assistantText; // assistant text: cyan (distinct from white!)
+              : isSkill
+                ? COLORS.success
+                : isUser
+                  ? COLORS.user
+                  : COLORS.assistantText;
 
             return (
               <Box
@@ -813,13 +1011,7 @@ export const REPL: React.FC = () => {
                 <Box flexDirection="column" paddingLeft={1} flexGrow={1}>
                   {/* Role label */}
                   <Text bold color={barColor}>
-                    {isUser
-                      ? "you"
-                      : isToolCall
-                        ? "tool"
-                        : isSkill
-                          ? "skill"
-                          : "ryft"}
+                    {isUser ? "you" : isSkill ? "skill" : "ryft"}
                   </Text>
                   {/* Message body */}
                   <Text color={contentColor} wrap="wrap">
@@ -829,27 +1021,6 @@ export const REPL: React.FC = () => {
               </Box>
             );
           })
-        )}
-
-        {/* File edit preview — shows diffs for recent file operations */}
-        {fileChanges && fileChanges.length > 0 && (
-          <Box flexDirection="column" marginBottom={1} marginTop={1}>
-            <FileEditPreview
-              changes={fileChanges}
-              terminalWidth={termCols}
-              showOnlyFirst={true}
-            />
-          </Box>
-        )}
-
-        {/* Tool call preview — rich inline display of active/completed tool calls */}
-        {appState.activeToolCalls.length > 0 && (
-          <Box flexDirection="column" marginBottom={1} marginTop={1}>
-            <ToolCallPreview
-              entries={appState.activeToolCalls}
-              spinnerFrame={spinnerFrame}
-            />
-          </Box>
         )}
 
         {/* Inline spinner — shows when waiting for first delta */}

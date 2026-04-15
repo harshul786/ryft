@@ -2,7 +2,7 @@
   "name": "shared",
   "description": "Shared skills available across all modes",
   "skillDirectory": "skills",
-  "memory": "claude-like",
+  "memory": "normal",
   "enabledTools": ["bash", "node", "typescript"],
   "mcpServers": [
     {

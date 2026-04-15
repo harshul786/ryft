@@ -47,7 +47,6 @@ export const Root: React.FC<RootProps> = ({ session, initialState }) => {
       prompter: null,
       scrollOffset: 0,
       isScrolledToBottom: true,
-      activeToolCalls: [],
       ...initialState,
     });
     log.info("Store created successfully", {

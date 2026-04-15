@@ -18,7 +18,7 @@ export const AVAILABLE_COMMANDS: CommandSuggestion[] = [
   { command: "/mcp", description: "Manage Model Context Protocol" },
   {
     command: "/memory",
-    description: "Switch memory mode (claude-like, hierarchy, session)",
+    description: "Switch memory mode (normal, hierarchy, session)",
   },
   { command: "/tokens", description: "Show token usage for this session" },
   { command: "/compact", description: "Compact conversation history" },

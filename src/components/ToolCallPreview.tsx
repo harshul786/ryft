@@ -1,17 +1,21 @@
 /**
- * ToolCallPreview — rich, per-tool-type inline previews for tool and MCP calls.
+ * ToolCallPreview — borderless, GitHub Copilot-style inline tool call display.
  *
- * Each tool type gets a bespoke layout:
- *  - Terminal/bash  → command on header + stdout/stderr block after
- *  - File read/list → path on header + line count + first few lines
- *  - File write/edit→ path on header + result summary
- *  - Browser/nav    → URL or action on header + status
- *  - Generic MCP    → key:value args + multi-line output
+ * Visual layout (no box borders):
+ *
+ *   ⠸ read_text  src/components/REPL.tsx          ← pending (spinner)
+ *   ✓ bash_run   npm test                          ← success
+ *     │ All tests passed
+ *     │ … +4 more
+ *   ✗ write_file  src/foo.ts                       ← error
+ *     ✗ Permission denied
  */
 
 import React from "react";
 import { Box, Text } from "../ink.ts";
 import { COLORS, SPINNER_FRAMES } from "../ui/theme.ts";
+import { FileEditPreview } from "./FileEditPreview.tsx";
+import type { FileChange } from "../hooks/useTurnDiffs.ts";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Public types
@@ -27,15 +31,16 @@ export interface ToolCallEntry {
   status: ToolCallStatus;
   resultPreview?: string;
   isError?: boolean;
+  fileChanges?: FileChange[];
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Constants
 // ──────────────────────────────────────────────────────────────────────────────
 
-const MAX_OUTPUT_LINES = 12;
-const MAX_LINE_CHARS = 120;
-const MAX_SINGLE_VALUE_CHARS = 80;
+const MAX_OUTPUT_LINES = 4;
+const MAX_LINE_CHARS = 100;
+const MAX_SINGLE_VALUE_CHARS = 60;
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Tool classification
@@ -63,9 +68,20 @@ function classifyTool(name: string): ToolKind {
     n === "run"
   )
     return "terminal";
-  if (n === "list_dir" || n.includes("list_dir") || n.includes("directory") || n === "ls")
+  if (
+    n === "list_dir" ||
+    n.includes("list_dir") ||
+    n.includes("directory") ||
+    n === "ls"
+  )
     return "file-list";
-  if (n === "read_text" || n === "read_multiple" || n === "get_file_info" || n.includes("read_file") || n === "cat")
+  if (
+    n === "read_text" ||
+    n === "read_multiple" ||
+    n === "get_file_info" ||
+    n.includes("read_file") ||
+    n === "cat"
+  )
     return "file-read";
   if (
     n.includes("write") ||
@@ -101,10 +117,14 @@ function classifyTool(name: string): ToolKind {
 
 function toolIcon(kind: ToolKind, name: string): string {
   switch (kind) {
-    case "terminal":  return "❯";
-    case "file-read": return "📄";
-    case "file-write": return "✏️";
-    case "file-list": return "📁";
+    case "terminal":
+      return "❯";
+    case "file-read":
+      return "📄";
+    case "file-write":
+      return "✏️";
+    case "file-list":
+      return "📁";
     case "browser": {
       const n = name.toLowerCase();
       if (n.includes("screenshot") || n.includes("snapshot")) return "📸";
@@ -112,21 +132,15 @@ function toolIcon(kind: ToolKind, name: string): string {
       if (n.includes("fill") || n.includes("type")) return "⌨️";
       return "🌐";
     }
-    case "search":  return "🔍";
-    case "memory":  return "🧠";
-    case "skill":   return "📚";
-    default:        return "⚙️";
+    case "search":
+      return "🔍";
+    case "memory":
+      return "🧠";
+    case "skill":
+      return "📚";
+    default:
+      return "⚙️";
   }
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
-// Source badge
-// ──────────────────────────────────────────────────────────────────────────────
-
-function sourceBadge(source: string): { label: string; color: string } {
-  if (source === "builtin") return { label: "builtin", color: COLORS.mode };
-  const label = source.length > 14 ? source.slice(0, 12) + "…" : source;
-  return { label, color: COLORS.warningBright };
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -140,19 +154,34 @@ function truncate(s: string, max: number): string {
 function strVal(v: unknown): string {
   if (typeof v === "string") return v;
   if (v === null || v === undefined) return "";
-  try { return JSON.stringify(v); } catch { return String(v); }
+  try {
+    return JSON.stringify(v);
+  } catch {
+    return String(v);
+  }
 }
 
 /** The single most-important display value from the input args */
-function primaryDisplay(kind: ToolKind, input: Record<string, unknown>): string | null {
+function primaryDisplay(
+  kind: ToolKind,
+  input: Record<string, unknown>,
+): string | null {
   switch (kind) {
     case "terminal":
-      return strVal(input["command"] ?? input["cmd"] ?? input["script"] ?? "") || null;
+      return (
+        strVal(input["command"] ?? input["cmd"] ?? input["script"] ?? "") ||
+        null
+      );
     case "file-read":
     case "file-write":
-      return strVal(input["path"] ?? input["file"] ?? input["filePath"] ?? "") || null;
+      return (
+        strVal(input["path"] ?? input["file"] ?? input["filePath"] ?? "") ||
+        null
+      );
     case "file-list":
-      return strVal(input["path"] ?? input["dir"] ?? input["dirPath"] ?? "") || null;
+      return (
+        strVal(input["path"] ?? input["dir"] ?? input["dirPath"] ?? "") || null
+      );
     case "browser": {
       const url = strVal(input["url"] ?? "");
       const selector = strVal(input["selector"] ?? input["element"] ?? "");
@@ -160,7 +189,9 @@ function primaryDisplay(kind: ToolKind, input: Record<string, unknown>): string 
       return url || selector || text || null;
     }
     case "search": {
-      const q = strVal(input["query"] ?? input["pattern"] ?? input["glob"] ?? "");
+      const q = strVal(
+        input["query"] ?? input["pattern"] ?? input["glob"] ?? "",
+      );
       const p = strVal(input["path"] ?? input["dir"] ?? "");
       return q && p ? `${q}  in  ${p}` : q || p || null;
     }
@@ -184,22 +215,34 @@ function secondaryArgs(
   const skipKeys = new Set<string>();
   switch (kind) {
     case "terminal":
-      skipKeys.add("command"); skipKeys.add("cmd"); skipKeys.add("script");
+      skipKeys.add("command");
+      skipKeys.add("cmd");
+      skipKeys.add("script");
       break;
     case "file-read":
     case "file-write":
-      skipKeys.add("path"); skipKeys.add("file"); skipKeys.add("filePath");
+      skipKeys.add("path");
+      skipKeys.add("file");
+      skipKeys.add("filePath");
       break;
     case "file-list":
-      skipKeys.add("path"); skipKeys.add("dir"); skipKeys.add("dirPath");
+      skipKeys.add("path");
+      skipKeys.add("dir");
+      skipKeys.add("dirPath");
       break;
     case "browser":
-      skipKeys.add("url"); skipKeys.add("selector"); skipKeys.add("element");
-      skipKeys.add("text"); skipKeys.add("value");
+      skipKeys.add("url");
+      skipKeys.add("selector");
+      skipKeys.add("element");
+      skipKeys.add("text");
+      skipKeys.add("value");
       break;
     case "search":
-      skipKeys.add("query"); skipKeys.add("pattern"); skipKeys.add("glob");
-      skipKeys.add("path"); skipKeys.add("dir");
+      skipKeys.add("query");
+      skipKeys.add("pattern");
+      skipKeys.add("glob");
+      skipKeys.add("path");
+      skipKeys.add("dir");
       break;
   }
 
@@ -215,94 +258,70 @@ function secondaryArgs(
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Output block — rendered after completion
+// Output lines — flat, indented, no border
 // ──────────────────────────────────────────────────────────────────────────────
 
-interface OutputBlockProps {
+interface OutputLinesProps {
   output: string;
   isError: boolean;
   kind: ToolKind;
 }
 
-function OutputBlock({ output, isError, kind }: OutputBlockProps): React.ReactElement {
+function OutputLines({
+  output,
+  isError,
+  kind,
+}: OutputLinesProps): React.ReactElement | null {
   const raw = output.trim();
+  if (!raw) return null;
 
-  // ── Terminal: labelled stdout/stderr box with line-by-line output ──
+  // For terminal: skip blank lines, show up to MAX_OUTPUT_LINES with │ prefix
   if (kind === "terminal") {
-    const lines = raw.split("\n");
+    const lines = raw.split("\n").filter((l) => l.trim().length > 0);
     const shown = lines.slice(0, MAX_OUTPUT_LINES);
     const hidden = lines.length - shown.length;
+    const gutterColor = isError ? COLORS.error : COLORS.border;
 
     return (
-      <Box flexDirection="column" paddingLeft={4} marginTop={0}>
-        <Text color={isError ? COLORS.errorBright : COLORS.dim} dimColor={!isError}>
-          {isError ? "stderr" : "stdout"}
-        </Text>
-        <Box
-          flexDirection="column"
-          borderStyle="single"
-          borderColor={isError ? COLORS.error : COLORS.border}
-          paddingX={1}
-        >
-          {shown.map((line, i) => (
+      <Box flexDirection="column" paddingLeft={3}>
+        {shown.map((line, i) => (
+          <Box key={i} flexDirection="row">
+            <Text color={gutterColor} dimColor>
+              │{" "}
+            </Text>
             <Text
-              key={i}
               color={isError ? COLORS.error : COLORS.assistantText}
               wrap="truncate-end"
+              dimColor
             >
-              {truncate(line || " ", MAX_LINE_CHARS)}
+              {truncate(line, MAX_LINE_CHARS)}
             </Text>
-          ))}
-          {hidden > 0 && (
-            <Text color={COLORS.dim} dimColor>
-              … {hidden} more line{hidden === 1 ? "" : "s"}
-            </Text>
-          )}
-        </Box>
-      </Box>
-    );
-  }
-
-  // ── Browser: first line summary ──
-  if (kind === "browser") {
-    const summary = truncate(raw.split("\n")[0] ?? raw, 200);
-    return (
-      <Box paddingLeft={4} marginTop={0}>
-        <Text color={isError ? COLORS.error : COLORS.dim} dimColor={!isError}>
-          {isError ? "✗ " : "↳ "}{summary}
-        </Text>
-      </Box>
-    );
-  }
-
-  // ── File read / list: line count + first few lines ──
-  if (kind === "file-read" || kind === "file-list") {
-    const lines = raw.split("\n");
-    const shown = lines.slice(0, 6);
-    const hidden = lines.length - shown.length;
-    return (
-      <Box flexDirection="column" paddingLeft={4} marginTop={0}>
-        <Text color={COLORS.dim} dimColor>
-          {lines.length} line{lines.length === 1 ? "" : "s"}
-        </Text>
-        {shown.map((line, i) => (
-          <Text key={i} color={COLORS.assistantText} wrap="truncate-end" dimColor>
-            {truncate(line || " ", MAX_LINE_CHARS)}
-          </Text>
+          </Box>
         ))}
         {hidden > 0 && (
-          <Text color={COLORS.dim} dimColor>… {hidden} more</Text>
+          <Box flexDirection="row">
+            <Text color={gutterColor} dimColor>
+              │{" "}
+            </Text>
+            <Text color={COLORS.dim} dimColor>
+              … +{hidden} line{hidden === 1 ? "" : "s"}
+            </Text>
+          </Box>
         )}
       </Box>
     );
   }
 
-  // ── Generic / search / memory: multi-line output ──
-  const lines = raw.split("\n");
-  const shown = lines.slice(0, 5);
+  // For all other kinds: first line on same indent, rest truncated
+  const lines = raw.split("\n").filter((l) => l.trim().length > 0);
+  const shown = lines.slice(
+    0,
+    kind === "file-read" || kind === "file-list" ? 3 : 2,
+  );
   const hidden = lines.length - shown.length;
+
   return (
-    <Box flexDirection="column" paddingLeft={4} marginTop={0}>
+    <Box flexDirection="column" paddingLeft={3}>
       {shown.map((line, i) => (
         <Text
           key={i}
@@ -310,33 +329,42 @@ function OutputBlock({ output, isError, kind }: OutputBlockProps): React.ReactEl
           wrap="truncate-end"
           dimColor={!isError}
         >
-          {i === 0 ? (isError ? "✗ " : "↳ ") : "  "}
           {truncate(line, MAX_LINE_CHARS)}
         </Text>
       ))}
       {hidden > 0 && (
-        <Text color={COLORS.dim} dimColor>{"  "}… {hidden} more</Text>
+        <Text color={COLORS.dim} dimColor>
+          … +{hidden} more
+        </Text>
       )}
     </Box>
   );
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Single tool call row
+// Single tool call row — flat, no box border
 // ──────────────────────────────────────────────────────────────────────────────
 
 interface ToolRowProps {
   entry: ToolCallEntry;
   spinnerFrame: number;
+  terminalWidth: number;
 }
 
-function ToolRow({ entry, spinnerFrame }: ToolRowProps): React.ReactElement {
+function ToolRow({
+  entry,
+  spinnerFrame,
+  terminalWidth,
+}: ToolRowProps): React.ReactElement {
   const { name, source, input, status, resultPreview, isError = false } = entry;
   const kind = classifyTool(name);
-  const badge = sourceBadge(source);
   const icon = toolIcon(kind, name);
   const primary = primaryDisplay(kind, input);
   const secondary = secondaryArgs(kind, input, primary);
+
+  // Source label: only show when it's a named MCP server (not builtin)
+  const sourceLabel =
+    source !== "builtin" && source !== "unknown" ? source : null;
 
   let statusChar: string;
   let statusColor: string;
@@ -352,94 +380,110 @@ function ToolRow({ entry, spinnerFrame }: ToolRowProps): React.ReactElement {
   }
 
   return (
-    <Box flexDirection="column" marginBottom={1}>
-      {/* ── Header: [status] [icon] [name] [badge] [primary value] ── */}
+    <Box flexDirection="column">
+      {/* ── Single header line: [status] [icon] [name] [source?] [·] [primary] ── */}
       <Box flexDirection="row" gap={1} alignItems="flex-start">
-        <Box minWidth={2} flexShrink={0}>
-          <Text color={statusColor} bold>{statusChar}</Text>
-        </Box>
-        <Box flexShrink={0}>
-          <Text>{icon}</Text>
-        </Box>
-        <Text bold color={COLORS.assistant}>{name}</Text>
-        <Box borderStyle="round" borderColor={badge.color} paddingX={1} flexShrink={0}>
-          <Text color={badge.color as any} dimColor>{badge.label}</Text>
-        </Box>
-        {primary && (
-          <Text
-            color={kind === "terminal" ? COLORS.warningBright : COLORS.assistantText}
-            bold={kind === "terminal"}
-            wrap="truncate-end"
-          >
-            {truncate(primary, MAX_SINGLE_VALUE_CHARS)}
+        <Text color={statusColor} bold>
+          {statusChar}
+        </Text>
+        <Text color={COLORS.dim}>{icon}</Text>
+        <Text
+          bold
+          color={
+            status === "pending"
+              ? COLORS.warning
+              : status === "error"
+                ? COLORS.error
+                : COLORS.assistant
+          }
+        >
+          {name}
+        </Text>
+        {sourceLabel && (
+          <Text color={COLORS.dim} dimColor>
+            {sourceLabel}
           </Text>
+        )}
+        {primary && (
+          <>
+            <Text color={COLORS.dim} dimColor>
+              ·
+            </Text>
+            <Text
+              color={kind === "terminal" ? COLORS.assistantText : COLORS.dim}
+              wrap="truncate-end"
+              dimColor={kind !== "terminal"}
+            >
+              {truncate(primary, MAX_SINGLE_VALUE_CHARS)}
+            </Text>
+          </>
         )}
       </Box>
 
-      {/* ── Secondary args ── */}
-      {secondary.length > 0 && (
-        <Box flexDirection="column" paddingLeft={4}>
+      {/* ── Secondary args: only when no primary or when extra context is useful ── */}
+      {secondary.length > 0 && !primary && (
+        <Box flexDirection="column" paddingLeft={3}>
           {secondary.map(([k, v]) => (
             <Box key={k} flexDirection="row" gap={1}>
-              <Text color={COLORS.dim}>{k}:</Text>
-              <Text color={COLORS.assistantText} wrap="truncate-end">{v}</Text>
+              <Text color={COLORS.dim} dimColor>
+                {k}:
+              </Text>
+              <Text color={COLORS.dim} wrap="truncate-end" dimColor>
+                {v}
+              </Text>
             </Box>
           ))}
         </Box>
       )}
 
-      {/* ── Output block — only after completion ── */}
-      {resultPreview && status !== "pending" && (
-        <OutputBlock output={resultPreview} isError={isError} kind={kind} />
-      )}
+      {/* ── Output — skip for file-write tools when we have a diff ── */}
+      {resultPreview &&
+        status !== "pending" &&
+        !(entry.fileChanges && entry.fileChanges.length > 0) && (
+          <OutputLines output={resultPreview} isError={isError} kind={kind} />
+        )}
+
+      {/* ── File diff — shown after file-write tool completes ── */}
+      {entry.fileChanges &&
+        entry.fileChanges.length > 0 &&
+        status !== "pending" && (
+          <Box paddingLeft={3} marginTop={0}>
+            <FileEditPreview
+              changes={entry.fileChanges}
+              terminalWidth={terminalWidth}
+            />
+          </Box>
+        )}
     </Box>
   );
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Container
+// Container — borderless, flows naturally in chat
 // ──────────────────────────────────────────────────────────────────────────────
 
 export interface ToolCallPreviewProps {
   entries: ToolCallEntry[];
   spinnerFrame: number;
+  terminalWidth?: number;
 }
 
 export function ToolCallPreview({
   entries,
   spinnerFrame,
+  terminalWidth = 80,
 }: ToolCallPreviewProps): React.ReactElement | null {
   if (entries.length === 0) return null;
 
-  const anyPending = entries.some((e) => e.status === "pending");
-  const anyError = entries.some((e) => e.status === "error");
-
-  const borderColor = anyPending
-    ? COLORS.warningBright
-    : anyError
-      ? COLORS.errorBright
-      : COLORS.success;
-
-  const headerLabel = entries.length === 1 ? "tool call" : `${entries.length} tool calls`;
-  const headerStatus = anyPending ? "running" : anyError ? "done · errors" : "done";
-
   return (
-    <Box
-      flexDirection="column"
-      borderStyle="round"
-      borderColor={borderColor}
-      paddingX={1}
-      paddingY={0}
-      marginLeft={1}
-    >
-      <Box flexDirection="row" gap={1} marginBottom={1}>
-        <Text bold color={borderColor}>{headerLabel}</Text>
-        <Text color={COLORS.dim}>·</Text>
-        <Text color={COLORS.dim}>{headerStatus}</Text>
-      </Box>
-
+    <Box flexDirection="column" gap={0}>
       {entries.map((entry) => (
-        <ToolRow key={entry.id} entry={entry} spinnerFrame={spinnerFrame} />
+        <ToolRow
+          key={entry.id}
+          entry={entry}
+          spinnerFrame={spinnerFrame}
+          terminalWidth={terminalWidth}
+        />
       ))}
     </Box>
   );

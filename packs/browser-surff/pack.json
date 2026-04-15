@@ -2,7 +2,7 @@
   "name": "browser-surff",
   "description": "Browser automation with Chrome remote debugging and local session management.",
   "skillDirectory": "skills",
-  "memory": "claude-like",
+  "memory": "normal",
   "enabledTools": ["browser", "bash", "node"],
   "disabledTools": ["editor"],
   "mcpServers": [

@@ -7,10 +7,9 @@ import type { Session } from "../runtime/session.ts";
 import type { ModelOption } from "../types.ts";
 import type { ToolCallEntry } from "../components/ToolCallPreview.tsx";
 
-export type Message = {
-  role: "user" | "assistant";
-  content: string;
-};
+export type Message =
+  | { role: "user" | "assistant"; content: string }
+  | { role: "tool-calls"; content: ""; entries: ToolCallEntry[] };
 
 // Re-export for convenience across the app
 export type { ToolCallEntry } from "../components/ToolCallPreview.tsx";
@@ -70,9 +69,6 @@ export interface AppState {
   scrollOffset: number;
   // When true, scrollOffset resets to 0 on new messages (sticky bottom)
   isScrolledToBottom: boolean;
-
-  // Active tool call previews for the current turn (cleared when turn ends)
-  activeToolCalls: ToolCallEntry[];
 }
 
 export const createInitialState = (session: Session): AppState => ({
@@ -90,5 +86,4 @@ export const createInitialState = (session: Session): AppState => ({
   prompter: null,
   scrollOffset: 0,
   isScrolledToBottom: true,
-  activeToolCalls: [],
 });

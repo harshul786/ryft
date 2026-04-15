@@ -21,7 +21,7 @@ export interface ModePackDefinition {
   prompt?: string;
 
   // Memory mode preference for this pack
-  memory?: "claude-like" | "hierarchy" | "session";
+  memory?: "normal" | "hierarchy" | "session";
 
   // Tool policy: which tools are enabled/disabled in this mode
   enabledTools?: string[];
