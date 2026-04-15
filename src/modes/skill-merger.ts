@@ -72,7 +72,10 @@ function loadSkillsDb(): SkillsDb {
   }
 
   try {
-    const dbPath = join(process.cwd(), "skills-db.json");
+    // Use RYFT_INSTALL_DIR if available (set by bin/ryft.js wrapper), 
+    // fallback to process.cwd() for development/other scenarios
+    const installDir = process.env.RYFT_INSTALL_DIR || process.cwd();
+    const dbPath = join(installDir, "skills-db.json");
     const content = readFileSync(dbPath, "utf-8");
     skillsDbCache = JSON.parse(content) as SkillsDb;
 
@@ -219,7 +222,10 @@ export async function getModeSkills(mode: Mode): Promise<Skill[]> {
 
     if (skill) {
       // Validate the skill file path exists (GAP FIX #4)
-      if (!validateSkillPath(skillEntry.path)) {
+      // Resolve skill path relative to install directory (not cwd)
+      const installDir = process.env.RYFT_INSTALL_DIR || process.cwd();
+      const skillAbsPath = join(installDir, skillEntry.path);
+      if (!validateSkillPath(skillAbsPath)) {
         const errorMsg = `Skill file missing: ${skillEntry.path}`;
         console.warn(errorMsg);
         dbValidationErrors.push(errorMsg);
@@ -405,13 +411,17 @@ export function validateSkillsDatabase(): { valid: boolean; errors: string[] } {
     errors.push("Database is empty - no skills defined");
   }
 
+  // Use RYFT_INSTALL_DIR if available (set by bin/ryft.js wrapper),
+  // fallback to process.cwd() for development
+  const installDir = process.env.RYFT_INSTALL_DIR || process.cwd();
+
   // Validate each skill
   for (const skill of Object.values(db.skills)) {
     const validation = validateSkillDefinition(skill);
     errors.push(...validation.errors);
 
     // Check if file exists
-    const abspath = join(process.cwd(), skill.path);
+    const abspath = join(installDir, skill.path);
     if (!validateSkillPath(abspath)) {
       errors.push(`Skill '${skill.id}' file not found: ${skill.path}`);
     }

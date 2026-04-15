@@ -7,8 +7,10 @@ ORIGINAL_CWD="$PWD"
 SCRIPT_PATH="$(cd "$(dirname "$(readlink -f "$0")")" && pwd)/$(basename "$0")"
 SCRIPT_DIR="$(dirname "$SCRIPT_PATH")"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-# Pass the original cwd to Node so cli.ts can use it (not the project directory)
+# Pass both the original cwd AND the Ryft installation directory to Node
+# so skill discovery can find bundled skills regardless of where Ryft is run from
 export RYFT_ORIGINAL_CWD="$ORIGINAL_CWD"
+export RYFT_INSTALL_DIR="$PROJECT_ROOT"
 # Change to project root so relative imports and working directory work correctly
 cd "$PROJECT_ROOT"
 exec node "$SCRIPT_DIR/cli.ts" "$@"
