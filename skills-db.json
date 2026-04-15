@@ -43,8 +43,8 @@
       "description": "Scroll through and extract items from infinite-scroll feeds on any website",
       "modes": ["browser-surff"],
       "requiredTools": [
-        "browser_scroll",
-        "browser_screenshot",
+        "browser_mouse_wheel",
+        "browser_take_screenshot",
         "browser_evaluate"
       ],
       "requiresPermission": false
@@ -59,9 +59,9 @@
         "browser_navigate",
         "browser_click",
         "browser_type",
-        "browser_fill",
-        "browser_scroll",
-        "browser_screenshot"
+        "browser_fill_form",
+        "browser_mouse_wheel",
+        "browser_take_screenshot"
       ],
       "requiresPermission": false
     },
@@ -75,9 +75,9 @@
         "browser_navigate",
         "browser_click",
         "browser_type",
-        "browser_fill",
-        "browser_scroll",
-        "browser_screenshot"
+        "browser_fill_form",
+        "browser_mouse_wheel",
+        "browser_take_screenshot"
       ],
       "requiresPermission": false
     },
@@ -91,10 +91,10 @@
         "browser_navigate",
         "browser_click",
         "browser_type",
-        "browser_fill",
+        "browser_fill_form",
         "browser_select_option",
-        "browser_upload_file",
-        "browser_screenshot"
+        "browser_file_upload",
+        "browser_take_screenshot"
       ],
       "requiresPermission": false
     },
@@ -106,9 +106,9 @@
       "modes": ["browser-surff"],
       "requiredTools": [
         "browser_click",
-        "browser_upload_file",
+        "browser_file_upload",
         "browser_evaluate",
-        "browser_screenshot"
+        "browser_take_screenshot"
       ],
       "requiresPermission": false
     }

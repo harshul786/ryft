@@ -156,11 +156,15 @@ async function main(): Promise<void> {
     console.debug("[CLI] Skill sources initialized:", skillSources);
   }
 
+  // Capture the actual working directory from environment or process
+  // PWD env var is more reliable than process.cwd() in some contexts
+  const actualCwd = process.env.PWD || process.cwd();
+
   const session = createSession({
     modes: resolveModes(modes),
     memoryMode: memoryMode as "claude-like" | "hierarchy" | "session",
     model,
-    cwd: process.cwd(),
+    cwd: actualCwd,
     homeDir: homedir(),
     proxyUrl:
       opts.proxy ?? config.proxyUrl ?? process.env.RYFT_PROXY_URL ?? null,
