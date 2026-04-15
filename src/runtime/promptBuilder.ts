@@ -69,7 +69,12 @@ export async function buildSystemPrompt(session: Session): Promise<string> {
       t.name !== "read_text" &&
       t.name !== "list_dir" &&
       t.name !== "read_multiple" &&
-      t.name !== "get_file_info",
+      t.name !== "get_file_info" &&
+      t.name !== "write_file" &&
+      t.name !== "str_replace_in_file" &&
+      t.name !== "create_directory" &&
+      t.name !== "delete_file" &&
+      t.name !== "bash",
   );
 
   const toolsInstructions =
