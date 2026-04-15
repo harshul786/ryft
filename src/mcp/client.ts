@@ -204,7 +204,13 @@ export class McpClient {
       const typedResponse = response as { tools?: ToolSchema[] };
       return typedResponse.tools || [];
     } catch (error) {
-      console.warn(`Failed to list tools from ${this.config.id}:`, error);
+      const log = getFeatureLogger("MCP");
+      log.warn(
+        `Failed to list tools from ${this.config.id}`,
+        {
+          error: error instanceof Error ? error.message : String(error),
+        },
+      );
       return [];
     }
   }
@@ -245,7 +251,11 @@ export class McpClient {
           handler(response);
         }
       } catch (error) {
-        console.warn(`Failed to parse JSON-RPC response: ${line}`);
+        const log = getFeatureLogger("MCP");
+        log.debug(`Failed to parse JSON-RPC response`, {
+          line,
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     }
 
@@ -314,11 +324,15 @@ export class McpClientPool {
    * Kill all servers
    */
   async killAll(): Promise<void> {
+    const log = getFeatureLogger("MCP");
     for (const client of this.clients.values()) {
       try {
         await client.kill();
       } catch (error) {
-        console.error("Error killing MCP client:", error);
+        log.error(
+          "Error killing MCP client",
+          error instanceof Error ? error : new Error(String(error)),
+        );
       }
     }
   }

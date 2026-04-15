@@ -25,8 +25,8 @@ const MODE_DEFS: Mode[] = [
     ],
     mcpServers: [
       {
-        name: "browser-session",
-        description: "Browser session tab context and DevTools actions.",
+        name: "browser-surff",
+        description: "Chrome automation via local remote-debugging session. Provides tab management, URL navigation, and DevTools access.",
       },
       {
         name: "playwright",
@@ -47,9 +47,7 @@ const MODE_DEFS: Mode[] = [
       "packs/shared/skills",
       "packs/debugger/skills",
     ],
-    mcpServers: [
-      { name: "logs", description: "Log and diagnostics integrations." },
-    ],
+    mcpServers: [],
     memory: "session",
   }),
 ];

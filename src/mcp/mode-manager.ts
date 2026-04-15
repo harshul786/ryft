@@ -5,6 +5,7 @@ import { McpServerRegistry } from "./registry.ts";
 import { McpClientPool } from "./client.ts";
 import { ToolRegistry } from "./tool-registry.ts";
 import { compressToolSchema } from "./schema-compressor.ts";
+import { getFeatureLogger } from "../logging/index.ts";
 
 // TODO #19: Wire MCP tool list into mode activation
 export class ModeActivationManager {
@@ -79,7 +80,13 @@ export class ModeActivationManager {
 
         totalTools += tools.length;
       } catch (error) {
-        console.warn(`Failed to discover tools from ${serverId}:`, error);
+        const log = getFeatureLogger("ModeManager");
+        log.warn(
+          `Failed to discover tools from ${serverId}`,
+          {
+            error: error instanceof Error ? error.message : String(error),
+          },
+        );
       }
     }
 
