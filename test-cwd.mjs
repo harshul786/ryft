@@ -25,7 +25,9 @@ console.log("  ✅ Source code check (src/cli.ts):");
 import { readFileSync } from "node:fs";
 const cliSource = readFileSync(`${ryftDir}/src/cli.ts`, "utf-8");
 if (cliSource.includes("process.env.RYFT_ORIGINAL_CWD = opts.cwd")) {
-  console.log("     - CLI correctly sets process.env.RYFT_ORIGINAL_CWD from --cwd option");
+  console.log(
+    "     - CLI correctly sets process.env.RYFT_ORIGINAL_CWD from --cwd option",
+  );
 } else {
   console.log("     ❌ ERROR: CLI doesn't set environment variable");
   process.exit(1);
@@ -50,7 +52,9 @@ if (toolsSource.includes("getWorkingDir()")) {
 
 // Test 3: Simulate what happens when --cwd is used
 console.log("\n  ✅ Simulating runtime behavior:");
-console.log("     When user runs: npm start -- --cwd /Users/harshul/Desktop/Sentiment-Analysis");
+console.log(
+  "     When user runs: npm start -- --cwd /Users/harshul/Desktop/Sentiment-Analysis",
+);
 console.log("     1. CLI parses --cwd flag ✓");
 console.log("     2. Sets RYFT_ORIGINAL_CWD to the path ✓");
 console.log("     3. File tools read RYFT_ORIGINAL_CWD ✓");
@@ -74,5 +78,5 @@ console.log(`  npm start -- --cwd ${sentimentDir}`);
 console.log(`\n  # Then ask Ryft to analyze the project:`);
 console.log(`  # "document the whole project"`);
 console.log(`  # "list the files"`);
-console.log(`  # "analyze main.py"`)
+console.log(`  # "analyze main.py"`);
 console.log();

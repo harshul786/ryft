@@ -81,12 +81,9 @@ export class ModeActivationManager {
         totalTools += tools.length;
       } catch (error) {
         const log = getFeatureLogger("ModeManager");
-        log.warn(
-          `Failed to discover tools from ${serverId}`,
-          {
-            error: error instanceof Error ? error.message : String(error),
-          },
-        );
+        log.warn(`Failed to discover tools from ${serverId}`, {
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
     }
 

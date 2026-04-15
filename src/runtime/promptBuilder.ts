@@ -56,7 +56,12 @@ export async function buildSystemPrompt(session: Session): Promise<string> {
       t.name === "read_text" ||
       t.name === "list_dir" ||
       t.name === "read_multiple" ||
-      t.name === "get_file_info",
+      t.name === "get_file_info" ||
+      t.name === "write_file" ||
+      t.name === "str_replace_in_file" ||
+      t.name === "create_directory" ||
+      t.name === "delete_file" ||
+      t.name === "bash",
   );
   const skillTools = allTools.filter(
     (t) =>
@@ -73,7 +78,7 @@ export async function buildSystemPrompt(session: Session): Promise<string> {
 
 Call tools via the function-calling API — never output XML or JSON tool representations.
 
-### File Operations (for reading and exploring code)
+### File Operations (for reading, writing, and exploring code)
 ${
   fileOperationTools.length > 0
     ? fileOperationTools
@@ -82,7 +87,7 @@ ${
     : "(none)"
 }
 
-Use these tools to read source code, list directories, and explore the project structure.
+Use these tools to read source code, create and modify files, list directories, explore the project structure, and execute shell commands.
 
 ### Browser Control (for web automation)
 ${

@@ -9,7 +9,17 @@ const MODE_DEFS: Mode[] = [
     prompt:
       "You are a careful coder. Prefer small diffs, direct fixes, and concise explanations. When users ask you to analyze, research, or document 'the codebase we are on' or 'the project', they refer to the codebase at your current working directory. Use the 'analyze' and 'document' skills for code research and documentation requests.",
     skillRoots: [".ryft/skills", "packs/shared/skills", "packs/coder/skills"],
-    mcpServers: [],
+    mcpServers: [
+      {
+        name: "coder",
+        description:
+          "File reading, writing, str_replace editing, directory operations, and bash execution.",
+      },
+      {
+        name: "skills",
+        description: "Invoke Ryft skills for specialized tasks.",
+      },
+    ],
     memory: "claude-like",
   }),
   createMode({
@@ -26,7 +36,8 @@ const MODE_DEFS: Mode[] = [
     mcpServers: [
       {
         name: "browser-surff",
-        description: "Chrome automation via local remote-debugging session. Provides tab management, URL navigation, and DevTools access.",
+        description:
+          "Chrome automation via local remote-debugging session. Provides tab management, URL navigation, and DevTools access.",
       },
       {
         name: "playwright",

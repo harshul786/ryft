@@ -205,12 +205,9 @@ export class McpClient {
       return typedResponse.tools || [];
     } catch (error) {
       const log = getFeatureLogger("MCP");
-      log.warn(
-        `Failed to list tools from ${this.config.id}`,
-        {
-          error: error instanceof Error ? error.message : String(error),
-        },
-      );
+      log.warn(`Failed to list tools from ${this.config.id}`, {
+        error: error instanceof Error ? error.message : String(error),
+      });
       return [];
     }
   }

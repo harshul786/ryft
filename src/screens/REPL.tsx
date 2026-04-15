@@ -29,6 +29,11 @@ import { createAbortController } from "../runtime/util.ts";
 import { invokeSkill } from "../tools/skill-tool.ts";
 import { COLORS, SPINNER_FRAMES, SPINNER_INTERVAL_MS } from "../ui/theme.ts";
 import { FileEditPreview } from "../components/FileEditPreview.tsx";
+import {
+  ToolCallPreview,
+  type ToolCallEntry,
+  type ToolCallStatus,
+} from "../components/ToolCallPreview.tsx";
 import { useTurnDiffs } from "../hooks/useTurnDiffs.ts";
 import type { Session } from "../runtime/session.ts";
 import type { ProviderType } from "../types.ts";
@@ -274,22 +279,55 @@ export const REPL: React.FC = () => {
           turn++
         ) {
           const pendingCalls = turnResult.toolCalls;
-          const toolNames = pendingCalls.map((t) => t.name).join(", ");
 
+          // Build structured tool call entries for the preview
+          const toolEntries: ToolCallEntry[] = pendingCalls.map((tc) => {
+            const registryMatches = session.toolRegistry.getToolsByName(tc.name);
+            const source =
+              registryMatches.length > 0
+                ? registryMatches[0]!.serverId
+                : "unknown";
+            return {
+              id: tc.id,
+              name: tc.name,
+              source,
+              input: tc.input as Record<string, unknown>,
+              status: "pending" as const,
+            };
+          });
+
+          // Show pending previews
           setAppState((prev) => ({
             ...prev,
-            messages: [
-              ...prev.messages,
-              {
-                role: "assistant" as const,
-                content: `⚙️ Running: ${toolNames}…`,
-              },
-            ],
+            activeToolCalls: toolEntries,
           }));
 
           const toolResults =
             await session.toolDispatcher.dispatchToolCalls(pendingCalls);
           session.appendToolResults(toolResults);
+
+          // Update entries with results
+          const completedEntries: ToolCallEntry[] = toolEntries.map((entry) => {
+            const result = toolResults.find(
+              (r) => r.tool_use_id === entry.id,
+            );
+            if (!result) return { ...entry, status: "success" as const };
+            // Preserve newlines so the preview can render multi-line output
+            const preview = typeof result.content === "string"
+              ? result.content.trim()
+              : "";
+            return {
+              ...entry,
+              status: (result.is_error ? "error" : "success") as ToolCallStatus,
+              resultPreview: preview || undefined,
+              isError: result.is_error ?? false,
+            };
+          });
+
+          setAppState((prev) => ({
+            ...prev,
+            activeToolCalls: completedEntries,
+          }));
 
           let followUpText = "";
           turnResult = await streamChatCompletion({
@@ -305,7 +343,12 @@ export const REPL: React.FC = () => {
           session.appendAssistantWithTools(followUpText, turnResult.toolCalls);
         }
 
-        setAppState((prev) => ({ ...prev, isAssistantResponding: false }));
+        // Clear tool call previews when the turn ends
+        setAppState((prev) => ({
+          ...prev,
+          isAssistantResponding: false,
+          activeToolCalls: [],
+        }));
       } catch (error) {
         const isAbortError =
           error instanceof Error && error.name === "AbortError";
@@ -318,6 +361,7 @@ export const REPL: React.FC = () => {
           setAppState((prev) => ({
             ...prev,
             isAssistantResponding: false,
+            activeToolCalls: [],
             messages: [
               ...prev.messages,
               { role: "assistant", content: `❌ Error: ${errorMsg}` },
@@ -330,6 +374,7 @@ export const REPL: React.FC = () => {
           setAppState((prev) => ({
             ...prev,
             isAssistantResponding: false,
+            activeToolCalls: [],
           }));
         }
 
@@ -793,6 +838,16 @@ export const REPL: React.FC = () => {
               changes={fileChanges}
               terminalWidth={termCols}
               showOnlyFirst={true}
+            />
+          </Box>
+        )}
+
+        {/* Tool call preview — rich inline display of active/completed tool calls */}
+        {appState.activeToolCalls.length > 0 && (
+          <Box flexDirection="column" marginBottom={1} marginTop={1}>
+            <ToolCallPreview
+              entries={appState.activeToolCalls}
+              spinnerFrame={spinnerFrame}
             />
           </Box>
         )}

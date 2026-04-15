@@ -16,12 +16,14 @@ npm start -- --cwd /Users/harshul/Desktop/Sentiment-Analysis
 ```
 
 Or with a relative path:
+
 ```bash
 cd /Users/harshul/Desktop/browser-agent/Ryft
 npm start -- --cwd ../Sentiment-Analysis
 ```
 
 **Why it works:**
+
 - The `--cwd` flag explicitly tells Ryft which directory contains the code you want to analyze
 - File reading tools automatically use this directory for resolving paths
 - This is the most reliable method for development/testing
@@ -46,12 +48,14 @@ ryft
 ```
 
 **Why it works:**
+
 - The `bin/ryft.js` wrapper script captures your current directory before changing to the Ryft installation
 - Exports `RYFT_ORIGINAL_CWD` environment variable
 - File tools automatically use this for path resolution
 - Works seamlessly from any directory
 
 **Uninstall if needed:**
+
 ```bash
 cd /Users/harshul/Desktop/browser-agent/Ryft
 npm unlink
@@ -73,11 +77,13 @@ npm start -- --cwd "$@"
 ```
 
 Make it executable:
+
 ```bash
 chmod +x ~/bin/ryft-analyze
 ```
 
 Use it:
+
 ```bash
 cd ~/Desktop/Sentiment-Analysis
 ryft-analyze .
@@ -97,6 +103,7 @@ You: can you see the codebase? list the files
 ```
 
 Ryft should respond with the actual files in your project directory:
+
 - ✅ For Sentiment-Analysis: `emotions.txt, main.py, main_nltk.py, read.txt, settings.py`
 - ✅ For Ryft itself: `src/, packs/, package.json, bin/, ...`
 
@@ -143,6 +150,7 @@ ryft  # If npm link was run
 ## How It Works Internally
 
 ### Without --cwd flag:
+
 ```
 User runs: npm start (from Ryft directory)
 ├─ process.cwd() = /Users/harshul/Desktop/browser-agent/Ryft
@@ -151,6 +159,7 @@ User runs: npm start (from Ryft directory)
 ```
 
 ### With --cwd flag:
+
 ```
 User runs: npm start -- --cwd ../Sentiment-Analysis
 ├─ CLI parses --cwd flag
@@ -160,6 +169,7 @@ User runs: npm start -- --cwd ../Sentiment-Analysis
 ```
 
 ### With global install (bin/ryft.js wrapper):
+
 ```
 User runs: cd /path/to/project && ryft
 ├─ Shell wrapper captures PWD beforechanging directories
@@ -176,11 +186,13 @@ User runs: cd /path/to/project && ryft
 ### Files still not found after using --cwd
 
 **Check:** Is the path absolute or relative?
+
 - Absolute: `/Users/harshul/Desktop/Sentiment-Analysis` ✅
 - Relative: `../Sentiment-Analysis` ✅
 - Wrong: `Sentiment-Analysis` (without leading ..) ❌
 
 **Fix:** Use absolute paths if uncertain:
+
 ```bash
 npm start -- --cwd /Users/harshul/Desktop/Sentiment-Analysis
 ```
@@ -188,11 +200,13 @@ npm start -- --cwd /Users/harshul/Desktop/Sentiment-Analysis
 ### Got "Tool execution failed" error
 
 **Check:** Does the directory actually exist?
+
 ```bash
 ls -la /Users/harshul/Desktop/Sentiment-Analysis
 ```
 
 **Check:** Are there permission issues?
+
 ```bash
 # Test read access
 head -1 /Users/harshul/Desktop/Sentiment-Analysis/main.py
@@ -205,6 +219,7 @@ head -1 /Users/harshul/Desktop/Sentiment-Analysis/main.py
 For regular development work:
 
 ### Quick Option
+
 ```bash
 # Put this in ~/.zshrc or ~/.bashrc:
 alias ryft='cd /Users/harshul/Desktop/browser-agent/Ryft && npm start -- --cwd'
@@ -215,6 +230,7 @@ ryft .
 ```
 
 ### Production Option
+
 ```bash
 # One time:
 cd /Users/harshul/Desktop/browser-agent/Ryft
