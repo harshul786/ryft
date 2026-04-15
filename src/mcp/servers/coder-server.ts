@@ -40,7 +40,9 @@ import {
 import { validateFile } from "../../tools/syntaxValidator";
 
 const execAsync = promisify(exec);
-const CWD = process.cwd();
+// Use RYFT_ORIGINAL_CWD (set by the CLI from --cwd or the user's shell CWD)
+// so that relative paths resolve against the user's project, not the Ryft install dir.
+const CWD = process.env.RYFT_ORIGINAL_CWD || process.cwd();
 
 // Initialize permission rules (can be overridden via environment or config)
 let permissionRules = loadPermissionRules({
