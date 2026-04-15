@@ -23,11 +23,26 @@ Use this skill when you need to:
 
 ## How to Use
 
-1. Analyze the code structure
-2. Identify key components to document
-3. Extract docstrings and comments
-4. Gather parameter and return types
-5. Create organized documentation
+1. **Read files** using the available file reading tools:
+   - `read_text(filePath)` - Read a single file (max 100KB)
+   - `read_multiple(filePaths)` - Read multiple files at once
+   - `list_dir(dirPath)` - List files to understand structure
+   
+2. Analyze the code structure and relationships
+3. Identify key components to document
+4. Extract docstrings, comments, and type information
+5. Create organized documentation with examples
+6. Structure the output in appropriate format (API docs, guide, etc.)
+
+## Available Tools
+
+When documenting, you have access to these file reading tools:
+- **read_text** - Read a file's content (text files up to 100KB)
+- **read_multiple** - Read multiple files simultaneously
+- **list_dir** - List directory contents to find relevant files
+- **get_file_info** - Get file metadata (size, type)
+
+These tools enable you to explore the codebase without CLI access limitations.
 
 ## Documentation Formats
 

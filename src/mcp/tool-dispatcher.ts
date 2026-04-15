@@ -3,6 +3,7 @@ import { ToolRegistry } from "./tool-registry.ts";
 import { McpClientPool } from "./client.ts";
 import type { BrowserLifecycleManager } from "../browser/lifecycle.ts";
 import { getFeatureLogger } from "../logging/index.ts";
+import { executeBuiltinTool } from "./builtin-tools.ts";
 
 export class ToolDispatcher {
   private readonly log = getFeatureLogger("ToolDispatcher");
@@ -48,6 +49,38 @@ export class ToolDispatcher {
     }
 
     const entry = matching[0]!;
+
+    // Handle built-in tools
+    if (entry.serverId === "builtin") {
+      try {
+        const result = await executeBuiltinTool(
+          toolUse.name,
+          toolUse.input as Record<string, unknown>,
+        );
+        this.log.info(`Built-in tool '${toolUse.name}' succeeded`, {
+          id: toolUse.id,
+          preview:
+            result.slice(0, 200) + (result.length > 200 ? "…" : ""),
+        });
+        return {
+          type: "tool_result",
+          tool_use_id: toolUse.id,
+          content: result,
+        };
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        this.log.warn(`Built-in tool '${toolUse.name}' failed`, {
+          id: toolUse.id,
+          error: errorMsg,
+        });
+        return {
+          type: "tool_result",
+          tool_use_id: toolUse.id,
+          content: `Error calling tool '${toolUse.name}': ${errorMsg}`,
+          is_error: true,
+        };
+      }
+    }
 
     // Handle on-demand browser initialization
     if (entry.serverId === "browser-surff" && this.browserLifecycle) {

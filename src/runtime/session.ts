@@ -25,6 +25,7 @@ import { BrowserLifecycleManager } from "../browser/lifecycle.ts";
 import { getModePacks } from "../modes/pack-loader.ts";
 import { McpServerRegistry } from "../mcp/registry.ts";
 import { initializeCoderMode, clearCoderState } from "./coderInit.ts";
+import { registerBuiltinTools } from "../mcp/builtin-tools.ts";
 
 export interface Session {
   config: SessionConfig;
@@ -83,6 +84,9 @@ export function createSession(config: SessionConfig): Session {
     mcpClients,
     browserLifecycle,
   );
+
+  // Register built-in tools (file reading, etc.) that are always available
+  registerBuiltinTools(toolRegistry);
 
   // Initialize token budget (default 4096 tokens for session)
   const tokenBudget = getGlobalTokenBudget(4096);
