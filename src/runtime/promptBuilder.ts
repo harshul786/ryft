@@ -16,9 +16,10 @@ export async function buildSystemPrompt(session: Session): Promise<string> {
   const browserModeActive = session.modes.some(
     (mode) => mode.name === "browser-surff",
   );
+  const cwd = session.config.cwd ?? process.cwd();
   const memoryPrompt = await buildMemoryPrompt({
     memoryMode: session.memoryMode,
-    cwd: session.config.cwd ?? process.cwd(),
+    cwd: cwd,
     homeDir: session.config.homeDir,
     sessionSnapshot: session.memoryState.snapshot,
   });
@@ -107,7 +108,7 @@ ${
 
   const systemPrompt = applyTokenCap(
     [
-      buildModePrompt(session.modes),
+      buildModePrompt(session.modes, cwd),
       memoryPrompt,
       skillsInstructions,
       toolsInstructions,
