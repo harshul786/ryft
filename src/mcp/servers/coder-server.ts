@@ -28,7 +28,7 @@ import {
 import { resolve, join } from "node:path";
 import { exec } from "node:child_process";
 import { promisify } from "node:util";
-import { fileState } from "../utils/fileState";
+import { fileState } from "../../utils/fileState";
 import {
   loadPermissionRules,
   canRead,
@@ -36,8 +36,8 @@ import {
   canDelete,
   canBash,
   type PermissionRules,
-} from "../config/permissions";
-import { validateFile } from "../tools/syntaxValidator";
+} from "../../config/permissions";
+import { validateFile } from "../../tools/syntaxValidator";
 
 const execAsync = promisify(exec);
 const CWD = process.cwd();
