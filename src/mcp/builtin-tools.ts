@@ -62,7 +62,7 @@ const BUILTIN_TOOLS: Array<{
       inputSchema: {
         type: "object" as const,
         properties: {
-          dirPath: {
+          path: {
             type: "string",
             description: "Path to directory (relative or absolute)",
           },
@@ -71,7 +71,7 @@ const BUILTIN_TOOLS: Array<{
             description: "Maximum items to list (default 1000)",
           },
         },
-        required: ["dirPath"],
+        required: ["path"],
       },
     },
     compressed: {
@@ -173,11 +173,11 @@ export async function executeBuiltinTool(
       }
 
       case "list_dir": {
-        const { dirPath, maxItems } = params as {
-          dirPath: string;
+        const { path, maxItems } = params as {
+          path: string;
           maxItems?: number;
         };
-        const result = await listDir(dirPath, maxItems);
+        const result = await listDir(path, maxItems);
         return JSON.stringify(result, null, 2);
       }
 
