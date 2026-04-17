@@ -330,16 +330,18 @@ export class McpClientPool {
    */
   async killAll(): Promise<void> {
     const log = getFeatureLogger("MCP");
-    for (const client of this.clients.values()) {
-      try {
-        await client.kill();
-      } catch (error) {
-        log.error(
-          "Error killing MCP client",
-          error instanceof Error ? error : new Error(String(error)),
-        );
-      }
-    }
+    await Promise.all(
+      Array.from(this.clients.values()).map(async (client) => {
+        try {
+          await client.kill();
+        } catch (error) {
+          log.error(
+            "Error killing MCP client",
+            error instanceof Error ? error : new Error(String(error)),
+          );
+        }
+      }),
+    );
   }
 
   /**

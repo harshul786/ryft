@@ -19,6 +19,14 @@
 
 Ryft is built for the developer who wants to compare answers, swap providers mid-stream, bring in browser automation when the UI is the source of truth, and keep the whole thing inside a fast CLI instead of a bloated orchestration layer.
 
+## Demo
+
+![Ryft CLI demo](docs/ryft-demo.gif)
+
+Ryft in about 30 seconds: open the REPL, inspect `/help`, switch to an
+Ollama-hosted `gemma4:e2b` model, choose `coder` mode, and write a file in the
+workspace without leaving the CLI.
+
 ## The Pitch
 
 | What matters | What Ryft gives you |

@@ -40,6 +40,7 @@ import {
   discoverProjectSkillDirs,
 } from "./config/skillSources.ts";
 import { initializeSkillWatcher } from "./skills/loader.ts";
+import type { FileWatcher } from "./utils/skillChangeDetector.ts";
 
 // Setup centralized error handling
 setupErrorHandlers();
@@ -262,13 +263,31 @@ async function main(): Promise<void> {
   await session.initializeMcpServers();
 
   // Initialize skill watcher for hot reload
-  let skillWatcher = null;
+  let skillWatcher: FileWatcher | null = null;
   try {
     skillWatcher = await initializeSkillWatcher(skillSources);
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
     console.warn(`[CLI] Failed to initialize skill watcher: ${reason}`);
   }
+
+  const closeSkillWatcher = async () => {
+    if (!skillWatcher) return;
+    try {
+      await skillWatcher.close();
+      DEBUG && console.debug("[CLI] Skill watcher closed");
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      DEBUG && console.debug(`[CLI] Error closing watcher: ${reason}`);
+    } finally {
+      skillWatcher = null;
+    }
+  };
+
+  const closePromptResources = async () => {
+    await closeSkillWatcher();
+    await session.cleanup();
+  };
 
   if (opts.prompt) {
     const prompt = await promptWithSession(session, opts.prompt);
@@ -346,6 +365,7 @@ async function main(): Promise<void> {
       process.stdout.write(`\n${renderStatusLine(session, response.usage)}`);
     }
     process.stdout.write("\n");
+    await closePromptResources();
     return;
   }
 
@@ -361,16 +381,7 @@ async function main(): Promise<void> {
   // Handle graceful exit
   process.on("SIGINT", async () => {
     unmount();
-    // Clean up skill watcher to prevent memory leaks
-    if (skillWatcher) {
-      try {
-        await skillWatcher.close();
-        DEBUG && console.debug("[CLI] Skill watcher closed");
-      } catch (error) {
-        const reason = error instanceof Error ? error.message : String(error);
-        DEBUG && console.debug(`[CLI] Error closing watcher: ${reason}`);
-      }
-    }
+    await closePromptResources();
     process.exit(0);
   });
 }

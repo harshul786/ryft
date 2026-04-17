@@ -55,8 +55,11 @@ function openBaseUrlPrompt(
         // If the user chose a non-native Ollama URL (e.g. a LiteLLM proxy), the
         // downstream endpoint speaks OpenAI-compatible protocol, not the native
         // Ollama /api/chat format.  Switch providerType so the right client is used.
+        const normalizedUrl = url.trim().toLowerCase();
+        const isNativeOllamaUrl =
+          normalizedUrl.length === 0 || !normalizedUrl.includes("/v1");
         const isProxiedOllama =
-          provider === "Ollama" && url && !url.includes(":11434");
+          provider === "Ollama" && url && !isNativeOllamaUrl;
         const finalModel: ModelOption = {
           ...model,
           baseUrl: url || undefined,

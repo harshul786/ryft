@@ -66,6 +66,7 @@ export interface Session {
   describeMcp(): string;
   describeBrowser(): string;
   initializeMcpServers(): Promise<void>;
+  cleanup(): Promise<void>;
 }
 
 export function createSession(config: SessionConfig): Session {
@@ -387,6 +388,22 @@ export function createSession(config: SessionConfig): Session {
           error instanceof Error ? error : new Error(String(error)),
         );
       }
+    },
+    async cleanup() {
+      try {
+        await browserLifecycle.cleanup();
+      } catch {
+        /* non-fatal */
+      }
+
+      try {
+        await mcpClients.clear();
+      } catch {
+        /* non-fatal */
+      }
+
+      clearCoderState();
+      session.abortController.abort();
     },
   };
 
