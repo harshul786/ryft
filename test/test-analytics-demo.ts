@@ -6,8 +6,8 @@
  * Shows how skills are tracked, how analytics are reported, and how data is exported.
  */
 
-import { SkillRegistry } from "./src/skills/registry.ts";
-import { getGlobalAnalyticsStore } from "./src/skills/analytics.ts";
+import { SkillRegistry } from "../src/skills/registry.ts";
+import { getGlobalAnalyticsStore } from "../src/skills/analytics.ts";
 
 async function main() {
   console.log("=".repeat(60));

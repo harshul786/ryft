@@ -3,8 +3,8 @@
 import chalk from "chalk";
 import readline from "node:readline/promises";
 import { stdin as input, stdout as output } from "node:process";
-import { interactiveModelSelectorWithSaved } from "./src/models/modelSelectorWithSaved.ts";
-import { createSession } from "./src/runtime/session.ts";
+import { interactiveModelSelectorWithSaved } from "../src/models/modelSelectorWithSaved.ts";
+import { createSession } from "../src/runtime/session.ts";
 
 const rl = readline.createInterface({ input, output });
 

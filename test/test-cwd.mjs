@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 /**
  * Test script to verify --cwd option works correctly
- * Usage: node test-cwd.mjs
+ * Usage: node test/test-cwd.mjs
  */
 
-import { spawn } from "node:child_process";
-import { resolve } from "node:path";
+import { readFileSync, existsSync } from "node:fs";
 
 console.log("Testing --cwd option for file tools...\n");
 
@@ -22,7 +21,6 @@ console.log("  Command: npm start -- --cwd /path/to/sentiment\n");
 
 // We can't easily test this with a running process, but we verified it in source code:
 console.log("  ✅ Source code check (src/cli.ts):");
-import { readFileSync } from "node:fs";
 const cliSource = readFileSync(`${ryftDir}/src/cli.ts`, "utf-8");
 if (cliSource.includes("process.env.RYFT_ORIGINAL_CWD = opts.cwd")) {
   console.log(
@@ -62,7 +60,6 @@ console.log("     4. Paths resolve correctly ✓\n");
 
 // Test 4: Verify documentation exists
 console.log("  ✅ Documentation check:");
-import { existsSync } from "node:fs";
 if (existsSync(`${ryftDir}/RUNNING_FROM_DIRECTORIES.md`)) {
   console.log("     - RUNNING_FROM_DIRECTORIES.md exists with usage examples");
 } else {
