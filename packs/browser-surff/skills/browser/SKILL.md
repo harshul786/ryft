@@ -59,7 +59,7 @@ Read the image and answer. This is the last resort — do not loop back to typin
 1. `browser_navigate` to the target URL
 2. `browser_snapshot` — read visible text content
 3. If the answer requires seeing visual elements: `browser_take_screenshot`
-4. If more content is needed below: `browser_mouse_wheel direction="down" amount=800` then `browser_snapshot`
+4. If more content is needed below: `browser_mouse_wheel` with `{"deltaY": 800}` then `browser_snapshot`
 5. Answer from what you see
 
 ---
@@ -86,6 +86,7 @@ Read the image and answer. This is the last resort — do not loop back to typin
 - **Stuck typing the same text repeatedly?** Stop. You are on a homepage. Use `browser_navigate` with a full search URL instead.
 - **Took a screenshot but still confused?** Re-read it carefully — the answer is likely already visible. Do not type or navigate again.
 - **Same screenshot twice (same byte size)?** The page has not changed. Use `browser_evaluate` with `document.body.innerText` to get the text, then answer.
+- **Scrolling but nothing changes?** Check `document.documentElement.scrollTop` via `browser_evaluate`. If the value stays the same across scrolls, `browser_mouse_wheel` is not working. Switch to `browser_press_key` with `key="PageDown"`. Never call the same scroll tool more than 4 times without verifying position changed.
 - **After typing in a field, action seems stuck?** Follow with `browser_press_key key="Enter"` to submit.
   | Type into a focused input field | `browser_type` |
   | Fill a form field by selector | `browser_fill_form` |

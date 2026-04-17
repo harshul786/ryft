@@ -30,6 +30,7 @@
  */
 
 import { ChildProcess, spawn } from "node:child_process";
+import { homedir } from "node:os";
 import type {
   McpServerConfig,
   McpServerInstance,
@@ -65,7 +66,14 @@ export class McpClient {
 
       const log = getFeatureLogger("MCP");
 
-      this.process = spawn(this.config.command, this.config.args || [], {
+      // Expand $HOME / ~ in args so pack.json can use portable home-dir paths
+      const expandArg = (arg: string) =>
+        arg
+          .replace(/^\$HOME/, homedir())
+          .replace(/^~\//, `${homedir()}/`);
+      const expandedArgs = (this.config.args || []).map(expandArg);
+
+      this.process = spawn(this.config.command, expandedArgs, {
         env: { ...process.env, ...this.config.env },
         // "pipe" for all three fds — child stderr must NOT inherit the parent's
         // terminal fd or child startup noise will write directly to the terminal

@@ -1,5 +1,9 @@
 import type { ChatMessage, Usage, ToolUseContentPart } from "../types.ts";
-import { getFeatureLogger } from "../logging/index.ts";
+import {
+  getFeatureLogger,
+  logLLMRequest,
+  logLLMResponse,
+} from "../logging/index.ts";
 
 // ─── Internal streaming types ─────────────────────────────────────────────────
 
@@ -157,6 +161,17 @@ export async function streamChatCompletion({
 }: StreamChatCompletionInput): Promise<StreamChatCompletionResult> {
   const log = getFeatureLogger("OpenAIClient");
 
+  // Log the complete LLM request
+  logLLMRequest({
+    baseUrl,
+    model,
+    providerType: "openai-compatible",
+    messages,
+    temperature,
+    maxTokens,
+    tools,
+  });
+
   const headers: Record<string, string> = {
     "content-type": "application/json",
   };
@@ -309,6 +324,14 @@ export async function streamChatCompletion({
       tools: toolCalls.map((t) => t.name).join(", "),
     });
   }
+
+  // Log the complete LLM response
+  logLLMResponse({
+    model,
+    usage: usage || undefined,
+    responseText: assistantText,
+    toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+  });
 
   return { usage, text: assistantText, toolCalls };
 }

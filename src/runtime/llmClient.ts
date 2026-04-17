@@ -27,7 +27,11 @@ import type {
   ProviderType,
   ThinkingConfig,
 } from "../types.ts";
-import { getFeatureLogger } from "../logging/index.ts";
+import {
+  getFeatureLogger,
+  logLLMRequest,
+  logLLMResponse,
+} from "../logging/index.ts";
 
 // ─── Provider type detection ──────────────────────────────────────────────────
 
@@ -332,6 +336,18 @@ export async function streamChatCompletion({
 
   log.info("Starting stream", { model, provider: resolvedProvider });
 
+  // Log the complete LLM request with all details
+  logLLMRequest({
+    baseUrl: baseUrl ?? "",
+    model,
+    providerType: resolvedProvider,
+    messages,
+    temperature,
+    maxTokens,
+    tools,
+    thinkingConfig,
+  });
+
   // Build the provider-specific model instance
   let chatModel = buildChatModel({
     modelId: model,
@@ -477,6 +493,14 @@ export async function streamChatCompletion({
       output_tokens: meta.output_tokens ?? 0,
     };
   }
+
+  // Log the complete LLM response
+  logLLMResponse({
+    model,
+    usage,
+    responseText: assistantText,
+    toolCalls: toolCalls.length > 0 ? toolCalls : undefined,
+  });
 
   return {
     usage,

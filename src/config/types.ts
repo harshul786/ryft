@@ -36,6 +36,17 @@ export interface ConfigFile {
   // Logging and UI settings
   logLevel?: "debug" | "info" | "warn" | "error";
   showTokens?: boolean;
+
+  // LLM request logging configuration
+  llmRequestLogging?: {
+    enabled?: boolean; // enable/disable LLM request logging
+    logRequests?: boolean; // log incoming requests
+    logResponses?: boolean; // log outgoing responses
+    logSystemPrompt?: boolean; // include full system prompt in logs
+    logMessages?: boolean; // include all messages in logs
+    logTools?: boolean; // include tool definitions in logs
+    truncateAt?: number; // truncate long content at this length (default 500)
+  };
 }
 
 export interface ParsedConfig extends ConfigFile {
@@ -68,6 +79,15 @@ export const CONFIG_DEFAULTS: Required<ConfigFile> = {
   ollamaBaseUrl: "",
   logLevel: "info",
   showTokens: true,
+  llmRequestLogging: {
+    enabled: false,
+    logRequests: true,
+    logResponses: true,
+    logSystemPrompt: true,
+    logMessages: true,
+    logTools: true,
+    truncateAt: 500,
+  },
 };
 
 export const VALID_MEMORY_MODES = ["normal", "hierarchy", "session"] as const;

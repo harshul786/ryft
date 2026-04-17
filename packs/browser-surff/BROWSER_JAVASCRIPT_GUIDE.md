@@ -91,13 +91,17 @@ if (container) {
 return { scrolled: false };
 ```
 
-#### Example: Wait for lazy-loaded content after scroll
+#### Example: Scroll and return scroll position
 ```javascript
 window.scrollBy(0, 1200);
-// Wait for new content to load
-await new Promise(r => setTimeout(r, 1000));
-return { message: 'Scrolled and waited for content' };
+// Do NOT use await/async — browser_evaluate is synchronous only
+// Use browser_mouse_wheel instead for scrolling with built-in wait
+return { scrollY: window.scrollY, scrollHeight: document.body.scrollHeight };
 ```
+
+> **IMPORTANT**: Never use `await` or `async` inside `browser_evaluate` scripts.
+> Playwright serializes the function and async functions are **not well-serializable**.
+> For scrolling, always prefer `browser_mouse_wheel` which handles timing automatically.
 
 ---
 
@@ -175,37 +179,26 @@ return { success: false };
 
 **Solution**: Use `MutationObserver` or simple polling with `setTimeout`.
 
-#### Example: Wait for element to appear
+#### Example: Check if element is present (synchronous)
 ```javascript
-async function waitForElement(selector, timeout = 5000) {
-  const start = Date.now();
-  while (Date.now() - start < timeout) {
-    const el = document.querySelector(selector);
-    if (el) return el;
-    await new Promise(r => setTimeout(r, 200));
-  }
-  return null;
-}
-
-const element = await waitForElement('.new-post-card', 3000);
-return { found: !!element };
+// Do NOT use async/await — browser_evaluate is synchronous only
+const el = document.querySelector('.new-post-card');
+return { found: !!el };
+// Then use browser_wait_for tool if you need to wait for the element to appear
 ```
 
-#### Example: Wait for loader to disappear
+#### Example: Check if loader is gone (synchronous)
 ```javascript
-async function waitForContentLoad(timeout = 3000) {
-  const start = Date.now();
-  while (Date.now() - start < timeout) {
-    const loader = document.querySelector('.loading, [role="progressbar"]');
-    if (!loader) return true;
-    await new Promise(r => setTimeout(r, 100));
-  }
-  return false;
-}
-
-const loaded = await waitForContentLoad(2000);
-return { loaded };
+// Do NOT use async/await — browser_evaluate is synchronous only
+const loader = document.querySelector('.loading, [role="progressbar"]');
+return { loading: !!loader };
+// Use browser_wait_for tool to wait for the loader to disappear
 ```
+
+> **CRITICAL**: `browser_evaluate` scripts MUST be synchronous. Never use `async`, `await`, or
+> `new Promise()` inside a `browser_evaluate` script — Playwright will throw
+> "Passed function is not well-serializable!".
+> Use `browser_wait_for` (the MCP tool) to wait for elements/state changes between steps.
 
 ---
 

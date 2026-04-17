@@ -45,8 +45,6 @@ initializeCommands();
 // ── Module-level constants ────────────────────────────────────────────────────
 
 const MAX_TOOL_TURNS = 1000;
-// Max retries when model returns empty (no text + no tool calls) mid-loop
-const MAX_EMPTY_RETRIES = 3;
 
 const TOOL_ATTEMPT_PATTERN =
   /INVOKE_SKILL:|INVOKE_TOOL:|\bI (?:have |will |am )?(?:edited|wrote|created|inserted|deleted|updated|written|saved|modified)\b/i;
@@ -490,48 +488,14 @@ export const REPL: React.FC = () => {
             break;
           }
 
-          // Retry when model returns completely empty (no text AND no tool calls)
-          let emptyRetries = 0;
-          while (
-            followUpText.trim() === "" &&
-            turnResult.toolCalls.length === 0 &&
-            emptyRetries < MAX_EMPTY_RETRIES &&
-            !session.abortController.signal.aborted
-          ) {
-            emptyRetries++;
-            log.warn(
-              `Model returned empty response in tool loop, retrying (${emptyRetries}/${MAX_EMPTY_RETRIES})`,
-            );
-            session.appendUser("Continue.");
-            followUpText = "";
-            turnResult = await streamChatCompletion({
-              ...baseStreamConfig,
-              messages: session.history,
-              tools: formattedTools,
-              onDelta: (chunk) => {
-                followUpText += chunk;
-                patchLastAssistant(followUpText);
-              },
-            });
-          }
-
           if (
             followUpText.trim() === "" &&
             turnResult.toolCalls.length === 0 &&
             !session.abortController.signal.aborted
           ) {
-            setAppState((prev) => ({
-              ...prev,
-              messages: [
-                ...prev.messages,
-                {
-                  role: "assistant" as const,
-                  content:
-                    "⚠️ The model stopped responding mid-task (empty response after tool calls). " +
-                    'Try typing "continue" to resume, or rephrase your request.',
-                },
-              ],
-            }));
+            log.warn(
+              "Model returned empty response after tool calls — stopping turn.",
+            );
           }
 
           session.appendAssistantWithTools(followUpText, turnResult.toolCalls);

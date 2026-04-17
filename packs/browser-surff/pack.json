@@ -31,7 +31,13 @@
       "name": "Playwright Browser",
       "description": "Rich browser automation: navigate pages, click elements, type text, scroll, take screenshots, fill forms, upload files, select options, and evaluate JavaScript.",
       "command": "node",
-      "args": ["node_modules/@playwright/mcp/cli.js"],
+      "args": [
+        "node_modules/@playwright/mcp/cli.js",
+        "--caps",
+        "vision",
+        "--output-dir",
+        "$HOME/.ryft/browser-output"
+      ],
       "env": {
         "NODE_ENV": "production"
       }

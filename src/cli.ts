@@ -29,7 +29,11 @@ import { runOnboarding } from "./onboarding/onboardingFlow.ts";
 import { Root } from "./components/Root.tsx";
 import { setupErrorHandlers, cliError } from "./cli/exit.ts";
 import { handleLogsCommand } from "./commands/logs.ts";
-import { logger, getFeatureLogger } from "./logging/index.ts";
+import {
+  logger,
+  getFeatureLogger,
+  initLLMRequestLogger,
+} from "./logging/index.ts";
 import {
   type SkillSourcesConfig,
   DEFAULT_SKILL_SOURCES,
@@ -149,6 +153,9 @@ async function main(): Promise<void> {
   // Load config with precedence: defaults < global config < workspace config < CLI flags
   let config = loadConfig();
   config = applyCliOverrides(config, opts);
+
+  // Initialize LLM request logger with config
+  initLLMRequestLogger(config);
 
   // Resolve modes from config or CLI
   const modes = opts.mode ?? config.defaultModes ?? ["coder"];
